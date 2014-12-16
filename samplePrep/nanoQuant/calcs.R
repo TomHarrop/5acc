@@ -38,6 +38,8 @@ nanoQuantData <- subset(nanoQuantData, select = -c(OR.sample))
 
 nanoQuantData <- nanoQuantData[,c(7,8,1:6)]
 
+saveRDS(nanoQuantData,file = 'nanoQuandData.RDS')
+
 colnames(nanoQuantData) <- gsub('\\.', '\n', colnames(nanoQuantData))
 colnames(nanoQuantData) <- gsub('\nratio', '\n260/280', colnames(nanoQuantData))
 
