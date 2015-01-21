@@ -3,6 +3,7 @@ setwd('/home/tom/Desktop/5accessions/samplePrep/qPCR/Nipponbare')
 library(ReadqPCR)
 library(NormqPCR)
 library(ggplot2)
+library(scales)
 
 ############
 ### MUNG ###
@@ -32,9 +33,9 @@ write.table(LC480.absQuant.munged, sep = '\t', file = 'LC480.munged.txt', quote 
 data <- read.qPCR('LC480.munged.txt')
 
 ## manually set values above maximum validated for each cutoff to NA
-exprs(data)[grepl('LOC_Os11g06390',rownames(exprs(data))),][exprs(data)[grepl('LOC_Os11g06390',rownames(exprs(data))),] > 27.7] <- NA
-exprs(data)[grepl('LOC_Os03g60180',rownames(exprs(data))),][exprs(data)[grepl('LOC_Os03g60180',rownames(exprs(data))),] > 32.5] <- NA
-exprs(data)[grepl('ACT1',rownames(exprs(data))),][exprs(data)[grepl('ACT1',rownames(exprs(data))),] > 35] <- NA
+exprs(data)[grepl('LOC_Os11g06390',rownames(exprs(data))),][exprs(data)[grepl('LOC_Os11g06390',rownames(exprs(data))),] > 27.7] <- Inf
+exprs(data)[grepl('LOC_Os03g60180',rownames(exprs(data))),][exprs(data)[grepl('LOC_Os03g60180',rownames(exprs(data))),] > 32.5] <- Inf
+exprs(data)[grepl('ACT1',rownames(exprs(data))),][exprs(data)[grepl('ACT1',rownames(exprs(data))),] > 35] <- Inf
 exprs(data)[grepl('LHS1',rownames(exprs(data))),][exprs(data)[grepl('LHS1',rownames(exprs(data))),] > 35] <- Inf
 
 # make case-control matrix to deal with borderline calls
@@ -62,17 +63,62 @@ results.N2 <- deltaDeltaCq(qPCRBatch = data, hkgs = hkgs, contrastM = stageMatri
 results.N3 <- deltaDeltaCq(qPCRBatch = data, hkgs = hkgs, contrastM = stageMatrix, case = "N3", control = "N4", hkgCalc = 'geom')
 results.N4 <- deltaDeltaCq(qPCRBatch = data, hkgs = hkgs, contrastM = stageMatrix, case = "N4", control = "N4", hkgCalc = 'geom')
 
-# plot
-resultsList <- lapply(list(results.N1,results.N2,results.N3, results.N4), function(x) x[2,c(6:8)])
+# calculate CIs
+getCIs <- function(x){
+  resSub <- subset(x, ID == 'LHS1', select = c('2^-ddCt', '2^-ddCt.min', '2^-ddCt.max'))
+  resSub <- apply(resSub, 2, as.numeric)
+  resSub[is.na(resSub)] <- 0
+  CImax <- (1.96 * resSub["2^-ddCt.max"]) - (0.96 * resSub["2^-ddCt"])
+  CImin <- (1.96 * resSub["2^-ddCt.min"]) - (0.96 * resSub["2^-ddCt"])
+  output <- c(resSub, CImin=CImin, CImax=CImax)
+  names(output) <- c('2^-ddCt', '2^-ddCt.min', '2^-ddCt.max', 'CI95min', 'CI95max')
+  return(output)
+}
+
+resultsList <- lapply(list(results.N1,results.N2,results.N3, results.N4), getCIs)
 names(resultsList) <- c("N1", 'N2', 'N3', 'N4')
+
+# t-tests
+t.testFromMeans <- function(x1, x2, sd1, sd2, n1, n2) {
+  df <- n1 + n2 -2
+  poolvar <- (((n1-1) * sd1^2) + ((n2 - 1) * sd2^2))/df
+  t <- (x1 - x2) / sqrt(poolvar * ((1 / n1) + (1 / n2)))
+  sig <- 2 * (1 - (pt(abs(t), df)))
+  output <- c(t, sig, df)
+  names(output) <- c('t', 'p', 'df')
+  return(output)
+}
+
 plotData <- do.call(rbind, resultsList)
 plotData <- data.frame(apply(plotData, 2, function(x) as.numeric(x)))
-names(plotData) <- c('value', 'min', 'max')
-plotData$Stage <- factor(c("Rachis Meristem", 'Branch Meristem', 'Spikelet Meristem', 'Floret Meristem'), levels = c("Rachis Meristem", 'Branch Meristem', 'Spikelet Meristem', 'Floret Meristem'))
+names(plotData) <- c('value', 'min', 'max', 'CI95min', 'CI95max')
+plotData$Stage <- factor(c("Rachis\nMeristem", 'Branch\nMeristem', 'Spikelet\nMeristem', 'Floret\nMeristem'), levels = c("Rachis\nMeristem", 'Branch\nMeristem', 'Spikelet\nMeristem', 'Floret\nMeristem'))
 
-g <- ggplot(plotData, aes(x = Stage, y = value, ymin = min, ymax = max))
-g + theme_minimal(base_size = 12) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  geom_bar(stat = 'identity', fill = 'grey', colour = 'black') + geom_errorbar(width = 0.2)+
-  xlab(NULL) + ylab(expression(atop('Relative expression normalised to 3 HKs',(2^{- Delta * Delta * C[t]} %+-% SD))))
+plotData$p <- c(0, sapply(c(2:4), function(i) t.testFromMeans(
+  resultsList[[i]]["2^-ddCt"], # x1
+  resultsList[[i - 1]]["2^-ddCt"], # x2
+  resultsList[[i]]["2^-ddCt"] - resultsList[[i]]["2^-ddCt.min"], # sd1
+  resultsList[[i - 1]]["2^-ddCt.max"] - resultsList[[i - 1]]["2^-ddCt"], # sd2
+  3,3)['p']))
+plotData$eqn <- paste("italic(p) == ", gsub("e", "%*% 10 ^", scientific(plotData$p, digits = 3)), sep = ' ')
 
-ggsave('LHS1_Nipponbare.pdf', height = 170*2/3, width = 257*2/3, units = 'mm')
+plotData['eqn'][!plotData['p'] > 0] <- NA
+plotData$eqn[is.nan(plotData$p)] <- NA
+
+g <- ggplot(plotData, aes(x = Stage, y = value, ymin = CI95min, ymax = CI95max))
+g <- g + theme_minimal(base_size = 12) + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  geom_bar(stat = 'identity', fill = 'grey', colour = 'black') + geom_errorbar(width = 0.2) +
+  xlab(NULL) + ylab(expression(atop('Normalised relative expression',(2^{- Delta * Delta * C[t]} %+-% "95% CI, " *italic(n) == 3 ))))
+
+# add the annotated p-value. Could 'dodge' it to the left to get p-value label on line segment
+g <- g + geom_text(aes(y = CI95max+0.05, label = eqn), size = 3, parse = TRUE, angle = 90, vjust = 0.5, hjust = 0) + ylim(c(0,2))
+
+
+
+g + annotate('segment', x = 2, xend = 3, y = plotData[3,'CI95max'] + 0.1, yend = plotData[3,'CI95max'] + 0.1, colour = 'black') +
+  annotate('segment', x = 3, xend = 3, y = plotData[3,'CI95max'] + 0.05, yend = plotData[3,'CI95max'] + 0.1, colour = 'black') +
+  annotate('segment', x = 2, xend = 2, y = plotData[2,'CI95max'] + 0.05, yend = plotData[3,'CI95max'] + 0.1, colour = 'black')
+
+plotData[3, 'p']
+
+ggsave('LHS1_Nipponbare.pdf', height = 170*2/3, width = 257*2/4, units = 'mm')
