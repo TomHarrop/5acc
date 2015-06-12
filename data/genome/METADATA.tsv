@@ -1,0 +1,5 @@
+[ Script ]	src/sh/downloadGenomes.sh
+[ Genome / annotation download date ]	Fri Jun 12 14:09:41 CEST 2015
+[ Osativa_204_v7.0 URL ]	http://genome.jgi.doe.gov/Osativa/download/_JAMO/53112abc49607a1be00559bc/Osativa_204_v7.0.fa.gz
+[ Osativa_204_v7.0.gene_exons URL ]	http://genome.jgi.doe.gov/Osativa/download/_JAMO/53112ab649607a1be00559b0/Osativa_204_v7.0.gene_exons.gff3.gz
+[ cuffcompare version ]	cuffcompare v2.2.1 (4237)
