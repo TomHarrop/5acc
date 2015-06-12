@@ -4,6 +4,15 @@ library(ggplot2)
 library(Mfuzz)
 library(data.table)
 
+# set variables
+scriptName <- 'quickFig'
+outputBasename <- paste(
+  Sys.Date(),
+  scriptName,
+  sep = "-"
+)
+
+
 # get a list of htseq files
 htdirs <- dir("output/", pattern = 'htseq')
 directory <- paste0('output/', htdirs[length(htdirs)])
@@ -119,17 +128,13 @@ ggplot() +
   theme(strip.text = element_text(face = 'italic'),
         axis.ticks = element_blank(),
         axis.text = element_text(size = 10))
-ggsave('output/pdf/dodgyPlot.pdf', width = 16, height = 8,
+
+# output
+
+pdfLocation <- paste0('fig/', outputBasename, '.pdf')
+logLocation <- paste0('fig/', outputBasename, '.sessionInfo.txt')
+
+ggsave(pdfLocation, width = 16, height = 8,
        units = 'in')
 
-q()
-n
-# make a plot
-
-ggplot(plotData, aes(x = africa, y = japonica)) +
-  geom_point()
-
-
-DESeq2::resultsNames(dds)
-
-apply(DESeq2::counts(dds), 2, sum)
+writeLines(capture.output(sessionInfo()), logLocation)
