@@ -27,6 +27,8 @@
 
 ############################################################
  
+export LANG="en_AU.UTF-8"
+ 
 path_to_dir="/data/projects/evoreprice/Tom"
 path_to_tmp="/scratch/tom-$JOB_ID"
 path_to_out="/scratch/tom-$JOB_ID-out"
@@ -43,7 +45,7 @@ index_dir=/data/projects/evoreprice/Tom/star/index
 ###### Create temporary folders on node
 mkdir -p $path_to_tmp
 mkdir -p $path_to_out/$library_name
-echo -e "\n[ `date`: Data transfer master -> node ]\n"
+echo -e "\n[ `date`: Data transfer master -> node ]"
 scp -rp $fwd_read_file $R1
 scp -rp $rev_read_file $R2
 
@@ -54,19 +56,17 @@ ls -la $path_to_tmp/
 gff=$path_to_tmp/genome/Osativa_204_v7.0.gene_exons.rRNAremoved.gff3
 fasta=$path_to_tmp/genome/Osativa_204_v7.0.fa
 
-# ENCODE options
-# cmd="/usr/local/STAR-2.4.1.c/source/STAR --runThreadN 4 --genomeDir $index_dir --readFilesIn $R1 $R2 --outFilterType BySJout --outFilterMultimapNmax 20 --alignSJoverhangMin 8 --alignSJDBoverhangMin 1 --outFilterMismatchNmax 999 --outFilterMismatchNoverLmax 0.04 --alignIntronMin 20 --alignIntronMax 1000000 --alignMatesGapMax 1000000 --outFileNamePrefix $path_to_out/$library_name. --outSAMtype BAM Unsorted --outSJfilterReads Unique --outSJfilterCountUniqueMin 5 5 5 5 --outSJfilterCountTotalMin 5 5 5 5 --outSJfilterIntronMaxVsReadN 5000"
 # default options
-cmd="/usr/local/STAR-2.4.1.c/source/STAR --runThreadN 4 --genomeDir $index_dir --readFilesIn $R1 $R2 --outFileNamePrefix $path_to_out/$library_name. --outSAMtype BAM Unsorted"
-
-echo -e "\n[ `date`: Running command ]\n$cmd\n"
-$cmd
+echo -e "\n[ `date`: Running STAR ]"
+/home/harrop/dl/STAR/source/STAR --runThreadN 4 --genomeDir $index_dir \
+	--readFilesIn $R1 $R2 --outFileNamePrefix $path_to_out/$library_name. \
+	--outSAMtype BAM Unsorted
 
 ##### Transfer results
-echo -e "\n[ `date`: Results transfer node -> master ]\n"
+echo -e "\n[ `date`: Results transfer node -> master ]"
 rcp -rp $path_to_out $path_to_dir
 
 #### Suppression du repertoire tmp noeud
-echo -e "\n[ `date`: Deleting temporary files on node ]\n"
+echo -e "\n[ `date`: Deleting temporary files on node ]"
 rm -rf $path_to_tmp
 rm -rf $path_to_out
