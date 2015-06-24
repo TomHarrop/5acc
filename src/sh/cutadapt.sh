@@ -14,9 +14,22 @@ if [[ ! -d $outdir ]]; then
 	mkdir -p $outdir
 fi
 
+# catch sigkill
+clean_up() {
+	# remove temp files before exit
+	echo -e "[ "$(date)" : Script aborted ]"
+	# email output
+	NOW="$(date)"
+	MESSAGE="$(cat /tmp/cutadapt."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out)"
+	printf "To: thomas.harrop@ird.fr\nFrom: schinkendosen@gmail.com\nSubject: [Tom@SLURM] Job "$SLURM_JOBID" aborted\nJob "$SLURM_JOBID" submitted at $THEN was aborted.\n\nConcatenated stdout files:\n\n$MESSAGE" | msmtp thomas.harrop@ird.fr
+	mv /tmp/cutadapt."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out "$outdir"/
+	exit 1
+}
+trap clean_up SIGHUP SIGINT SIGTERM
+
 # parameters
-adaptorFwd='TruSeq_adaptor=GATCGGAAGAGCACACGTCTGAACTCCAGTC'
-adaptorRev='Illumina_single_end=GATCGGAAGAGCGTCGTGTAGGGAAAGAGTG'
+adaptorFwd='TruSeq_adaptor=AGATCGGAAGAGCACACGTCTGAACTCCAGTC'
+adaptorRev='Illumina_single_end=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTG'
 trim_qualities=20
 minimum_length=50
 
@@ -36,7 +49,7 @@ for fwd_reads in $(ls data/reads/*R1.fastq.gz); do
 	echo -e "Running cutadapt:\n[ lib_name ]:\t$lib_name\n[ fwd_reads ]:\t$fwd_reads\n[ rev_reads ]:\t$rev_reads\n[ R1 out ]:\t$output\n[ R2 out ]:\t$paired_output"
 	# run cutadapt
 	cmd="cutadapt -a $adaptorFwd -A $adaptorRev --quality-cutoff=$trim_qualities --minimum-length $minimum_length --output=$output --paired-output=$paired_output $fwd_reads $rev_reads"
-	srun --exclusive --ntasks=1 --cpus-per-task=1 $cmd &
+	srun --output $outdir/$lib_name.out --exclusive --ntasks=1 --cpus-per-task=1 $cmd &
 done
 
 echo -e "[ "$(date)": Waiting for jobs to finish ]"
@@ -48,9 +61,11 @@ echo -e "[ "$(date)": Jobs finished, tidying up ]"
 # log metadata
 version="$(cutadapt --version)"
 echo -e \
-"[ Script ]\t${0}
-[ cutadapt version ]\t$version
-[ date ]\t$(date +%F)" > $outdir/METADATA.tsv
+"script\t${0}
+branch\t$(git rev-parse --abbrev-ref HEAD)
+hash\t$(git rev-parse HEAD)
+date\t$(date +%F)
+cutadapt version\t$version" > $outdir/METADATA.tsv
 
 # email output
 NOW="$(date)"
