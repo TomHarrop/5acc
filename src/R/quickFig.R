@@ -12,7 +12,6 @@ outputBasename <- paste(
   sep = "-"
 )
 
-
 # get a list of htseq files
 htdirs <- dir("output/", pattern = 'htseq')
 directory <- paste0('output/', htdirs[length(htdirs)])
