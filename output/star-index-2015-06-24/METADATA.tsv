@@ -1,7 +1,7 @@
-Script	/var/lib/slurm-llnl/slurmd/job02425/slurm_script
+Script	/var/lib/slurm-llnl/slurmd/job02436/slurm_script
 STAR version	STAR_2.4.2a
 date	2015-06-24
 genomeFastaFiles	data/genome/Osativa_204_v7.0.fa
 sjdbGTFfile	data/genome/Osativa_204_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf
-sjdbGTFtagExonParentTranscript	gene_name
+sjdbGTFtagExonParentTranscript	oId
 sjdbOverhang	109

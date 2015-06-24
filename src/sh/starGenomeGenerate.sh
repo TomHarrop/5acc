@@ -34,26 +34,27 @@ sjdbGTFtagExonParentTranscript="oId"
 sjdbGTFtagExonParentGene="gene_name"
 sjdbOverhang=109
 
+# log metadata
+version="$(STAR --version)"
+echo -e \
+"Script\t${0}
+branch\t$(git rev-parse --abbrev-ref HEAD)
+hash\t$(git rev-parse HEAD)
+date\t$(date +%F)
+STAR version\t$version
+genomeFastaFiles\t$genomeFastaFiles
+sjdbGTFfile\t$sjdbGTFfile
+sjdbOverhang\t$sjdbOverhang" > $outdir/METADATA.tsv
+
 echo -e "[ "$(date)": Submitting job ]\ngenomeFastaFiles:\t\t$genomeFastaFiles\nsjdbGTFfile:\t\t\t$sjdbGTFfile\nsjdbGTFtagExonParentTranscript:\t$sjdbGTFtagExonParentTranscript\nsjdbOverhang:\t\t\t$sjdbOverhang"
 
-cmd="STAR --runThreadN 6 --runMode genomeGenerate --genomeDir $outdir --genomeFastaFiles $genomeFastaFiles --sjdbGTFfile $sjdbGTFfile --sjdbGTFtagExonParentTranscript $sjdbGTFtagExonParentTranscript --sjdbOverhang $sjdbOverhang"
+cmd="STAR --runThreadN 6 --runMode genomeGenerate --genomeDir $outdir --genomeFastaFiles $genomeFastaFiles --sjdbGTFfile $sjdbGTFfile --sjdbGTFtagExonParentTranscript $sjdbGTFtagExonParentTranscript --sjdbGTFtagExonParentGene $sjdbGTFtagExonParentGene --sjdbOverhang $sjdbOverhang"
 
 srun --output $outdir/stargg.out --exclusive --ntasks=1 --cpus-per-task=6 $cmd &
 
 echo -e "[ "$(date)": Waiting for jobs to finish ]"
 wait
 echo -e "[ "$(date)": Jobs finished, tidying up ]"
-
-# log metadata
-version="$(STAR --version)"
-echo -e \
-"Script\t${0}
-STAR version\t$version
-date\t$(date +%F)
-genomeFastaFiles\t$genomeFastaFiles
-sjdbGTFfile\t$sjdbGTFfile
-sjdbGTFtagExonParentTranscript\t$sjdbGTFtagExonParentTranscript
-sjdbOverhang\t$sjdbOverhang" > $outdir/METADATA.tsv
 
 # email output
 NOW="$(date)"
