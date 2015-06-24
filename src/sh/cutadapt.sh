@@ -16,7 +16,7 @@ fi
 
 # log metadata
 version="$(cutadapt --version)"
-cat -t <<- _EOF_ > $outdir/METADATA.tsv
+cat -t <<- _EOF_ > $outdir/METADATA.csv
 	script,${0}
 	branch,$(git rev-parse --abbrev-ref HEAD)
 	hash,$(git rev-parse HEAD)
