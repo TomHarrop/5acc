@@ -37,15 +37,16 @@ outFileNamePrefix="$outdir/"
 
 # log metadata
 version="$(STAR --version)"
-echo -e \
-"Script\t${0}
-branch\t$(git rev-parse --abbrev-ref HEAD)
-hash\t$(git rev-parse HEAD)
-date\t$(date +%F)
-STAR version\t$version
-genomeFastaFiles\t$genomeFastaFiles
-sjdbGTFfile\t$sjdbGTFfile
-sjdbOverhang\t$sjdbOverhang" > $outdir/METADATA.tsv
+cat -t <<- _EOF_ > $outdir/METADATA.csv
+	Script,${0}
+	branch,$(git rev-parse --abbrev-ref HEAD)
+	hash,$(git rev-parse HEAD)
+	date,$(date +%F)
+	STAR version,$version
+	genomeFastaFiles,$genomeFastaFiles
+	sjdbGTFfile,$sjdbGTFfile
+	sjdbOverhang,$sjdbOverhang
+_EOF_
 
 echo -e "[ "$(date)": Submitting job ]\ngenomeFastaFiles:\t\t$genomeFastaFiles\nsjdbGTFfile:\t\t\t$sjdbGTFfile\nsjdbGTFtagExonParentTranscript:\t$sjdbGTFtagExonParentTranscript\nsjdbOverhang:\t\t\t$sjdbOverhang"
 
