@@ -30,7 +30,8 @@ trap clean_up SIGHUP SIGINT SIGTERM
 # set parameters
 genomeFastaFiles="data/genome/Osativa_204_v7.0.fa"
 sjdbGTFfile="data/genome/Osativa_204_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
-sjdbGTFtagExonParentTranscript="gene_name"
+sjdbGTFtagExonParentTranscript="oId"
+sjdbGTFtagExonParentGene="gene_name"
 sjdbOverhang=109
 
 echo -e "[ "$(date)": Submitting job ]\ngenomeFastaFiles:\t\t$genomeFastaFiles\nsjdbGTFfile:\t\t\t$sjdbGTFfile\nsjdbGTFtagExonParentTranscript:\t$sjdbGTFtagExonParentTranscript\nsjdbOverhang:\t\t\t$sjdbOverhang"
