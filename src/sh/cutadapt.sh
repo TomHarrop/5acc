@@ -14,6 +14,16 @@ if [[ ! -d $outdir ]]; then
 	mkdir -p $outdir
 fi
 
+# log metadata
+version="$(cutadapt --version)"
+cat -t <<- _EOF_ > $outdir/METADATA.tsv
+	script,${0}
+	branch,$(git rev-parse --abbrev-ref HEAD)
+	hash,$(git rev-parse HEAD)
+	date,$(date +%F)
+	cutadapt version,$version
+_EOF_
+
 # catch sigkill
 clean_up() {
 	# remove temp files before exit
@@ -57,15 +67,6 @@ echo -e "[ "$(date)": Waiting for jobs to finish ]"
 wait
 
 echo -e "[ "$(date)": Jobs finished, tidying up ]"
-
-# log metadata
-version="$(cutadapt --version)"
-echo -e \
-"script\t${0}
-branch\t$(git rev-parse --abbrev-ref HEAD)
-hash\t$(git rev-parse HEAD)
-date\t$(date +%F)
-cutadapt version\t$version" > $outdir/METADATA.tsv
 
 # email output
 NOW="$(date)"
