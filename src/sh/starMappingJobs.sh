@@ -37,7 +37,7 @@ cutadapt_dir="${folders[-1]}"
 echo -e "[ "$(date)": Using cutadapt folder $cutadapt_dir ]"
 
 # make today's output directory
-outdir="output/$cutadapt_dir/STAR-"$(date +%F)""
+outdir="$cutadapt_dir/STAR-"$(date +%F)""
 if [[ ! -d $outdir ]]; then
 	mkdir -p $outdir
 fi
