@@ -24,7 +24,7 @@ cat -t <<- _EOF_ > $outdir/METADATA.csv
 	cutadapt version,$version
 _EOF_
 
-# catch sigkill
+# catch SIGTERM etc.
 clean_up() {
 	# remove temp files before exit
 	echo -e "[ "$(date)" : Script aborted ]"
