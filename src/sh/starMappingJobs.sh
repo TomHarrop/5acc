@@ -95,7 +95,7 @@ _EOF_
 	srun --output $outdir/$library_name.out --exclusive --ntasks=1 --cpus-per-task=6 \ 
 	STAR --runThreadN 6 --genomeDir $star_index_dir \
 	--readFilesIn $fwd_read_file $rev_read_file --outFileNamePrefix $outdir/$library_name. \
-	--outSAMtype BAM Unsorted --quantMode GeneCounts --genomeLoad LoadAndKeep &
+	--outSAMtype BAM Unsorted --quantMode GeneCounts --genomeLoad LoadAndKeep --readFilesCommand zcat &
 done
 
 echo -e "[ "$(date)": Waiting for jobs to finish ]"
