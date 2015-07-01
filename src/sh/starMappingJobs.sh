@@ -70,11 +70,15 @@ _EOF_
 }
 trap clean_up SIGHUP SIGINT SIGTERM
 
+# load the genome into memory
+echo -e "[ "$(date)": Loading index into shared memory ]"
+srun --exclusive --ntasks=1 --cpus-per-task=6 \
+	STAR --runThreadN 6 --genomeDir $star_index_dir --genomeLoad LoadAndExit
+
 # find the R1.fastq.gz files and match the R2 files to run STAR
 shopt -s nullglob
 fastq_files=("$cutadapt_dir*R1.fastq.gz")
 shopt -u nullglob
-
 for fwd_read_file in $fastq_files
 do
 	n=$(basename $fwd_read_file)
@@ -102,7 +106,8 @@ echo -e "[ "$(date)": Waiting for jobs to finish ]"
 wait
 
 echo -e "[ "$(date)": Jobs finished, removing index from memory ]"
-STAR --runThreadN 6 --genomeDir $star_index_dir --genomeLoad Remove
+srun --exclusive --ntasks=1 --cpus-per-task=6 \
+	STAR --runThreadN 6 --genomeDir $star_index_dir --genomeLoad Remove
 
 echo -e "[ "$(date)": Tidying up ]"
 
