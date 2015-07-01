@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH --job-name star
-#SBATCH --ntasks=2
-#SBATCH --cpus-per-task=3
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=6
 #SBATCH --output /tmp/star.%N.%j.out
 #SBATCH --open-mode=append
 #SBATCH --nice=500
@@ -97,8 +97,8 @@ do
 	fwd_read_file: $fwd_read_file
 	rev_read_file: $rev_read_file
 _EOF_
-	cmd="STAR --runThreadN 3 --genomeDir $star_index_dir --readFilesIn $fwd_read_file $rev_read_file --outFileNamePrefix $outdir/$library_name. --outSAMtype BAM Unsorted --quantMode GeneCounts --genomeLoad LoadAndKeep --readFilesCommand zcat"
-	srun --output $outdir/$library_name.out --exclusive --ntasks=1 --cpus-per-task=3 $cmd &	
+	cmd="STAR --runThreadN 6 --genomeDir $star_index_dir --readFilesIn $fwd_read_file $rev_read_file --outFileNamePrefix $outdir/$library_name. --outSAMtype BAM Unsorted --quantMode GeneCounts --genomeLoad LoadAndKeep --readFilesCommand zcat"
+	srun --output $outdir/$library_name.out --exclusive --ntasks=1 --cpus-per-task=6 $cmd &	
 done
 
 echo -e "[ "$(date)": Waiting for jobs to finish ]"
