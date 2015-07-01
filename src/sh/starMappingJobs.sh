@@ -6,6 +6,8 @@
 #SBATCH --output /tmp/star.%N.%j.out
 #SBATCH --open-mode=append
 #SBATCH --nice=500
+#SBATCH --mail-user=thomas.harrop@ird.fr
+#SBATCH --mail-type=ALL
 
 THEN="$(date)"
 echo -e "[ "$(date)": Mapping with STAR ]"
@@ -69,11 +71,6 @@ _EOF_
 	exit 1
 }
 trap clean_up SIGHUP SIGINT SIGTERM
-
-# load the genome into memory
-echo -e "[ "$(date)": Loading index into shared memory ]"
-srun --exclusive --ntasks=1 --cpus-per-task=6 \
-	STAR --runThreadN 6 --genomeDir $star_index_dir --genomeLoad LoadAndExit
 
 # find the R1.fastq.gz files and match the R2 files to run STAR
 shopt -s nullglob
