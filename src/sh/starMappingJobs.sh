@@ -12,12 +12,6 @@
 THEN="$(date)"
 echo -e "[ "$(date)": Mapping with STAR ]"
 
-# make today's output directory
-outdir="output/STAR-"$(date +%F)""
-if [[ ! -d $outdir ]]; then
-	mkdir -p $outdir
-fi
-
 # choose the most recent STAR index
 shopt -s nullglob
 folders=(output/star-index*/)
@@ -41,6 +35,12 @@ if (( ${#folders[@]} == 0 )); then
 fi
 cutadapt_dir="${folders[-1]}"
 echo -e "[ "$(date)": Using cutadapt folder $cutadapt_dir ]"
+
+# make today's output directory
+outdir="output/$cutadapt_dir/STAR-"$(date +%F)""
+if [[ ! -d $outdir ]]; then
+	mkdir -p $outdir
+fi
 
 # log metadata
 cat <<- _EOF_ > $outdir/METADATA.csv
