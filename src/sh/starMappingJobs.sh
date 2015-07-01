@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name star
-#SBATCH --ntasks 1
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=6
 #SBATCH --output /tmp/star.%N.%j.out
 #SBATCH --open-mode=append
@@ -67,7 +67,7 @@ clean_up() {
 
 	$(cat /tmp/star.$SLURM_JOB_NODELIST.$SLURM_JOBID.out)
 _EOF_
-	mv /tmp/star.%N.%j.out "$outdir"/
+	mv /tmp/star.$SLURM_JOB_NODELIST.$SLURM_JOBID.out "$outdir"/
 	exit 1
 }
 trap clean_up SIGHUP SIGINT SIGTERM
