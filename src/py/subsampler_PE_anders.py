@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# htseq script posted by Simon Anders:
+# http://seqanswers.com/forums/showpost.php?p=44289&postcount=4
 # usage: python subsampler_PE_anders.py <fraction> <input file 1> <input file 2> <output file 1> <output file 2>
 # (where <fraction> is a number between 0 and 1, giving the sampling faction)
 
@@ -16,6 +18,6 @@ for read1, read2 in itertools.izip( in1, in2 ):
    if random.random() < fraction:
       read1.write_to_fastq_file( out1 )
       read2.write_to_fastq_file( out2 )
-      
+
 out1.close()
 out2.close()
