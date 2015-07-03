@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
 library(data.table)
+library(xlsx)
 
 # find the most recent cutadapt output
 outputDirs <- list.dirs(path = 'output', full.names = TRUE, recursive = FALSE)
@@ -49,11 +50,19 @@ starLogs.date <- starLogs.dt[, lapply(.SD, dateConvert), .SDcols = todate]
 starLogs.final <- cbind(starLogs.dt[,Library], starLogs.date, starLogs.dt.num)
 setnames(starLogs.final, 'V1', 'Library')
 
+# save RDS
+saveRDS(starLogs.final, paste0("rds/STARLogs.combined-", Sys.Date(), ".Rds"))
+
 # save for excel
 wb <- xlsx::createWorkbook()
 sheet <- xlsx::createSheet(wb, sheetName = 'STARlogs')
 xlsx::addDataFrame(starLogs.final, sheet, showNA = FALSE, row.names = FALSE)
 saveWorkbook(wb, paste0("xlsx/STARLogs.combined-", Sys.Date(), ".xlsx"))
+
+# save sessionInfo
+writeLines(capture.output(sessionInfo()),
+           paste0("log/STARLogs.combined-", Sys.Date(), ".txt"))
+
 
 
 

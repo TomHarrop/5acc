@@ -12,10 +12,16 @@ outputBasename <- paste(
   sep = "-"
 )
 
-# get a list of htseq files
-htdirs <- dir("output/", pattern = 'htseq')
-directory <- paste0('output/', htdirs[length(htdirs)])
-fileName <- dir(directory, pattern = ".*htseq")
+# find the most recent cutadapt output
+outputDirs <- list.dirs(path = 'output', full.names = TRUE, recursive = FALSE)
+cutadaptDir <- rev(sort(outputDirs[grep('cutadapt', outputDirs)]))[1]
+
+# find the most recent STAR output
+outputDirs <- dir(path = cutadaptDir, pattern = "STAR", full.names = TRUE)
+starDir <- rev(sort(outputDirs[grep('STAR', outputDirs)]))[1]
+
+# get the read count files
+fileName <- dir(starDir, pattern = "ReadsPerGene.out.tab", full.names = TRUE)
 
 # generate sampleName
 sampleName <- gsub('.*([A-Z][0-9]).*', '\\1', fileName)
@@ -33,16 +39,22 @@ sampleToSpecies <- c(
   R = "rufipogon")
 species <- sampleToSpecies[gsub('[^BGJIR]', '', sampleName)]
 
-# make sample table
-sampleTable <- data.frame(sampleName, fileName, stage, species)
+# generate countData
+names(fileName) <- sampleName
+countData <- sapply(fileName, function(x)
+  read.delim(x, header = FALSE, stringsAsFactors = FALSE)[[4]])
+rownames(countData) <- read.delim(fileName[[1]], header = FALSE,
+                                  stringsAsFactors = FALSE)[[1]]
+# generate colData
+colData <- data.frame(row.names = sampleName, stage, species)
 
-# import htseq results
-dds <- DESeq2::DESeqDataSetFromHTSeqCount(sampleTable, directory, design = ~ stage + species + stage:species, )
+# read matrix into DESeq2, excluding the rows starting with "N_"
+dds <- DESeq2::DESeqDataSetFromMatrix(countData = subset(countData, !grepl("^N_", rownames(countData))),
+                                      colData = colData,
+                                      design = ~ stage + species + stage:species)
 
 # run DESeq2
 dds <- DESeq2::DESeq(dds)
-saveRDS(dds, 'tmp/dds.Rds')
-dds <- readRDS('tmp/dds.Rds')
 
 # extract results
 contrast <- list(
@@ -96,7 +108,7 @@ mf.std <- standardise(mf.e)
 m1 <- mestimate(mf.std)
 Dmin(mf.std, m = m1, crange = seq(2, 9, 1), repeats = 1, visu = TRUE)
 set.seed(1)
-c1 <- mfuzz(mf.std, centers = 6, m = m1)
+c1 <- mfuzz(mf.std, centers = 7, m = m1)
 
 # make some plots
 
@@ -131,9 +143,16 @@ ggplot() +
 # output
 
 pdfLocation <- paste0('fig/', outputBasename, '.pdf')
-logLocation <- paste0('fig/', outputBasename, '.sessionInfo.txt')
+logLocation <- paste0('log/', outputBasename, '.sessionInfo.txt')
 
 ggsave(pdfLocation, width = 16, height = 8,
        units = 'in')
 
 writeLines(capture.output(sessionInfo()), logLocation)
+
+# not run
+head(
+plotData[rev(order(rowSums(plotData))),]
+)
+DESeq2::plotCounts(dds, 'LOC_Os08g29854', intgroup = c('species', 'stage'), transform = TRUE)
+
