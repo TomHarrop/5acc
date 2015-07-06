@@ -57,39 +57,44 @@ dds <- DESeq2::DESeqDataSetFromMatrix(countData = subset(countData, !grepl("^N_"
 dds <- DESeq2::DESeq(dds)
 
 # extract results
-contrast <- list(
-  c('stageN3.speciesglaberrima', 'stageN2.speciesglaberrima'),
-  c('stageN3.speciesbarthii', 'stageN2.speciesbarthii')    
-)
-africa <- DESeq2::results(dds, contrast)
-
-contrast <- list(
-  c('stageN3.speciesJaponica', 'stageN2.speciesJaponica'),
-  c('stageN3.speciesrufipogon', 'stageN2.speciesrufipogon')    
-)
-japonica <- DESeq2::results(dds, contrast)
-
-contrast <- list(
-  c('stageN3.speciesIndica', 'stageN2.speciesIndica'),
-  c('stageN3.speciesrufipogon', 'stageN2.speciesrufipogon')  
-)
-indica <- DESeq2::results(dds, contrast)
+getSpecRes <- function(spec) {
+  message(paste("Generating results for", spec))
+  contrast <- list(
+    c(paste0("stageN3.species", spec)),
+    c(paste0("stageN2.species", spec)))
+  return(DESeq2::results(dds, contrast))
+}
+speciesResults <- lapply(sampleToSpecies, getSpecRes)
+names(speciesResults) <- sampleToSpecies
 
 # quick explore
 plotData <- data.frame(
-  row.names = rownames(africa),
-  africa = africa$log2FoldChange,
-  japonica = japonica$log2FoldChange,
-  indica = indica$log2FoldChange
-)
+  row.names = rownames(speciesResults[[1]]),
+  sapply(speciesResults, function(x) x$log2FoldChange))
 
 plotData <- plotData[complete.cases(plotData),]
 
-plotData.melt <- reshape2::melt(plotData, variable.name = 'comparison', value.name = 'l2fc')
+comparisons <- list(
+  c('barthii', 'glaberrima'),
+  c('rufipogon', 'Japonica'),
+  c('rufipogon', 'Indica'))
 
-ggplot(plotData.melt, aes(x = l2fc, group = comparison, fill = comparison)) +
-  xlim(-0.0001, 0.0001) +
-  geom_density(alpha = 0.2)
+getCompLfcs <- function(comparison) {
+  return(data.frame(
+    gene_name = rownames(plotData),
+    comparison = paste0(comparison[1], 'vs', comparison[2]),
+    s1.name = comparison[1],
+    s2.name = comparison[2],
+    s1.lfc = plotData[,comparison[1]],
+    s2.lfc = plotData[,comparison[2]]))
+}
+
+compData <- lapply(comparisons, getCompLfcs)
+compData <- do.call(rbind, compData)
+
+ggplot(compData, aes(x = s1.lfc, y = s2.lfc)) +
+  geom_point() +
+  facet_wrap(~comparison)
 
 # filter on variance
 varOrder <- apply(plotData, 1, var)
@@ -97,62 +102,72 @@ plotData.filter <- plotData[rev(order(varOrder)),][c(1:1000),]
 
 # set up the expressionSet
 pData <- data.frame(
-  comparison = as.factor(c('africa', 'japonica', 'indica')),
-  row.names = c('africa', 'japonica', 'indica')
-)
+  species = as.factor(colnames(plotData)),
+  row.names = colnames(plotData))
+
 phenoData <- new('AnnotatedDataFrame', data = pData)
 mf.e <- ExpressionSet(assayData = as.matrix(plotData.filter), phenoData = phenoData)
 
-# run some clustering
-mf.std <- standardise(mf.e)
-m1 <- mestimate(mf.std)
-Dmin(mf.std, m = m1, crange = seq(2, 9, 1), repeats = 1, visu = TRUE)
+# run clustering
+mf.std <- Mfuzz::standardise(mf.e)
+m1 <- Mfuzz::mestimate(mf.std)
+Mfuzz::Dmin(mf.std, m = m1, crange = seq(2, 20, 1), repeats = 3, visu = TRUE)
 set.seed(1)
-c1 <- mfuzz(mf.std, centers = 7, m = m1)
+c1 <- mfuzz(mf.std, centers = 9, m = m1)
 
-# make some plots
+# get max membership per gene
+alphaCores <- acore(mf.std, c1, min.acore = 0.5)
+maxMems.list <- sapply(rownames(mf.std), function(gid)
+  as.numeric(which.max(sapply(alphaCores, function(x) x[gid,'MEM.SHIP']))))
+cluster <- as.data.table(unlist(maxMems.list), keep.rownames = TRUE)
 
-pd.dt <- as.data.table(plotData, keep.rownames = TRUE)
-pd.dt[, gene_id := rn][, rn := NULL]
-setkey(pd.dt, 'gene_id')
+# make plots
+extrafont::loadfonts()
 
-cluster <- as.data.table(c1$cluster, keep.rownames = TRUE)
+pd.dt <- as.data.table(compData)
+setkey(pd.dt, 'gene_name')
 setkey(cluster, V1)
 
 pd.dt.cluster <- cluster[pd.dt]
 pd.dt.cluster[, gene_id := V1][, cluster := V2][,c('V1', 'V2') := NULL]
 
-pd.melt <- reshape2::melt(pd.dt.cluster,
-                          id.vars = c('gene_id', 'africa', 'cluster'),
-                          measure.vars = c('japonica', 'indica'))
+pd.dt.cluster[,comparison := plyr::revalue(comparison,
+              replace = c(
+                "barthiivsglaberrima" = expression(italic(O.~barthii~vs.~O.~glaberrima)),
+                "rufipogonvsJaponica" = expression(italic(O.~rufipogon~vs.~O.~sativa)*" ssp. "*italic(japonica)),
+               "rufipogonvsIndica" = expression(italic(O.~rufipogon~vs.~O.~sativa)*" ssp. "*italic(indica))
+              ))]
 
-ggplot() +
-  geom_point(data = pd.melt[is.na(cluster)],
-               aes(y = value, x = africa), colour = 'grey', alpha = 0.4) +
-  geom_point(data = pd.melt[!is.na(cluster)],
-             aes(y = value, x = africa, colour = as.factor(cluster)), alpha = 0.6) +
-  facet_wrap(~ variable) +
-  scale_colour_brewer(palette = 'Set1', guide = FALSE) +
-  xlab(expression("Relative change in expression"~(italic(O.~glaberrima~vs.~O.barthii)))) +
-  ylab(expression("Relative change in expression"~(italic(O.~sativa~vs.~O.rufipogon)))) +
-  theme_minimal(base_size = 16) +
-  theme(strip.text = element_text(face = 'italic'),
-        axis.ticks = element_blank(),
-        axis.text = element_text(size = 10))
+g <- ggplot() +
+  geom_point(data = pd.dt.cluster[is.na(cluster)], aes(x = s1.lfc, y = s2.lfc),
+             colour = 'grey', alpha = 0.2, size = 5) +
+  geom_point(data = pd.dt.cluster[!is.na(cluster)],
+             aes(x = s1.lfc, y = s2.lfc, colour = as.factor(cluster)),
+             alpha = 0.8, size = 5) +
+  facet_grid(.~comparison, labeller = label_parsed) +
+  scale_colour_brewer(palette = 'Set1', guide = FALSE) + 
+  xlab(expression(log[2](Fold~Change)*" in wild species")) +
+  ylab(expression(log[2](Fold~Change)*" in domesticated species")) +
+  theme_minimal(base_size = 24, base_family = 'Lato') +
+  coord_fixed() +
+  theme(axis.ticks = element_blank(),
+        axis.text = element_text(size = 10),
+        rect = element_rect(fill = 'transparent', colour = NA))
 
 # output
-
 pdfLocation <- paste0('fig/', outputBasename, '.pdf')
 logLocation <- paste0('log/', outputBasename, '.sessionInfo.txt')
 
-ggsave(pdfLocation, width = 16, height = 8,
-       units = 'in')
+wA <- grid::convertUnit(grid::unit(800, 'mm'), unitTo = 'in', valueOnly = TRUE)
+hA <- grid::convertUnit(grid::unit(400, 'mm'), unitTo = 'in', valueOnly = TRUE)
+cairo_pdf(pdfLocation, width = wA, height = hA,
+          family = 'Lato', bg = 'transparent')
+g
+dev.off()
 
-writeLines(capture.output(sessionInfo()), logLocation)
+# logs
+sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD", intern = TRUE)),
+  paste("git hash:", system("git rev-parse HEAD", intern = TRUE)),
+  capture.output(sessionInfo()))
 
-# not run
-head(
-plotData[rev(order(rowSums(plotData))),]
-)
-DESeq2::plotCounts(dds, 'LOC_Os08g29854', intgroup = c('species', 'stage'), transform = TRUE)
-
+writeLines(sInf, logLocation)
