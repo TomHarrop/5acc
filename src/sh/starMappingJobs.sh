@@ -6,7 +6,6 @@
 #SBATCH --output /tmp/star.%N.%j.out
 #SBATCH --open-mode=append
 #SBATCH --nice=500
-#SBATCH --mail-user=thomas.harrop@ird.fr
 #SBATCH --mail-type=ALL
 
 THEN="$(date)"
@@ -57,10 +56,7 @@ _EOF_
 clean_up() {
 	echo -e "[ "$(date)" : Script aborted ]"
 	# email output
-	cat <<- _EOF_ | msmtp thomas.harrop@ird.fr
-	To: thomas.harrop@ird.fr
-	From: schinkendosen@gmail.com
-	Subject: [Tom@SLURM] Job $SLURM_JOBID aborted
+	cat <<- _EOF_ | mail -s "[Tom@SLURM] Job $SLURM_JOBID aborted" tom
 	Job $SLURM_JOBID submitted at $THEN was aborted.
 	
 	Concatenated stdout files:
@@ -112,10 +108,7 @@ srun --exclusive --ntasks=1 --cpus-per-task=7 \
 echo -e "[ "$(date)": Tidying up ]"
 
 # email output
-cat <<- _EOF_ | msmtp thomas.harrop@ird.fr
-	To: thomas.harrop@ird.fr
-	From: schinkendosen@gmail.com
-	Subject: [Tom@SLURM] Job $SLURM_JOBID finished
+cat <<- _EOF_ | mail -s "[Tom@SLURM] Job $SLURM_JOBID finished" tom
 	Job $SLURM_JOBID submitted at $THEN is finished.
 
 	Job log:
