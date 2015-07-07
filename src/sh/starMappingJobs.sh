@@ -56,10 +56,7 @@ _EOF_
 clean_up() {
 	echo -e "[ "$(date)" : Script aborted ]"
 	# email output
-	cat <<- _EOF_ | msmtp thomas.harrop@ird.fr
-	To: thomas.harrop@ird.fr
-	From: schinkendosen@gmail.com
-	Subject: [Tom@SLURM] Job $SLURM_JOBID aborted
+	cat <<- _EOF_ | mail -s "[Tom@SLURM] Job $SLURM_JOBID aborted" tom
 	Job $SLURM_JOBID submitted at $THEN was aborted.
 	
 	Concatenated stdout files:

@@ -21,7 +21,11 @@ clean_up() {
 	# email output
 	NOW="$(date)"
 	MESSAGE="$(cat /tmp/stargg."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out)"
-	printf "To: thomas.harrop@ird.fr\nFrom: schinkendosen@gmail.com\nSubject: [Tom@SLURM] Job "$SLURM_JOBID" aborted\nJob "$SLURM_JOBID" submitted at $THEN was aborted.\n\nConcatenated stdout files:\n\n$MESSAGE" | msmtp thomas.harrop@ird.fr
+	cat <<- _EOF_ | mail -s "[Tom@SLURM] Job "$SLURM_JOBID" aborted" tom
+	Job $SLURM_JOBID submitted at $THEN was aborted.
+	Concatenated stdout files:
+	$MESSAGE
+_EOF_
 	mv /tmp/stargg."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out "$outdir"/
 	exit 1
 }
@@ -61,7 +65,11 @@ echo -e "[ "$(date)": Jobs finished, tidying up ]"
 # email output
 NOW="$(date)"
 MESSAGE="$(cat /tmp/stargg."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out)"
-printf "To: thomas.harrop@ird.fr\nFrom: schinkendosen@gmail.com\nSubject: [Tom@SLURM] Job "$SLURM_JOBID" finished\nJob "$SLURM_JOBID" submitted at $THEN is finished.\n\nConcatenated stdout files:\n\n$MESSAGE" | msmtp thomas.harrop@ird.fr
+cat <<- _EOF_ | mail -s "[Tom@SLURM] Job "$SLURM_JOBID" finished" tom
+	Job $SLURM_JOBID submitted at $THEN is finished.
+	Concatenated stdout files:
+	$MESSAGE
+_EOF_
 
 mv /tmp/stargg."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out "$outdir"/
 
