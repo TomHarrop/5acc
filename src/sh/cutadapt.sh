@@ -2,6 +2,9 @@
 
 set -eu
 
+# catch species code
+species=$1
+
 # how many CPUs we got?
 if [[ $SLURM_JOB_CPUS_PER_NODE ]]; then
 	maxCpus="$SLURM_JOB_CPUS_PER_NODE"
@@ -44,21 +47,12 @@ fi
 ### CODE STARTS HERE ------------------------------------------------------------------
 
 # make output directory
-outdir="output/cutadapt"
+outdir="output/"$species"/cutadapt"
 if [[ ! -d $outdir ]]; then
 	mkdir -p $outdir
 fi
 
-# log metadata
-cat -t <<- _EOF_ > $outdir/METADATA.csv
-	script,${0}
-	branch,$(git rev-parse --abbrev-ref HEAD)
-	hash,$(git rev-parse HEAD)
-	date,$(date +%F)
-	cutadapt version,$(cutadapt --version)
-_EOF_
-
-echo -e "[ "$(date)": Adaptor trimming with cutadapt ]"
+echo -e "[ "$(date)": Adaptor trimming with cutadapt for $species ]"
 
 # parameters
 adaptorFwd='TruSeq_adaptor=AGATCGGAAGAGCACACGTCTGAACTCCAGTC'
@@ -67,11 +61,11 @@ trim_qualities=20
 minimum_length=50
 
 echo -e "[ "$(date)": Submitting cutadapt jobs ]"
-fwdReadFiles=("data/reads/os/*R1.fastq.gz")
+fwdReadFiles=("data/reads/"$species"/*R1.fastq.gz")
 for fwdReadFile in $fwdReadFiles; do
 	fFile="$(basename $fwdReadFile)"
 	lib_name="${fFile:0:2}"
-	rev_reads="data/reads/os/$(basename $fwdReadFile 1.fastq.gz)2.fastq.gz"
+	rev_reads="data/reads/"$species"/$(basename $fwdReadFile 1.fastq.gz)2.fastq.gz"
 	# check that rev_reads are really there
 	if [[ ! -e $rev_reads ]]; then
 		echo "Error: rev_reads not found\n[ lib_name ]:\t$lib_name\n[ rev_reads ]:\t$rev_reads"
@@ -90,6 +84,15 @@ done
 
 echo -e "[ "$(date)": Waiting for jobs to finish ]"
 fail_wait
+
+# log metadata
+cat -t <<- _EOF_ > $outdir/METADATA.csv
+	script,${0}
+	branch,$(git rev-parse --abbrev-ref HEAD)
+	hash,$(git rev-parse HEAD)
+	date,$(date +%F)
+	cutadapt version,$(cutadapt --version)
+_EOF_
 
 echo -e "[ "$(date)": Jobs finished, exiting ]"
 

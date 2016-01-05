@@ -42,13 +42,13 @@ def print_now():
 
 # Custom job submission step. Dirty hack. Need to exit 0 at end of each script
 # and use set -e for safety
-def submit_job(jobScript, ntasks, cpus_per_task, job_name):
+def submit_job(jobScript, ntasks, cpus_per_task, job_name, extras):
     '''
     Submit the job using salloc hack. When complete return job id and write output to file.
     '''
     # call salloc as subprocess
     proc = Popen(['salloc', '--ntasks=' + ntasks, '--cpus-per-task=' + cpus_per_task,
-    '--job-name=' + job_name, jobScript], stdout = PIPE, stderr = PIPE)
+    '--job-name=' + job_name, jobScript, extras], stdout = PIPE, stderr = PIPE)
     # get stdout and stderr    
     out, err = proc.communicate()
     # parse stderr (salloc output) for job id
@@ -145,50 +145,110 @@ def downloadGenome_sh(outputFiles, jgiLogon, jgiPassword):
 os_genome = main_pipeline.originate(downloadGenome_sh, "data/genome/os/METADATA.csv", jgiLogon, jgiPassword)
 
 #---------------------------------------------------------------
-# define reads
+# generate STAR index for OS
 #
 
-def defineOsReads(outputFiles):
-    pathToReads = 'data/reads/os'
-    assert os.path.isdir(pathToReads), "Error: reads folder " + pathToReads + " missing"
+def starGenomeGenerate_sh(inputFiles, outputFiles):
+    jobScript = 'src/sh/starGenomeGenerate.sh'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'stargg'
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    # update ruffus flag
+    print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
+
+os_index = main_pipeline.transform(task_func = starGenomeGenerate_sh,
+                                   input = downloadGenome_sh,
+                                   filter = suffix("data/genome/os/METADATA.csv"),
+                                   output = "output/star-index/METADATA.csv")
+
+
+#---------------------------------------------------------------
+# MAPPING AND TRIMMING SUBPIPELINE
+#---------------------------------------------------------------
+
+#---------------------------------------------------------------
+# define reads
+#
+def defineReads(outputFiles, pathToReads, species):
+    assert os.path.isdir(pathToReads), "1 " +outputFiles+ " 2 " + pathToReads + " 3 " + species + "Error: reads folder " + pathToReads + " missing"
     readFiles = os.listdir(pathToReads)
-    print("[", print_now(), ": Using Oryza sativa reads in folder " + pathToReads + " ]")
+    print("[", print_now(), ": Using reads in folder " + pathToReads + " ]")
     for fileName in readFiles:
         qualName = pathToReads + '/' + fileName
         assert os.path.isfile(qualName), "Error: read file " + qualName + " missing"
         print(qualName)
     touch(outputFiles)
 
-os_reads = main_pipeline.originate(defineOsReads, "ruffus/os_reads")
-
-#---------------------------------------------------------------
-# JOB STEPS
-#---------------------------------------------------------------
-
 #---------------------------------------------------------------
 # trim reads
 #
-
-def cutadapt_sh(inputFiles, outputFiles):
+def cutadapt_sh(inputFiles, outputFiles, species):
     jobScript = 'src/sh/cutadapt.sh'
     ntasks = '7'
     cpus_per_task = '1'
-    job_name = 'cutadapt'
-    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
-    # update ruffus flag
+    job_name = 'cutadapt_sh'
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
 
-os_reads = main_pipeline.transform(task_func = cutadapt_sh,
-                                   input = defineOsReads,
-                                   filter = suffix("ruffus/os_reads"),
-                                   output = "output/cutadapt/METADATA.csv")
+#---------------------------------------------------------------
+# map reads
+#
+def starMappingTwoStep_sh(inputFiles, outputFiles, species):
+    jobScript = 'src/sh/starMappingTwoStep.sh'
+    ntasks = '1'
+    cpus_per_task = '7'
+    job_name = 'starMappingTwoStep_sh'
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
+    print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
+
+#---------------------------------------------------------------
+# construct the pipeline
+#
+def makePipeline1(pipelineName, pathToReads, species):    
+    newPipeline = Pipeline(pipelineName)
+    headTask = newPipeline.originate(task_func = defineReads,
+                                     output = "ruffus/" + species + ".reads",
+                                     extras = [pathToReads, species])
+    newPipeline.transform(task_func = cutadapt_sh,
+                          input = defineReads,
+                          filter = suffix("ruffus/" + species + ".reads"),
+                          output = "output/" + species + "/cutadapt/METADATA.csv",
+                          extras = [species])
+    tailTask = newPipeline.transform(task_func = starMappingTwoStep_sh,
+                                     input = cutadapt_sh,
+                                     filter = suffix("/cutadapt/METADATA.csv"),
+                                     output = "/STAR/file.txt",
+                                     extras = [species])
+    newPipeline.set_head_tasks([headTask])
+    newPipeline.set_tail_tasks([tailTask])
+    return newPipeline                                   
 
 #---------------------------------------------------------------
 # RUN THE PIPELINE
 #---------------------------------------------------------------
 
+# map the osj reads
+osjPipeline = makePipeline1(pipelineName = "osjPipeline",
+                            pathToReads = "data/reads/osj",
+                            species = "osj")
+osiPipeline = makePipeline1(pipelineName = "osiPipeline",
+                            pathToReads = "data/reads/osi",
+                            species = "osi")
+orPipeline = makePipeline1(pipelineName = "orPipeline",
+                            pathToReads = "data/reads/or",
+                            species = "or")
+ogPipeline = makePipeline1(pipelineName = "ogPipeline",
+                            pathToReads = "data/reads/og",
+                            species = "og")
+obPipeline = makePipeline1(pipelineName = "obPipeline",
+                            pathToReads = "data/reads/ob",
+                            species = "ob")                            
+
+#osjPipeline.run()
+
 # print the flowchart
 pipeline_printout_graph("ruffus/flowchart." + slurm_jobid + ".pdf", "pdf")
 
 # run the pipeline (disabled for now)
-cmdline.run(options, multithread = 8)
+cmdline.run(options)

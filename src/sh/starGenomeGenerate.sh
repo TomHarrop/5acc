@@ -1,43 +1,78 @@
 #!/bin/bash
 
-#SBATCH --job-name stargg
-#SBATCH --ntasks 1
-#SBATCH --cpus-per-task=6
-#SBATCH --output /tmp/stargg.%N.%j.out
-#SBATCH --open-mode=append
+set -e
 
-THEN="$(date)"
+# how many CPUs we got?
+if [[ $SLURM_JOB_CPUS_PER_NODE ]]; then
+	maxCpus="$SLURM_JOB_CPUS_PER_NODE"
+	echo -e "[ "$(date)": Running with "$maxCpus" CPUs ]"
+else
+	maxCpus=1
+fi
+
+# cleanup functions
+exit_error() {
+	echo -e "[ "$(date)": Script aborted ]"
+	exit 1
+}
+
+# catch exit codes
+trap_exit() {
+	exitCode=$?
+	if (( "exitCode" == 0 )) ; then
+		exit 0
+	else
+		exit_error
+	fi
+}
+
+# traps
+trap exit_error SIGHUP SIGINT SIGTERM
+trap trap_exit EXIT
+
+# handle waiting
+FAIL=0
+fail_wait() {
+for job in $(jobs -p); do
+  wait $job || let "FAIL+=1"
+done
+if [[ ! "$FAIL" == 0 ]]; then
+  exit 1
+fi
+}
+
+### CODE STARTS HERE ------------------------------------------------------------------
+
 echo -e "[ "$(date)": Genome generation with STAR ]"
 
 # make output directory
-outdir="output/star-index-"$(date +%F)""
+outdir="output/star-index"
 if [[ ! -d $outdir ]]; then
 	mkdir -p $outdir
 fi
 
-# catch sigkill
-clean_up() {
-	echo -e "[ "$(date)" : Script aborted ]"
-	# email output
-	NOW="$(date)"
-	MESSAGE="$(cat /tmp/stargg."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out)"
-	cat <<- _EOF_ | mail -s "[Tom@SLURM] Job "$SLURM_JOBID" aborted" tom
-	Job $SLURM_JOBID submitted at $THEN was aborted.
-	Concatenated stdout files:
-	$MESSAGE
-_EOF_
-	mv /tmp/stargg."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out "$outdir"/
-	exit 1
-}
-trap clean_up SIGHUP SIGINT SIGTERM
-
 # set parameters
-genomeFastaFiles="data/genome/Osativa_204_v7.0.fa"
-sjdbGTFfile="data/genome/Osativa_204_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
+genomeFastaFiles="data/genome/os/Osativa_204_v7.0.fa"
+sjdbGTFfile="data/genome/os/Osativa_204_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
 sjdbGTFtagExonParentTranscript="oId"
 sjdbGTFtagExonParentGene="gene_name"
 sjdbOverhang=109
 outFileNamePrefix="$outdir/"
+
+cat << _EOF_
+	[ $(date): Submitting job ]
+				  genomeFastaFiles:  $genomeFastaFiles
+					   sjdbGTFfile:  $sjdbGTFfile
+	sjdbGTFtagExonParentTranscript:  $sjdbGTFtagExonParentTranscript
+					  sjdbOverhang:  $sjdbOverhang
+_EOF_
+
+FAIL=0
+cmd="STAR --runThreadN "$maxCpus" --runMode genomeGenerate --genomeDir $outdir --genomeFastaFiles $genomeFastaFiles --sjdbGTFfile $sjdbGTFfile --sjdbGTFtagExonParentTranscript $sjdbGTFtagExonParentTranscript --sjdbGTFtagExonParentGene $sjdbGTFtagExonParentGene --sjdbOverhang $sjdbOverhang --outFileNamePrefix $outFileNamePrefix"
+srun --output $outdir/stargg.out --exclusive --ntasks=1 --cpus-per-task="$maxCpus" $cmd &
+
+echo -e "[ "$(date)": Waiting for jobs to finish ]"
+fail_wait
 
 # log metadata
 version="$(STAR --version)"
@@ -51,27 +86,6 @@ cat -t <<- _EOF_ > $outdir/METADATA.csv
 	sjdbGTFfile,$sjdbGTFfile
 	sjdbOverhang,$sjdbOverhang
 _EOF_
+echo -e "[ "$(date)": Jobs finished, exiting ]"
 
-echo -e "[ "$(date)": Submitting job ]\ngenomeFastaFiles:\t\t$genomeFastaFiles\nsjdbGTFfile:\t\t\t$sjdbGTFfile\nsjdbGTFtagExonParentTranscript:\t$sjdbGTFtagExonParentTranscript\nsjdbOverhang:\t\t\t$sjdbOverhang"
-
-cmd="STAR --runThreadN 6 --runMode genomeGenerate --genomeDir $outdir --genomeFastaFiles $genomeFastaFiles --sjdbGTFfile $sjdbGTFfile --sjdbGTFtagExonParentTranscript $sjdbGTFtagExonParentTranscript --sjdbGTFtagExonParentGene $sjdbGTFtagExonParentGene --sjdbOverhang $sjdbOverhang --outFileNamePrefix $outFileNamePrefix"
-
-srun --output $outdir/stargg.out --exclusive --ntasks=1 --cpus-per-task=6 $cmd &
-
-echo -e "[ "$(date)": Waiting for jobs to finish ]"
-wait
-echo -e "[ "$(date)": Jobs finished, tidying up ]"
-
-# email output
-NOW="$(date)"
-MESSAGE="$(cat /tmp/stargg."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out)"
-cat <<- _EOF_ | mail -s "[Tom@SLURM] Job "$SLURM_JOBID" finished" tom
-	Job $SLURM_JOBID submitted at $THEN is finished.
-	Concatenated stdout files:
-	$MESSAGE
-_EOF_
-
-mv /tmp/stargg."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out "$outdir"/
-
-echo -e "[ "$(date)": Exiting ]"
 exit 0
