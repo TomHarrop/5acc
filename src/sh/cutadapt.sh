@@ -1,45 +1,64 @@
 #!/bin/bash
 
-#SBATCH --job-name cutadapt
-#SBATCH --ntasks 6
-#SBATCH --output /tmp/cutadapt.%N.%j.out
-#SBATCH --open-mode=append
+set -e
 
-# prep
-THEN="$(date)"
+# how many CPUs we got?
+if [[ $SLURM_JOB_CPUS_PER_NODE ]]; then
+	maxCpus="$SLURM_JOB_CPUS_PER_NODE"
+	echo -e "[ "$(date)": Running with "$maxCpus" CPUs ]"
+else
+	maxCpus=1
+fi
 
-# make today's output directory
-outdir="output/cutadapt-"$(date +%F)""
+# cleanup functions
+exit_error() {
+	echo -e "[ "$(date)": Script aborted ]"
+	exit 1
+}
+
+# catch exit codes
+trap_exit() {
+	exitCode=$?
+	if (( "exitCode" == 0 )) ; then
+		exit 0
+	else
+		exit_error
+	fi
+}
+
+# traps
+trap exit_error SIGHUP SIGINT SIGTERM
+trap trap_exit EXIT
+
+# handle waiting
+FAIL=0
+fail_wait() {
+for job in $(jobs -p); do
+  wait $job || let "FAIL+=1"
+done
+if [[ ! "$FAIL" == 0 ]]; then
+  exit 1
+fi
+}
+
+### CODE STARTS HERE ------------------------------------------------------------------
+
+# make output directory
+outdir="output/cutadapt"
 if [[ ! -d $outdir ]]; then
 	mkdir -p $outdir
 fi
 
 # log metadata
-version="$(cutadapt --version)"
 cat -t <<- _EOF_ > $outdir/METADATA.csv
 	script,${0}
 	branch,$(git rev-parse --abbrev-ref HEAD)
 	hash,$(git rev-parse HEAD)
 	date,$(date +%F)
-	cutadapt version,$version
+	cutadapt version,$(cutadapt --version)
 _EOF_
 
-# catch SIGTERM etc.
-clean_up() {
-	# remove temp files before exit
-	echo -e "[ "$(date)" : Script aborted ]"
-	# email output
-	NOW="$(date)"
-	MESSAGE="$(cat /tmp/cutadapt."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out)"
-	cat <<- _EOF_ | mail -s "[Tom@SLURM] Job "$SLURM_JOBID" aborted" tom
-	Job $SLURM_JOBID submitted at $THEN was aborted.
-	Concatenated stdout files:
-	$MESSAGE
-_EOF_
-	mv /tmp/cutadapt."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out "$outdir"/
-	exit 1
-}
-trap clean_up SIGHUP SIGINT SIGTERM
+echo -e "[ "$(date)": Adaptor trimming with cutadapt ]"
 
 # parameters
 adaptorFwd='TruSeq_adaptor=AGATCGGAAGAGCACACGTCTGAACTCCAGTC'
@@ -48,10 +67,11 @@ trim_qualities=20
 minimum_length=50
 
 echo -e "[ "$(date)": Submitting cutadapt jobs ]"
-for fwd_reads in $(ls data/reads/*R1.fastq.gz); do
-	fFile="$(basename $fwd_reads)"
+fwdReadFiles=("data/reads/os/*R1.fastq.gz")
+for fwdReadFile in $fwdReadFiles; do
+	fFile="$(basename $fwdReadFile)"
 	lib_name="${fFile:0:2}"
-	rev_reads="data/reads/$(basename $fwd_reads 1.fastq.gz)2.fastq.gz"
+	rev_reads="data/reads/$(basename $fwdReadFile 1.fastq.gz)2.fastq.gz"
 	# check that rev_reads are really there
 	if [[ ! -e $rev_reads ]]; then
 		echo "Error: rev_reads not found\n[ lib_name ]:\t$lib_name\n[ rev_reads ]:\t$rev_reads"
@@ -59,29 +79,18 @@ for fwd_reads in $(ls data/reads/*R1.fastq.gz); do
 	fi
 	output="$outdir/$lib_name.R1.fastq.gz"
 	paired_output="$outdir/$lib_name.R2.fastq.gz"
+	echo $output
+	echo $paired_output
 	# print some info
-	echo -e "Running cutadapt:\n[ lib_name ]:\t$lib_name\n[ fwd_reads ]:\t$fwd_reads\n[ rev_reads ]:\t$rev_reads\n[ R1 out ]:\t$output\n[ R2 out ]:\t$paired_output"
+	echo -e "Running cutadapt:\n[ lib_name ]:\t$lib_name\n[ fwd_reads ]:\t$fwdReadFile\n[ rev_reads ]:\t$rev_reads\n[ R1 out ]:\t$output\n[ R2 out ]:\t$paired_output"
 	# run cutadapt
-	cmd="cutadapt -a $adaptorFwd -A $adaptorRev --quality-cutoff=$trim_qualities --minimum-length $minimum_length --output=$output --paired-output=$paired_output $fwd_reads $rev_reads"
+	cmd="cutadapt -a $adaptorFwd -A $adaptorRev --quality-cutoff=$trim_qualities --minimum-length=$minimum_length --output=$output --paired-output=$paired_output $fwdReadFile $rev_reads"
 	srun --output $outdir/$lib_name.out --exclusive --ntasks=1 --cpus-per-task=1 $cmd &
 done
 
 echo -e "[ "$(date)": Waiting for jobs to finish ]"
+fail_wait
 
-wait
+echo -e "[ "$(date)": Jobs finished, exiting ]"
 
-echo -e "[ "$(date)": Jobs finished, tidying up ]"
-
-# email output
-NOW="$(date)"
-MESSAGE="$(cat /tmp/cutadapt."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out)"
-cat <<- _EOF_ | mail -s "[Tom@SLURM] Job "$SLURM_JOBID" finished" tom
-	Job $SLURM_JOBID submitted at $THEN is finished.
-	Concatenated stdout files:
-	$MESSAGE
-_EOF_
-
-mv /tmp/cutadapt."$SLURM_JOB_NODELIST"."$SLURM_JOBID".out "$outdir"/
-
-echo -e "[ "$(date)": Exiting ]"
 exit 0

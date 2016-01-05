@@ -1,0 +1,5 @@
+script,src/sh/downloadGenome.sh
+branch,master
+hash,33b763e801afccc1a141fc325c4be9cf772ab24a
+date,2016-01-05
+cuffcomp version,cuffcompare v2.2.1 (4237)
