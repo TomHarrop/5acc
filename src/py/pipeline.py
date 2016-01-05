@@ -72,9 +72,9 @@ def submit_job(jobScript, ntasks, cpus_per_task, job_name):
     mail = Popen(['mail', '-s', subject, '-A', outFile, '-A', errFile, 'tom'], stdin = PIPE)
     mail.communicate()
     # check subprocess exit code
-    assert proc.returncode == 0, "Job " + job_name + " failed with non-zero exit code"
     os.remove(outFile)    
     os.remove(errFile)
+    assert proc.returncode == 0, "Job " + job_name + " failed with non-zero exit code"
     return(jobId)
 
 # Variant of submit_job for JGI jobs where email/password is required
@@ -112,9 +112,9 @@ def submit_download_job(jobScript, job_name, jgiLogon, jgiPassword):
     mail = Popen(['mail', '-s', subject, '-A', outFile, '-A', errFile, 'tom'], stdin = PIPE)
     mail.communicate()
     # check completion    
-    assert proc.returncode == 0, "Job " + job_name + " failed with non-zero exit code"
     os.remove(outFile)    
     os.remove(errFile)
+    assert proc.returncode == 0, "Job " + job_name + " failed with non-zero exit code"
     return(jobId)
 
 # touch function for updating ruffus flag files
@@ -179,7 +179,7 @@ def cutadapt_sh(inputFiles, outputFiles):
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
 
 os_reads = main_pipeline.transform(task_func = cutadapt_sh,
-                                   input = "ruffus/os_reads",
+                                   input = defineOsReads,
                                    filter = suffix("ruffus/os_reads"),
                                    output = "output/cutadapt/METADATA.csv")
 

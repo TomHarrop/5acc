@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eu
 
 # how many CPUs we got?
 if [[ $SLURM_JOB_CPUS_PER_NODE ]]; then
@@ -71,7 +71,7 @@ fwdReadFiles=("data/reads/os/*R1.fastq.gz")
 for fwdReadFile in $fwdReadFiles; do
 	fFile="$(basename $fwdReadFile)"
 	lib_name="${fFile:0:2}"
-	rev_reads="data/reads/$(basename $fwdReadFile 1.fastq.gz)2.fastq.gz"
+	rev_reads="data/reads/os/$(basename $fwdReadFile 1.fastq.gz)2.fastq.gz"
 	# check that rev_reads are really there
 	if [[ ! -e $rev_reads ]]; then
 		echo "Error: rev_reads not found\n[ lib_name ]:\t$lib_name\n[ rev_reads ]:\t$rev_reads"
