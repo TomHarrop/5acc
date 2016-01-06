@@ -43,6 +43,8 @@ fi
 
 ### CODE STARTS HERE ------------------------------------------------------------------
 
+set -u
+
 echo -e "[ "$(date)": Genome generation with STAR ]"
 
 # make output directory

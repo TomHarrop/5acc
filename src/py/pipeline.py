@@ -185,41 +185,64 @@ def defineReads(outputFiles, pathToReads, species):
 #
 def cutadapt_sh(inputFiles, outputFiles, species):
     jobScript = 'src/sh/cutadapt.sh'
-    ntasks = '7'
+    ntasks = '4'
     cpus_per_task = '1'
     job_name = 'cutadapt_sh'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
-
+    
 #---------------------------------------------------------------
-# map reads
+# load genome into memory
 #
-def starMappingTwoStep_sh(inputFiles, outputFiles, species):
-    jobScript = 'src/sh/starMappingTwoStep.sh'
+def loadGenome_sh(inputFiles, outputFiles):
+    jobScript = 'src/sh/loadGenome.sh'
     ntasks = '1'
     cpus_per_task = '7'
-    job_name = 'starMappingTwoStep_sh'
+    job_name = 'loadGenome_sh'
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
+
+#---------------------------------------------------------------
+# first mapping step (shared memory across jobs)
+#
+def firstMapping_sh(inputFiles, outputFiles, species):
+    jobScript = 'src/sh/firstMapping.sh'
+    ntasks = '1'
+    cpus_per_task = '4'
+    job_name = 'firstMapping_sh'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
 
 #---------------------------------------------------------------
-# construct the pipeline
+# unload genome from memory
 #
-def makePipeline1(pipelineName, pathToReads, species):    
+def unloadGenome_sh(inputFiles, outputFiles):
+    jobScript = 'src/sh/unloadGenome.sh'
+    ntasks = '1'
+    cpus_per_task = '7'
+    job_name = 'unloadGenome_sh'
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
+
+#---------------------------------------------------------------
+# second mapping step (shared memory within job)
+#
+
+
+#---------------------------------------------------------------
+# construct the trimming pipeline
+#
+def makeTrimmingPipeline(pipelineName, pathToReads, species):    
     newPipeline = Pipeline(pipelineName)
-    headTask = newPipeline.originate(task_func = defineReads,
+    headTask = newPipeline.originate(name = species + " reads",
+                                     task_func = defineReads,
                                      output = "ruffus/" + species + ".reads",
                                      extras = [pathToReads, species])
-    newPipeline.transform(task_func = cutadapt_sh,
+    tailTask = newPipeline.transform(task_func = cutadapt_sh,
                           input = defineReads,
                           filter = suffix("ruffus/" + species + ".reads"),
                           output = "output/" + species + "/cutadapt/METADATA.csv",
                           extras = [species])
-    tailTask = newPipeline.transform(task_func = starMappingTwoStep_sh,
-                                     input = cutadapt_sh,
-                                     filter = suffix("/cutadapt/METADATA.csv"),
-                                     output = "/STAR/file.txt",
-                                     extras = [species])
     newPipeline.set_head_tasks([headTask])
     newPipeline.set_tail_tasks([tailTask])
     return newPipeline                                   
@@ -228,24 +251,85 @@ def makePipeline1(pipelineName, pathToReads, species):
 # RUN THE PIPELINE
 #---------------------------------------------------------------
 
-# map the osj reads
-osjPipeline = makePipeline1(pipelineName = "osjPipeline",
+# make the trimmming pipelines
+osjTrimming = makeTrimmingPipeline(pipelineName = "osjTrimming",
                             pathToReads = "data/reads/osj",
                             species = "osj")
-osiPipeline = makePipeline1(pipelineName = "osiPipeline",
+osiTrimming = makeTrimmingPipeline(pipelineName = "osiTrimming",
                             pathToReads = "data/reads/osi",
                             species = "osi")
-orPipeline = makePipeline1(pipelineName = "orPipeline",
+orTrimming = makeTrimmingPipeline(pipelineName = "orTrimming",
                             pathToReads = "data/reads/or",
                             species = "or")
-ogPipeline = makePipeline1(pipelineName = "ogPipeline",
+ogTrimming = makeTrimmingPipeline(pipelineName = "ogTrimming",
                             pathToReads = "data/reads/og",
                             species = "og")
-obPipeline = makePipeline1(pipelineName = "obPipeline",
+obTrimming = makeTrimmingPipeline(pipelineName = "obTrimming",
                             pathToReads = "data/reads/ob",
                             species = "ob")                            
 
-#osjPipeline.run()
+# load the genome into memory
+genomeLoad = main_pipeline.transform(task_func = loadGenome_sh,
+                                   input = starGenomeGenerate_sh,
+                                   filter = suffix("METADATA.csv"),
+                                   output = "genomeLoad/METADATA.csv")\
+                        .follows(osjTrimming)\
+                        .follows(osiTrimming)\
+                        .follows(orTrimming)\
+                        .follows(ogTrimming)\
+                        .follows(obTrimming)\
+
+# run the first step mapping tasks
+osjFirstStep = main_pipeline.transform(name = "osjFirstStep",
+                                       task_func = firstMapping_sh,
+                                       input = osjTrimming,
+                                       filter = suffix("cutadapt/METADATA.csv"),
+                                       output = "STAR/METADATA.csv",
+                                       extras = ["osj"])\
+                            .follows(genomeLoad)
+osiFirstStep = main_pipeline.transform(name = "osiFirstStep",
+                                       task_func = firstMapping_sh,
+                                       input = osiTrimming,
+                                       filter = suffix("cutadapt/METADATA.csv"),
+                                       output = "STAR/METADATA.csv",
+                                       extras = ["osi"])\
+                            .follows(genomeLoad)
+orFirstStep = main_pipeline.transform(name = "orFirstStep",
+                                       task_func = firstMapping_sh,
+                                       input = orTrimming,
+                                       filter = suffix("cutadapt/METADATA.csv"),
+                                       output = "STAR/METADATA.csv",
+                                       extras = ["or"])\
+                            .follows(genomeLoad)
+obFirstStep = main_pipeline.transform(name = "obFirstStep",
+                                       task_func = firstMapping_sh,
+                                       input = obTrimming,
+                                       filter = suffix("cutadapt/METADATA.csv"),
+                                       output = "STAR/METADATA.csv",
+                                       extras = ["ob"])\
+                            .follows(genomeLoad)
+ogFirstStep = main_pipeline.transform(name = "ogFirstStep",
+                                       task_func = firstMapping_sh,
+                                       input = osiTrimming,
+                                       filter = suffix("cutadapt/METADATA.csv"),
+                                       output = "STAR/METADATA.csv",
+                                       extras = ["og"])\
+                            .follows(genomeLoad)
+                             
+# unload the genome
+genomeUnload = main_pipeline.transform(task_func = unloadGenome_sh,
+                                   input = genomeLoad,
+                                   filter = suffix("METADATA.csv"),
+                                   output = "genomeUnloaded")\
+                        .follows(osjFirstStep)\
+                        .follows(osiFirstStep)\
+                        .follows(orFirstStep)\
+                        .follows(ogFirstStep)\
+                        .follows(ogFirstStep)\
+
+
+
+# run the second step mapping tasks
 
 # print the flowchart
 pipeline_printout_graph("ruffus/flowchart." + slurm_jobid + ".pdf", "pdf")
