@@ -1,0 +1,24 @@
+---
+title: "Results Plan"
+output: word_document
+---
+
+# Results
+* Phenotyping
+    * panicle morphology (p-trap) from 5 accessions (± other accessions?)
+    * timing of transitions in developmental stages by histology
+* RNA seq
+    * Differential expression analysis
+        * Simple case: genes that are DE between stages **within** each species
+        * Genes that may be involved in domestication
+            * e.g. their differential expression depends on stage AND domestication status (i.e. differentially expressed in multiple/all domesticated accessions)
+            * support candidates e.g. with evidence of selective sweeps or CNV in genomic sequencing data
+    * Correlation between gene expression and phenotype, e.g. can we find genes that correlate with number of primary branches, spikelets, etc.
+        * How would this be done? Multivariate analysis / likelihood ratio test? Will this be too noisy with 5 species and 2 data points (stages)? 
+        * How would it be different to comparing domesticated vs. wild species, since all the domesticated species have more spikelets and more branches?
+        * Is this just an unnecessarily complicated way to think about DE analysis?
+    * Comparison between the 5 species of expression of genes involved in an interesting pathway, e.g. a hormone pathway, production of a metabolite, a particular TF network, etc.
+* Extended expression studies of interesting genes
+    * e.g. *in situ*/fluidigm/qPCR analysis of differentially expressed genes in all the developmental stages that were sampled (not just the sequenced stages)
+* Hormones/metabolites?
+    * if we can relate to DE genes, or to changes in expression between species

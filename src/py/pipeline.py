@@ -42,7 +42,7 @@ def print_now():
 
 # Custom job submission step. Dirty hack. Need to exit 0 at end of each script
 # and use set -e for safety
-def submit_job(jobScript, ntasks, cpus_per_task, job_name, extras):
+def submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = ""):
     '''
     Submit the job using salloc hack. When complete return job id and write output to file.
     '''
@@ -151,7 +151,7 @@ os_genome = main_pipeline.originate(downloadGenome_sh, "data/genome/os/METADATA.
 def starGenomeGenerate_sh(inputFiles, outputFiles):
     jobScript = 'src/sh/starGenomeGenerate.sh'
     ntasks = '1'
-    cpus_per_task = '1'
+    cpus_per_task = '4'
     job_name = 'stargg'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
     # update ruffus flag
@@ -185,7 +185,7 @@ def defineReads(outputFiles, pathToReads, species):
 #
 def cutadapt_sh(inputFiles, outputFiles, species):
     jobScript = 'src/sh/cutadapt.sh'
-    ntasks = '4'
+    ntasks = '2'
     cpus_per_task = '1'
     job_name = 'cutadapt_sh'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
@@ -310,7 +310,7 @@ obFirstStep = main_pipeline.transform(name = "obFirstStep",
                             .follows(genomeLoad)
 ogFirstStep = main_pipeline.transform(name = "ogFirstStep",
                                        task_func = firstMapping_sh,
-                                       input = osiTrimming,
+                                       input = ogTrimming,
                                        filter = suffix("cutadapt/METADATA.csv"),
                                        output = "STAR/METADATA.csv",
                                        extras = ["og"])\
@@ -335,4 +335,4 @@ genomeUnload = main_pipeline.transform(task_func = unloadGenome_sh,
 pipeline_printout_graph("ruffus/flowchart." + slurm_jobid + ".pdf", "pdf")
 
 # run the pipeline (disabled for now)
-cmdline.run(options)
+cmdline.run(options, multithread = 8)

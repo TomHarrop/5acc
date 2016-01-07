@@ -69,9 +69,6 @@ fi
 
 set -u
 
-# STAR options
-OPTIONS="--runThreadN "$maxCpus" --genomeDir "$star_index_dir" --alignIntronMax 5000 --outSJfilterReads Unique --outSJfilterCountUniqueMin 5 5 5 5 --outSJfilterCountTotalMin 5 5 5 5 --outSJfilterIntronMaxVsReadN 5000 --readFilesCommand zcat"
-
 echo -e "[ "$(date)": First mapping step with STAR ]"
 
 # stop if there is no STAR index
@@ -102,6 +99,9 @@ if [[ ! -d $outdir/step1 ]]; then
 fi
 
 echo -e "[ "$(date)": Submitting step 1 mapping jobs ]"
+
+# STAR options
+OPTIONS="--runThreadN "$maxCpus" --genomeDir "$star_index_dir" --outSJfilterReads Unique --readFilesCommand zcat"
 
 # find the R1.fastq.gz files and match the R2 files to run STAR
 shopt -s nullglob
