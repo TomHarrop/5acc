@@ -169,7 +169,8 @@ os_index = main_pipeline.transform(task_func = starGenomeGenerate_sh,
 #---------------------------------------------------------------
 # define reads
 #
-def defineReads(outputFiles, pathToReads, species):
+def defineReads(outputFiles, species):
+    pathToReads = "data/reads/" + species
     assert os.path.isdir(pathToReads), "1 " +outputFiles+ " 2 " + pathToReads + " 3 " + species + "Error: reads folder " + pathToReads + " missing"
     readFiles = os.listdir(pathToReads)
     print("[", print_now(), ": Using reads in folder " + pathToReads + " ]")
@@ -190,23 +191,23 @@ def cutadapt_sh(inputFiles, outputFiles, species):
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
     
-#---------------------------------------------------------------
-# construct the trimming pipeline
-#
-def makeTrimmingPipeline(pipelineName, pathToReads, species):    
-    newPipeline = Pipeline(pipelineName)
-    headTask = newPipeline.originate(name = species + " reads",
-                                     task_func = defineReads,
-                                     output = "ruffus/" + species + ".reads",
-                                     extras = [pathToReads, species])
-    tailTask = newPipeline.transform(task_func = cutadapt_sh,
-                          input = defineReads,
-                          filter = suffix("ruffus/" + species + ".reads"),
-                          output = "output/" + species + "/cutadapt/METADATA.csv",
-                          extras = [species])
-    newPipeline.set_head_tasks([headTask])
-    newPipeline.set_tail_tasks([tailTask])
-    return newPipeline                                   
+##---------------------------------------------------------------
+## construct the trimming pipeline
+##
+#def makeTrimmingPipeline(pipelineName, pathToReads, species):    
+#    newPipeline = Pipeline(pipelineName)
+#    headTask = newPipeline.originate(name = species + " reads",
+#                                     task_func = defineReads,
+#                                     output = "ruffus/" + species + ".reads",
+#                                     extras = [pathToReads, species])
+#    tailTask = newPipeline.transform(task_func = cutadapt_sh,
+#                          input = defineReads,
+#                          filter = suffix("ruffus/" + species + ".reads"),
+#                          output = "output/" + species + "/cutadapt/METADATA.csv",
+#                          extras = [species])
+#    newPipeline.set_head_tasks([headTask])
+#    newPipeline.set_tail_tasks([tailTask])
+#    return newPipeline                                   
     
 #---------------------------------------------------------------
 # load genome into memory
@@ -277,37 +278,52 @@ def deseq2_R(inputFiles, outputFiles, species):
 # RUN THE PIPELINE
 #---------------------------------------------------------------
 
-# make the trimmming pipelines
-osjTrimming = makeTrimmingPipeline(pipelineName = "osjTrimming",
-                            pathToReads = "data/reads/osj",
-                            species = "osj")
-osiTrimming = makeTrimmingPipeline(pipelineName = "osiTrimming",
-                            pathToReads = "data/reads/osi",
-                            species = "osi")
-orTrimming = makeTrimmingPipeline(pipelineName = "orTrimming",
-                            pathToReads = "data/reads/or",
-                            species = "or")
-ogTrimming = makeTrimmingPipeline(pipelineName = "ogTrimming",
-                            pathToReads = "data/reads/og",
-                            species = "og")
-obTrimming = makeTrimmingPipeline(pipelineName = "obTrimming",
-                            pathToReads = "data/reads/ob",
-                            species = "ob")                            
+# define the reads
+species = ["osj", "osi", "or", "ob", "og"]
+for spec in species:
+    main_pipeline.originate(name = spec + "Reads",
+                            task_func = defineReads,
+                            output = "ruffus/" + spec + ".reads",
+                            extras = [spec])
+
+# run cutadapt
+trimming = main_pipeline.transform(task_func = cutadapt_sh,
+                                   input = output_from("osjReads",
+                                                       "osiReads",
+                                                       "orReads",
+                                                       "ogReads",
+                                                       "obReads"),
+                                   filter = regex(r"ruffus/(.*).reads"),
+                                    output = r"output/\1/cutadapt/METADATA.csv",
+                                    extras = [r"\1"])
+
+## make the trimmming pipelines
+#osjTrimming = makeTrimmingPipeline(pipelineName = "osjTrimming",
+#                            pathToReads = "data/reads/osj",
+#                            species = "osj")
+#osiTrimming = makeTrimmingPipeline(pipelineName = "osiTrimming",
+#                            pathToReads = "data/reads/osi",
+#                            species = "osi")
+#orTrimming = makeTrimmingPipeline(pipelineName = "orTrimming",
+#                            pathToReads = "data/reads/or",
+#                            species = "or")
+#ogTrimming = makeTrimmingPipeline(pipelineName = "ogTrimming",
+#                            pathToReads = "data/reads/og",
+#                            species = "og")
+#obTrimming = makeTrimmingPipeline(pipelineName = "obTrimming",
+#                            pathToReads = "data/reads/ob",
+#                            species = "ob")                            
 
 # load the genome into memory
 genomeLoad = main_pipeline.transform(task_func = loadGenome_sh,
                                    input = starGenomeGenerate_sh,
                                    filter = suffix("METADATA.csv"),
                                    output = "genomeLoad/METADATA.csv")\
-                        .follows(osjTrimming)\
-                        .follows(osiTrimming)\
-                        .follows(orTrimming)\
-                        .follows(ogTrimming)\
-                        .follows(obTrimming)\
+                        .follows(trimming)
 
 # run the first step mapping tasks
 firstStep = main_pipeline.transform(task_func = firstMapping_sh,
-                                       input = [osjTrimming, osiTrimming, orTrimming, obTrimming, ogTrimming],
+                                       input = trimming,
                                        filter = regex(r"output/(.*)/cutadapt/METADATA.csv"),
                                        output = r"output/\1/STAR/step1/METADATA.csv",
                                        extras = [r"\1"])\
