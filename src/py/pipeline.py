@@ -131,7 +131,6 @@ def touch(fname, mode=0o666, dir_fd=None, **kwargs):
 #---------------------------------------------------------------
 # download rice genome
 #
-
 def downloadGenome_sh(outputFiles, jgiLogon, jgiPassword):
     jobScript = 'src/sh/downloadGenome.sh'
     job_name = 'downloadGenome_sh'
@@ -141,7 +140,6 @@ def downloadGenome_sh(outputFiles, jgiLogon, jgiPassword):
 #---------------------------------------------------------------
 # generate STAR index for OS
 #
-
 def starGenomeGenerate_sh(inputFiles, outputFiles):
     jobScript = 'src/sh/starGenomeGenerate.sh'
     ntasks = '1'
@@ -244,6 +242,13 @@ def parseStarStats_R(inputFiles, outputFile):
 #
 def deseq2_R(inputFiles, outputFiles, species):
     pass
+
+#---------------------------------------------------------------
+# calculate expression cutoffs
+#
+def cutoffs_R(inputFiles, outputFiles, species):
+    pass
+
     
 #---------------------------------------------------------------
 # RUN THE PIPELINE
@@ -271,11 +276,7 @@ for spec in species:
 
 # run cutadapt
 trimming = main_pipeline.transform(task_func = cutadapt_sh,
-                                   input = output_from("osjReads",
-                                                       "osiReads",
-                                                       "orReads",
-                                                       "ogReads",
-                                                       "obReads"),
+                                   input = output_from(list(n + "Reads" for n in species)),
                                    filter = regex(r"ruffus/(.*).reads"),
                                     output = r"output/\1/cutadapt/METADATA.csv",
                                     extras = [r"\1"])
@@ -320,6 +321,13 @@ deseq2 = main_pipeline.transform(task_func = deseq2_R,
                                  input = secondStep,
                                  filter = regex(r"output/(.*)/STAR/METADATA.csv"),
                                  output = r"output/\1/deseq2/SessionInfo.txt",
+                                 extras = [r"\1"])
+
+# calculate cutoffs
+deseq2 = main_pipeline.transform(task_func = cutoffs_R,
+                                 input = secondStep,
+                                 filter = regex(r"output/(.*)/STAR/METADATA.csv"),
+                                 output = r"output/\1/cutoffs/SessionInfo.txt",
                                  extras = [r"\1"])
 
 #---------------------------------------------------------------

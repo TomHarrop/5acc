@@ -1,6 +1,8 @@
 ---
-title: "Results Plan"
-output: word_document
+title: "Notes for the 5 accessions project"
+output:
+  word_document:
+    reference_docx: /usr/share/pandoc/data/reference.docx
 link-citations: yes
 ---
 
@@ -20,3 +22,10 @@ link-citations: yes
     * e.g. *in situ*/fluidigm/qPCR analysis of differentially expressed genes in all the developmental stages that were sampled (not just the sequenced stages)
 * Hormones/metabolites?
     * if we can relate to DE genes, or to changes in expression between species
+    
+# Discussion / other considerations
+* Mapping bias
+    * If we increase the number of allowed mismatches to get reads from non-reference species to map to the Nipponbare genome, multimapping could also increase, because reads that previously mapped to 1 location may now map to > 1
+    * Genes with more coding sequences changes may have a lower mapping rate. This could mean that genes under relaxed selection (e.g. new duplicates ) will be given a lower expression level in non-reference species
+    * Genes that are consistently different between species (regardless of stage) could indicate CNV. A duplication in a non-reference species could show up as increased expression in that species (if both paralogs are expressed); a deletion may show up as severely reduced expression. 
+    
