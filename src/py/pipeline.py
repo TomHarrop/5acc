@@ -225,7 +225,7 @@ def loadGenome_sh(inputFiles, outputFiles):
 def firstMapping_sh(inputFiles, outputFiles, species):
     jobScript = 'src/sh/firstMapping.sh'
     ntasks = '1'
-    cpus_per_task = '4'
+    cpus_per_task = '7'
     job_name = species + '_firstMapping'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
@@ -252,7 +252,18 @@ def unloadGenome_sh(inputFiles, outputFiles):
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
 
+#---------------------------------------------------------------
+# DOWNSTREAM ANALYSIS
+#---------------------------------------------------------------
 
+def parseStarStats_R(inputFiles, outputFile):
+    jobScript= 'src/R/parseStarStats.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = "parseStarStats"
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
+    
 #---------------------------------------------------------------
 # RUN THE PIPELINE
 #---------------------------------------------------------------
@@ -369,6 +380,11 @@ ogSecondStep = main_pipeline.transform(name = "ogSecondStep",
                                        output = "METADATA.csv",
                                        extras = ["og"])\
                                        .follows(genomeUnload)
+
+## parse stats from the mapping
+#parseStats = main_pipeline.merge(task_func = parseStarStats_R,
+#                                 input = [osjSecondStep, osiSecondStep, orSecondStep, obSecondStep, ogSecondStep],
+#                                 output = "output/file.tsv")
 
 #---------------------------------------------------------------
 # COMMAND-LINE OPTIONS

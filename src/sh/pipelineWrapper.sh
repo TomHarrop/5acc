@@ -51,6 +51,6 @@ trap _err_trap ERR
 
 # start code
 
-src/py/pipeline.py -v5 -T osjFirstStep > ruffus/pipeline.log.txt 2>&1
+src/py/pipeline.py -v5 > ruffus/pipeline.log.txt 2>&1
 mail_output
 exit 0
