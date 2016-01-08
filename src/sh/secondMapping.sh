@@ -69,6 +69,8 @@ fi
 
 set -u
 
+outdir="output/"$species"/STAR"
+
 echo -e "[ "$(date)": First mapping step with STAR ]"
 
 # stop if there is no STAR index
@@ -87,58 +89,64 @@ if [[ ! -d "$cutadapt_dir" ]]; then
 fi
 echo -e "[ "$(date)": Using cutadapt folder $cutadapt_dir ]"
 
-# make output directory
-outdir="output/"$species"/STAR"
-if [[ ! -d $outdir ]]; then
-	mkdir -p $outdir
+# stop if there is no step 1 folder
+step1_dir="output/"$species"/STAR/step1"
+if [[ ! -d "$step1_dir" ]]; then
+	echo -e "[ "$(date)": First step splice junctions not found ]"
+	exit 1
 fi
 
-# make directory for step 1
-if [[ ! -d $outdir/step1 ]]; then
-	mkdir -p $outdir/step1
-fi
+# recover the splice junction files from step 1
+echo -e "[ "$(date)": Finding splice junctions in "$step1_dir" ]"
 
-echo -e "[ "$(date)": Submitting step 1 mapping jobs ]"
+shopt -s nullglob
+first_pass_junctions=(""$step1_dir"/*SJ.out.tab")
+shopt -u nullglob
 
-# STAR options
-OPTIONS="--runThreadN "$maxCpus" --genomeDir "$star_index_dir" --outSJfilterReads Unique --readFilesCommand zcat --outSAMtype None"
+cat <<- _EOF_
+  [ $(date): Found SJ.out.tab files from step 1 ]
+  $(for tab in $first_pass_junctions; do echo $tab; done)
+_EOF_
 
-# find the R1.fastq.gz files and match the R2 files to run STAR
+# set STAR options
+OPTIONS="--sjdbFileChrStartEnd "$first_pass_junctions" --genomeLoad NoSharedMemory --runThreadN "$maxCpus" --genomeDir "$star_index_dir" --outSJfilterReads Unique --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts"
+
+# run step 2 mapping
 shopt -s nullglob
 fastq_files=("$cutadapt_dir/*R1.fastq.gz")
 shopt -u nullglob
 for fwd_read_file in $fastq_files
 do
-	n=$(basename $fwd_read_file)
-	library_name=${n:0:2}
-	rev_read_file=${fwd_read_file/$library_name.R1/$library_name.R2}
-	# double check rev_read_file exists
-	if [[ ! -e $rev_read_file ]]; then
-		echo -e "[ "$(date)" : Error! Couldn't find reverse read file $rev_read_file for library $library_name ]"
-		exit 1
-	fi
-	cat <<- _EOF_
-	[ $(date) : Submitting STAR run ]
-	library_name: $library_name
-	fwd_read_file: $fwd_read_file
-	rev_read_file: $rev_read_file
+  n=$(basename $fwd_read_file)
+  library_name=${n:0:2}
+  rev_read_file=${fwd_read_file/$library_name.R1/$library_name.R2}
+  # double check rev_read_file exists
+  if [[ ! -e $rev_read_file ]]; then
+    echo -e "[ "$(date)" : Error! Couldn't find reverse read file $rev_read_file for library $library_name ]"
+    exit 1
+  fi
+  cat <<- _EOF_
+  [ $(date) : Submitting STAR run ]
+  library_name: $library_name
+  fwd_read_file: $fwd_read_file
+  rev_read_file: $rev_read_file
 _EOF_
-	cmd="STAR $OPTIONS --readFilesIn $fwd_read_file $rev_read_file --outFileNamePrefix $outdir/step1/$library_name. --genomeLoad LoadAndKeep"
-	srun --output $outdir/step1/$library_name.out --exclusive --ntasks=1 --cpus-per-task="$maxCpus" $cmd &	
+  cmd="STAR $OPTIONS --readFilesIn $fwd_read_file $rev_read_file --outFileNamePrefix $outdir/$library_name."
+  srun --output $outdir/$library_name.out --exclusive --ntasks=1 --cpus-per-task="$maxCpus" $cmd &  
 done
 
-echo -e "[ "$(date)": Waiting for step 1 jobs to finish ]"
+echo -e "[ "$(date)": Waiting for step 2 jobs to finish ]"
 fail_wait
 
 # log metadata
-cat <<- _EOF_ > $outdir/step1/METADATA.csv
-	Script,${0}
-	branch,$(git rev-parse --abbrev-ref HEAD)
-	hash,$(git rev-parse HEAD)
-	date,$(date +%F)
-	STAR version,$(STAR --version)
-	STAR index,$star_index_dir
-	cutadapt folder,$cutadapt_dir
+cat <<- _EOF_ > $outdir/METADATA.csv
+  Script,${0}
+  branch,$(git rev-parse --abbrev-ref HEAD)
+  hash,$(git rev-parse HEAD)
+  date,$(date +%F)
+  STAR version,$(STAR --version)
+  STAR index,$star_index_dir
+  cutadapt folder,$cutadapt_dir
 _EOF_
 
 echo -e "[ "$(date)": Jobs finished, exiting ]"
