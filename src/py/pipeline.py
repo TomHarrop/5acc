@@ -256,6 +256,9 @@ def unloadGenome_sh(inputFiles, outputFiles):
 # DOWNSTREAM ANALYSIS
 #---------------------------------------------------------------
 
+#---------------------------------------------------------------
+# parse mapping stats
+#
 def parseStarStats_R(inputFiles, outputFile):
     jobScript= 'src/R/parseStarStats.R'
     ntasks = '1'
@@ -263,6 +266,12 @@ def parseStarStats_R(inputFiles, outputFile):
     job_name = "parseStarStats"
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
+
+#---------------------------------------------------------------
+# run DESeq2
+#
+def deseq2_R(inputFiles, outputFiles, species):
+    pass
     
 #---------------------------------------------------------------
 # RUN THE PIPELINE
@@ -296,95 +305,130 @@ genomeLoad = main_pipeline.transform(task_func = loadGenome_sh,
                         .follows(ogTrimming)\
                         .follows(obTrimming)\
 
-# run the first step mapping tasks
-osjFirstStep = main_pipeline.transform(name = "osjFirstStep",
-                                       task_func = firstMapping_sh,
-                                       input = osjTrimming,
-                                       filter = suffix("cutadapt/METADATA.csv"),
-                                       output = "STAR/step1/METADATA.csv",
-                                       extras = ["osj"])\
+## run the first step mapping tasks
+#osjFirstStep = main_pipeline.transform(name = "osjFirstStep",
+#                                       task_func = firstMapping_sh,
+#                                       input = osjTrimming,
+#                                       filter = suffix("cutadapt/METADATA.csv"),
+#                                       output = "STAR/step1/METADATA.csv",
+#                                       extras = ["osj"])\
+#                            .follows(genomeLoad)
+#osiFirstStep = main_pipeline.transform(name = "osiFirstStep",
+#                                       task_func = firstMapping_sh,
+#                                       input = osiTrimming,
+#                                       filter = suffix("cutadapt/METADATA.csv"),
+#                                       output = "STAR/step1/METADATA.csv",
+#                                       extras = ["osi"])\
+#                            .follows(genomeLoad)
+#orFirstStep = main_pipeline.transform(name = "orFirstStep",
+#                                       task_func = firstMapping_sh,
+#                                       input = orTrimming,
+#                                       filter = suffix("cutadapt/METADATA.csv"),
+#                                       output = "STAR/step1/METADATA.csv",
+#                                       extras = ["or"])\
+#                            .follows(genomeLoad)
+#obFirstStep = main_pipeline.transform(name = "obFirstStep",
+#                                       task_func = firstMapping_sh,
+#                                       input = obTrimming,
+#                                       filter = suffix("cutadapt/METADATA.csv"),
+#                                       output = "STAR/step1/METADATA.csv",
+#                                       extras = ["ob"])\
+#                            .follows(genomeLoad)
+#ogFirstStep = main_pipeline.transform(name = "ogFirstStep",
+#                                       task_func = firstMapping_sh,
+#                                       input = ogTrimming,
+#                                       filter = suffix("cutadapt/METADATA.csv"),
+#                                       output = "STAR/step1/METADATA.csv",
+#                                       extras = ["og"])\
+#                            .follows(genomeLoad)
+
+# coded in parallel
+firstStep = main_pipeline.transform(task_func = firstMapping_sh,
+                                       input = [osjTrimming, osiTrimming, orTrimming, obTrimming, ogTrimming],
+                                       filter = regex(r"output/(.*)/cutadapt/METADATA.csv"),
+                                       output = r"output/\1/STAR/step1/METADATA.csv",
+                                       extras = [r"\1"])\
                             .follows(genomeLoad)
-osiFirstStep = main_pipeline.transform(name = "osiFirstStep",
-                                       task_func = firstMapping_sh,
-                                       input = osiTrimming,
-                                       filter = suffix("cutadapt/METADATA.csv"),
-                                       output = "STAR/step1/METADATA.csv",
-                                       extras = ["osi"])\
-                            .follows(genomeLoad)
-orFirstStep = main_pipeline.transform(name = "orFirstStep",
-                                       task_func = firstMapping_sh,
-                                       input = orTrimming,
-                                       filter = suffix("cutadapt/METADATA.csv"),
-                                       output = "STAR/step1/METADATA.csv",
-                                       extras = ["or"])\
-                            .follows(genomeLoad)
-obFirstStep = main_pipeline.transform(name = "obFirstStep",
-                                       task_func = firstMapping_sh,
-                                       input = obTrimming,
-                                       filter = suffix("cutadapt/METADATA.csv"),
-                                       output = "STAR/step1/METADATA.csv",
-                                       extras = ["ob"])\
-                            .follows(genomeLoad)
-ogFirstStep = main_pipeline.transform(name = "ogFirstStep",
-                                       task_func = firstMapping_sh,
-                                       input = ogTrimming,
-                                       filter = suffix("cutadapt/METADATA.csv"),
-                                       output = "STAR/step1/METADATA.csv",
-                                       extras = ["og"])\
-                            .follows(genomeLoad)
-                          
-# unload the genome
 genomeUnload = main_pipeline.transform(task_func = unloadGenome_sh,
                                    input = genomeLoad,
                                    filter = suffix("METADATA.csv"),
                                    output = "genomeUnloaded")\
-                        .follows(osjFirstStep)\
-                        .follows(osiFirstStep)\
-                        .follows(orFirstStep)\
-                        .follows(obFirstStep)\
-                        .follows(ogFirstStep)\
+                        .follows(firstStep)
+secondStep = main_pipeline.transform(task_func = secondMapping_sh,
+                                       input = firstStep,
+                                       filter = regex(r"output/(.*)/STAR/step1/METADATA.csv"),
+                                       output = r"output/\1/STAR/METADATA.csv",
+                                       extras = [r"\1"])\
+                            .follows(genomeUnload)
+deseq2 = main_pipeline.transform(task_func = deseq2_R,
+                                 input = secondStep,
+                                 filter = regex(r"output/(.*)/STAR/METADATA.csv"),
+                                 output = r"output/\1/deseq2/SessionInfo.txt",
+                                 extras = [r"\1"])
 
-# run the second step mapping tasks
-osjSecondStep = main_pipeline.transform(name = "osjSecondStep",
-                                       task_func = secondMapping_sh,
-                                       input = osjFirstStep,
-                                       filter = suffix("step1/METADATA.csv"),
-                                       output = "METADATA.csv",
-                                       extras = ["osj"])\
-                                       .follows(genomeUnload)
-osiSecondStep = main_pipeline.transform(name = "osiSecondStep",
-                                       task_func = secondMapping_sh,
-                                       input = osiFirstStep,
-                                       filter = suffix("step1/METADATA.csv"),
-                                       output = "METADATA.csv",
-                                       extras = ["osi"])\
-                                       .follows(genomeUnload)
-orSecondStep = main_pipeline.transform(name = "orSecondStep",
-                                       task_func = secondMapping_sh,
-                                       input = orFirstStep,
-                                       filter = suffix("step1/METADATA.csv"),
-                                       output = "METADATA.csv",
-                                       extras = ["or"])\
-                                       .follows(genomeUnload)
-obSecondStep = main_pipeline.transform(name = "obSecondStep",
-                                       task_func = secondMapping_sh,
-                                       input = obFirstStep,
-                                       filter = suffix("step1/METADATA.csv"),
-                                       output = "METADATA.csv",
-                                       extras = ["ob"])\
-                                       .follows(genomeUnload)
-ogSecondStep = main_pipeline.transform(name = "ogSecondStep",
-                                       task_func = secondMapping_sh,
-                                       input = ogFirstStep,
-                                       filter = suffix("step1/METADATA.csv"),
-                                       output = "METADATA.csv",
-                                       extras = ["og"])\
-                                       .follows(genomeUnload)
+#
+#                          
+## unload the genome
+#genomeUnload = main_pipeline.transform(task_func = unloadGenome_sh,
+#                                   input = genomeLoad,
+#                                   filter = suffix("METADATA.csv"),
+#                                   output = "genomeUnloaded")\
+#                        .follows(osjFirstStep)\
+#                        .follows(osiFirstStep)\
+#                        .follows(orFirstStep)\
+#                        .follows(obFirstStep)\
+#                        .follows(ogFirstStep)\
+#
+## run the second step mapping tasks
+#osjSecondStep = main_pipeline.transform(name = "osjSecondStep",
+#                                       task_func = secondMapping_sh,
+#                                       input = osjFirstStep,
+#                                       filter = suffix("step1/METADATA.csv"),
+#                                       output = "METADATA.csv",
+#                                       extras = ["osj"])\
+#                                       .follows(genomeUnload)
+#osiSecondStep = main_pipeline.transform(name = "osiSecondStep",
+#                                       task_func = secondMapping_sh,
+#                                       input = osiFirstStep,
+#                                       filter = suffix("step1/METADATA.csv"),
+#                                       output = "METADATA.csv",
+#                                       extras = ["osi"])\
+#                                       .follows(genomeUnload)
+#orSecondStep = main_pipeline.transform(name = "orSecondStep",
+#                                       task_func = secondMapping_sh,
+#                                       input = orFirstStep,
+#                                       filter = suffix("step1/METADATA.csv"),
+#                                       output = "METADATA.csv",
+#                                       extras = ["or"])\
+#                                       .follows(genomeUnload)
+#obSecondStep = main_pipeline.transform(name = "obSecondStep",
+#                                       task_func = secondMapping_sh,
+#                                       input = obFirstStep,
+#                                       filter = suffix("step1/METADATA.csv"),
+#                                       output = "METADATA.csv",
+#                                       extras = ["ob"])\
+#                                       .follows(genomeUnload)
+#ogSecondStep = main_pipeline.transform(name = "ogSecondStep",
+#                                       task_func = secondMapping_sh,
+#                                       input = ogFirstStep,
+#                                       filter = suffix("step1/METADATA.csv"),
+#                                       output = "METADATA.csv",
+#                                       extras = ["og"])\
+#                                       .follows(genomeUnload)
+
+
 
 ## parse stats from the mapping
 #parseStats = main_pipeline.merge(task_func = parseStarStats_R,
 #                                 input = [osjSecondStep, osiSecondStep, orSecondStep, obSecondStep, ogSecondStep],
 #                                 output = "output/file.tsv")
+
+# run DESeq2 (test group transform/regex)
+#deseq2 = main_pipeline.transform(task_func = deseq2_R,
+#                                 input = [osjSecondStep, osiSecondStep, orSecondStep, obSecondStep, ogSecondStep],
+#                                 filter = regex(r"output/(.*)/STAR/METADATA.csv"),
+#                                 output = r"output/\1/deseq2/SessionInfo.txt",
+#                                 extras = [r"\1"])
 
 #---------------------------------------------------------------
 # COMMAND-LINE OPTIONS
