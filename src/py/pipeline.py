@@ -124,10 +124,6 @@ def touch(fname, mode=0o666, dir_fd=None, **kwargs):
         os.utime(f.fileno() if os.utime in os.supports_fd else fname,
             dir_fd=None if os.supports_fd else dir_fd, **kwargs)
 
-
-# get default pipeline
-main_pipeline = Pipeline.pipelines["main"]
-
 #---------------------------------------------------------------
 # SETUP TASKS
 #---------------------------------------------------------------
@@ -141,8 +137,6 @@ def downloadGenome_sh(outputFiles, jgiLogon, jgiPassword):
     job_name = 'downloadGenome_sh'
     jobId = submit_download_job(jobScript, job_name, jgiLogon, jgiPassword)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
-    
-os_genome = main_pipeline.originate(downloadGenome_sh, "data/genome/os/METADATA.csv", jgiLogon, jgiPassword)
 
 #---------------------------------------------------------------
 # generate STAR index for OS
@@ -157,13 +151,8 @@ def starGenomeGenerate_sh(inputFiles, outputFiles):
     # update ruffus flag
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
 
-os_index = main_pipeline.transform(task_func = starGenomeGenerate_sh,
-                                   input = downloadGenome_sh,
-                                   filter = suffix("data/genome/os/METADATA.csv"),
-                                   output = "output/star-index/METADATA.csv")
-
 #---------------------------------------------------------------
-# MAPPING AND TRIMMING SUBPIPELINE
+# MAPPING AND TRIMMING TASKS
 #---------------------------------------------------------------
 
 #---------------------------------------------------------------
@@ -190,25 +179,7 @@ def cutadapt_sh(inputFiles, outputFiles, species):
     job_name = species + '_cutadapt'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
-    
-##---------------------------------------------------------------
-## construct the trimming pipeline
-##
-#def makeTrimmingPipeline(pipelineName, pathToReads, species):    
-#    newPipeline = Pipeline(pipelineName)
-#    headTask = newPipeline.originate(name = species + " reads",
-#                                     task_func = defineReads,
-#                                     output = "ruffus/" + species + ".reads",
-#                                     extras = [pathToReads, species])
-#    tailTask = newPipeline.transform(task_func = cutadapt_sh,
-#                          input = defineReads,
-#                          filter = suffix("ruffus/" + species + ".reads"),
-#                          output = "output/" + species + "/cutadapt/METADATA.csv",
-#                          extras = [species])
-#    newPipeline.set_head_tasks([headTask])
-#    newPipeline.set_tail_tasks([tailTask])
-#    return newPipeline                                   
-    
+      
 #---------------------------------------------------------------
 # load genome into memory
 #
@@ -278,6 +249,18 @@ def deseq2_R(inputFiles, outputFiles, species):
 # RUN THE PIPELINE
 #---------------------------------------------------------------
 
+# get default pipeline
+main_pipeline = Pipeline.pipelines["main"]
+
+# download the genome
+os_genome = main_pipeline.originate(downloadGenome_sh, "data/genome/os/METADATA.csv", jgiLogon, jgiPassword)
+
+# create the STAR index
+os_index = main_pipeline.transform(task_func = starGenomeGenerate_sh,
+                                   input = downloadGenome_sh,
+                                   filter = suffix("data/genome/os/METADATA.csv"),
+                                   output = "output/star-index/METADATA.csv")
+
 # define the reads
 species = ["osj", "osi", "or", "ob", "og"]
 for spec in species:
@@ -296,23 +279,6 @@ trimming = main_pipeline.transform(task_func = cutadapt_sh,
                                    filter = regex(r"ruffus/(.*).reads"),
                                     output = r"output/\1/cutadapt/METADATA.csv",
                                     extras = [r"\1"])
-
-## make the trimmming pipelines
-#osjTrimming = makeTrimmingPipeline(pipelineName = "osjTrimming",
-#                            pathToReads = "data/reads/osj",
-#                            species = "osj")
-#osiTrimming = makeTrimmingPipeline(pipelineName = "osiTrimming",
-#                            pathToReads = "data/reads/osi",
-#                            species = "osi")
-#orTrimming = makeTrimmingPipeline(pipelineName = "orTrimming",
-#                            pathToReads = "data/reads/or",
-#                            species = "or")
-#ogTrimming = makeTrimmingPipeline(pipelineName = "ogTrimming",
-#                            pathToReads = "data/reads/og",
-#                            species = "og")
-#obTrimming = makeTrimmingPipeline(pipelineName = "obTrimming",
-#                            pathToReads = "data/reads/ob",
-#                            species = "ob")                            
 
 # load the genome into memory
 genomeLoad = main_pipeline.transform(task_func = loadGenome_sh,
