@@ -1,0 +1,36 @@
+---
+output:
+  tufte::tufte_handout
+link-citations: yes
+---
+
+```{r setup, include=FALSE, results="hide", warning=FALSE}
+library(ggplot2)
+library(data.table)
+
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.width = 4.21,
+                      fig.height = 4.21)
+```
+
+# Quality checks
+
+```{r readsInGenes, fig.cap="Number of input reads \\emph{vs}. number of reads mapped to genes"}
+starLogs <- readRDS("../output/mappingStats/starLogs.Rds")
+starLogs[, Accession := substr(Library, 1, 1)]
+starLogs[, Accession := plyr::mapvalues(Accession, from = c("J", "I", "R", "G", "B"),
+                           to = c("Os Japonica", "Os Indica", "Or", "Og", "Ob"))]
+
+ggplot(starLogs, aes(x = `Number of input reads`/1000000,
+                          y = `Number of reads in genes`/1000000,
+                          label = Library, colour = Accession)) +
+  xlab("Input reads (M)") +
+  ylab("Exonic mappings (M)") +
+  theme_grey(base_size = 8) +
+  theme(legend.position = "bottom") +
+  stat_smooth(method = "lm", se = FALSE, size = 0.5) +
+  geom_point() +
+  scale_colour_brewer(palette = "Set1", guide = guide_legend(title = NULL)) +
+  geom_text(aes(x = (`Number of input reads`/1000000) - 2),
+            check_overlap = TRUE, size = 2.82)
+```

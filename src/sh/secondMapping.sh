@@ -109,7 +109,7 @@ cat <<- _EOF_
 _EOF_
 
 # set STAR options
-OPTIONS="--sjdbFileChrStartEnd "$first_pass_junctions" --genomeLoad NoSharedMemory --runThreadN "$maxCpus" --genomeDir "$star_index_dir" --outSJfilterReads Unique --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --quantMode GeneCounts"
+OPTIONS="--sjdbFileChrStartEnd "$first_pass_junctions" --genomeLoad NoSharedMemory --runThreadN "$maxCpus" --genomeDir "$star_index_dir" --outSJfilterReads Unique --readFilesCommand zcat --outSAMtype BAM Unsorted --quantMode GeneCounts --outBAMcompression 10 --outReadsUnmapped Fastx"
 
 # run step 2 mapping
 shopt -s nullglob

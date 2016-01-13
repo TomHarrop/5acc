@@ -1,19 +1,13 @@
 #!/usr/bin/Rscript
 
 library(data.table)
-library(xlsx)
 
-# find the most recent cutadapt output
-outputDirs <- list.dirs(path = 'output', full.names = TRUE, recursive = FALSE)
-cutadaptDir <- rev(sort(outputDirs[grep('cutadapt', outputDirs)]))[1]
-
-# find the most recent STAR output
-outputDirs <- dir(path = cutadaptDir, pattern = "STAR", full.names = TRUE)
-starDir <- rev(sort(outputDirs[grep('STAR', outputDirs)]))[1]
-
-# get all the final.out files
-starLogFiles <- dir(path = starDir, pattern = "Log.final.out", full.names = TRUE)
-starLogs <- lapply(starLogFiles, read.delim, header = FALSE, sep = "|", fill = TRUE, strip.white = TRUE, stringsAsFactors = FALSE)
+# find the Log.final.out files
+starLogFiles <- list.files(path = 'output', pattern = "Log.final.out",
+                           full.names = TRUE, recursive = TRUE)
+starLogFiles <- starLogFiles[!grepl("step1", starLogFiles)]
+starLogs <- lapply(starLogFiles, read.delim, header = FALSE, sep = "|", fill = TRUE,
+                   strip.white = TRUE, stringsAsFactors = FALSE)
 names(starLogs) <- gsub('.Log.final.out', '', basename(starLogFiles), fixed = TRUE)
 
 # combine the logs into one data.frame
@@ -49,20 +43,52 @@ starLogs.date <- starLogs.dt[, lapply(.SD, dateConvert), .SDcols = todate]
 # 5. cbind it together
 starLogs.final <- cbind(starLogs.dt[,Library], starLogs.date, starLogs.dt.num)
 setnames(starLogs.final, 'V1', 'Library')
+setkey(starLogs.final, "Library")
+
+# 6. get the number of reads mapped to the Nipponbare GTF
+readsPerGeneFiles <- list.files(path = 'output', pattern = "ReadsPerGene.out.tab",
+                           full.names = TRUE, recursive = TRUE)
+readsPerGene <- lapply(readsPerGeneFiles, read.table, stringsAsFactors = FALSE)
+names(readsPerGene) <- gsub(".*([[:upper:]][[:digit:]]).*", "\\1", readsPerGeneFiles)
+tidyReads <- function(x) {
+  x <- as.data.table(x)
+  setnames(x, old = c("V1", "V4"), new = c("msuId", "reverse"))
+  x[, c("V2", "V3") := NULL]
+  names(x) <- sub("V4", "reverse", names(x))
+  return(data.frame(x, row.names = "msuId"))
+}
+tidyReadsFrames <- lapply(readsPerGene, tidyReads)
+tidyReadsFrame <- do.call(cbind, tidyReadsFrames)
+setnames(tidyReadsFrame, names(tidyReadsFrames))
+readsTable <- as.data.table(tidyReadsFrame, keep.rownames = TRUE)
+setnames(readsTable, "rn", "msuId")
+sdc <- names(readsTable)[!names(readsTable) == "msuId"]
+readSums <- data.table(t(readsTable[!grep("^N", msuId), lapply(.SD, sum),
+                                    .SDcols = sdc]), keep.rownames = TRUE)
+setnames(readSums, c("rn", "V1"), c("Library", "Number of reads in genes"))
+setkey(readSums, "Library")
+
+starLogs.final <- merge(starLogs.final, readSums)
+
+# MAKE OUTPUT FOLDER
+outDir <- "output/mappingStats"
+if (!dir.exists(outDir)) {
+  dir.create(outDir)
+}
 
 # save RDS
-saveRDS(starLogs.final, paste0("rds/STARLogs.combined-", Sys.Date(), ".Rds"))
+saveRDS(starLogs.final, paste0(outDir, "/starLogs.Rds"))
 
-# save for excel
-wb <- xlsx::createWorkbook()
-sheet <- xlsx::createSheet(wb, sheetName = 'STARlogs')
-xlsx::addDataFrame(starLogs.final, sheet, showNA = FALSE, row.names = FALSE)
-saveWorkbook(wb, paste0("xlsx/STARLogs.combined-", Sys.Date(), ".xlsx"))
+# save CSV
+write.table(as.data.frame(starLogs.final), paste0(outDir, "/starLogs.tsv"),sep = "\t",
+            quote = FALSE, na = "",
+          row.names = FALSE, col.names = TRUE)
 
-# save sessionInfo
-writeLines(capture.output(sessionInfo()),
-           paste0("log/STARLogs.combined-", Sys.Date(), ".txt"))
+# SAVE LOGS
+sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD", intern = TRUE)),
+          paste("git hash:", system("git rev-parse HEAD", intern = TRUE)),
+          capture.output(sessionInfo()))
+logLocation <- paste0(outDir, "/SessionInfo.txt")
+writeLines(sInf, logLocation)
 
-
-
-
+quit(save = "no", status = 0)

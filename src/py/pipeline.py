@@ -314,7 +314,7 @@ secondStep = main_pipeline.transform(task_func = secondMapping_sh,
 # parse stats from the mapping
 parseStats = main_pipeline.merge(task_func = parseStarStats_R,
                                  input = secondStep,
-                                 output = "output/file.tsv")
+                                 output = "output/mappingStats/starLogs.Rds")
 
 # run deseq2 (actually, this should be a merge task)
 deseq2 = main_pipeline.transform(task_func = deseq2_R,
