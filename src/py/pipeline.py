@@ -332,11 +332,11 @@ deseq2 = main_pipeline.merge(task_func = deseq2_R,
                                  input = secondStep,
                                  output = "output/deseq2/SessionInfo.txt")
 
-# run QC on deseq2 output
-deseqQC = main_pipeline.transform(task_func = deseqQC_R,
-                                  input = deseq2,
-                                  filter = suffix("SessionInfo.txt"),
-                                  output = "someFileHere.csv")
+## run QC on deseq2 output
+#deseqQC = main_pipeline.transform(task_func = deseqQC_R,
+#                                  input = deseq2,
+#                                  filter = suffix("SessionInfo.txt"),
+#                                  output = "someFileHere.csv")
 
 # calculate cutoffs
 #deseq2 = main_pipeline.transform(task_func = cutoffs_R,
