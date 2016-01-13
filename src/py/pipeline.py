@@ -249,6 +249,12 @@ def deseq2_R(inputFiles, outputFiles):
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
 
 #---------------------------------------------------------------
+# perform QC checks on DESeq2 output
+#
+def deseqQC_R(inputFiles, outputFiles):
+    pass
+
+#---------------------------------------------------------------
 # calculate expression cutoffs
 #
 def cutoffs_R(inputFiles, outputFiles, species):
@@ -325,7 +331,13 @@ parseStats = main_pipeline.merge(task_func = parseStarStats_R,
 deseq2 = main_pipeline.merge(task_func = deseq2_R,
                                  input = secondStep,
                                  output = "output/deseq2/SessionInfo.txt")
-                            
+
+# run QC on deseq2 output
+deseqQC = main_pipeline.transform(task_func = deseqQC_R,
+                                  input = deseq2,
+                                  filter = suffix("SessionInfo.txt"),
+                                  output = "someFileHere.csv")
+
 # calculate cutoffs
 #deseq2 = main_pipeline.transform(task_func = cutoffs_R,
 #                                 input = secondStep,
