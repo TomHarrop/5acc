@@ -240,8 +240,13 @@ def parseStarStats_R(inputFiles, outputFile):
 #---------------------------------------------------------------
 # run DESeq2
 #
-def deseq2_R(inputFiles, outputFiles, species):
-    pass
+def deseq2_R(inputFiles, outputFiles):
+    jobScript= 'src/R/DESeq2.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = "deseq2_R"
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
 
 #---------------------------------------------------------------
 # calculate expression cutoffs
@@ -316,19 +321,17 @@ parseStats = main_pipeline.merge(task_func = parseStarStats_R,
                                  input = secondStep,
                                  output = "output/mappingStats/starLogs.Rds")
 
-# run deseq2 (actually, this should be a merge task)
-deseq2 = main_pipeline.transform(task_func = deseq2_R,
+# run deseq2 for basic comparisons and QC tasks
+deseq2 = main_pipeline.merge(task_func = deseq2_R,
                                  input = secondStep,
-                                 filter = regex(r"output/(.*)/STAR/METADATA.csv"),
-                                 output = r"output/\1/deseq2/SessionInfo.txt",
-                                 extras = [r"\1"])
-
+                                 output = "output/deseq2/SessionInfo.txt")
+                            
 # calculate cutoffs
-deseq2 = main_pipeline.transform(task_func = cutoffs_R,
-                                 input = secondStep,
-                                 filter = regex(r"output/(.*)/STAR/METADATA.csv"),
-                                 output = r"output/\1/cutoffs/SessionInfo.txt",
-                                 extras = [r"\1"])
+#deseq2 = main_pipeline.transform(task_func = cutoffs_R,
+#                                 input = secondStep,
+#                                 filter = regex(r"output/(.*)/STAR/METADATA.csv"),
+#                                 output = r"output/\1/cutoffs/SessionInfo.txt",
+#                                 extras = [r"\1"])
 
 #---------------------------------------------------------------
 # COMMAND-LINE OPTIONS

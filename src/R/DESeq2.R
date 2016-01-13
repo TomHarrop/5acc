@@ -1,8 +1,6 @@
 #!/usr/bin/Rscript
 
 library(data.table)
-library(DESeq2)
-library(ggplot2)
 
 # load the quant files
 quantFiles <- list.files("output", pattern = "ReadsPerGene", recursive = TRUE,
@@ -41,58 +39,39 @@ colData[ind] <- lapply(colData[ind], factor)
 colData$domestication <- relevel(colData$domestication, "wild")
 colData$accession <- relevel(colData$accession, "japonica")
 
-# build DESeq2 object
+# build DESeq2 object for basic comparisons
 dds <- DESeq2::DESeqDataSetFromMatrix(
   countData = subset(countData, !grepl("^N", rownames(countData))),
   colData = colData,
-  design = ~ domestication + stage + domestication:stage)
-# separate object for comparisons between species
-ddsSpecies <- DESeq2::DESeqDataSetFromMatrix(
-  countData = subset(countData, !grepl("^N", rownames(countData))),
-  colData = colData,
-  design = ~ accession + stage + accession:stage)
+  design = ~ accession + stage)
 
 # run DESeq2
 dds <- DESeq2::DESeq(dds)
-ddsSpecies <- DESeq2::DESeq(ddsSpecies)
 
-# investigate stage:domestication interaction
-DESeq2::resultsNames(dds)
-res <- DESeq2::results(dds, name = "domesticationdomesticated.stageSM", alpha = 0.05)
-summary(res)
-someGenes <- rownames(subset(as.data.frame(res), padj < 0.05))
+# run transformations
+vst <- DESeq2::varianceStabilizingTransformation(dds)
+rld <- DESeq2::rlogTransformation(dds)
 
-oryzr::LocToGeneName(someGenes)
+# normalized counts matrix
+normCounts <- DESeq2::counts(dds, normalized = TRUE)
 
-DESeq2::plotCounts(dds, gene = "LOC_Os05g03760", intgroup = c("stage", "accession"))
-DESeq2::plotCounts(dds, gene = "LOC_Os04g11980", intgroup = c("stage", "accession"))
+# MAKE OUTPUT FOLDER
+outDir <- "output/deseq2"
+if (!dir.exists(outDir)) {
+  dir.create(outDir)
+}
 
-# investigate species-specific changes
-DESeq2::resultsNames(ddsSpecies)
-someRes <- DESeq2::results(ddsSpecies, contrast = c("accession", "japonica", "rufipogon"), lfcThreshold = 5, alpha = 0.05)
-subset(data.frame(someRes), padj < 0.05)
-rufipogon <- DESeq2::results(ddsSpecies, name = "accessionrufipogon.stageSM", alpha = 0.05, lfcThreshold = 1)
-summary(rufipogon)
-oryzr::LocToGeneName(rownames(subset(rufipogon, padj < 0.05)))
+# save output
+saveRDS(dds, paste0(outDir, "/dds.Rds"))
+saveRDS(vst, paste0(outDir, "/vst.Rds"))
+saveRDS(rld, paste0(outDir, "/rld.Rds"))
+saveRDS(normCounts, paste0(outDir, "/normCounts.Rds"))
 
+# SAVE LOGS
+sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD", intern = TRUE)),
+          paste("git hash:", system("git rev-parse HEAD", intern = TRUE)),
+          capture.output(sessionInfo()))
+writeLines(sInf, paste0(outDir, "/SessionInfo.txt"))
 
-oryzr::LocToGeneName(someMoreGenes)
-
-# some plots
-normCounts.wide <- data.frame(DESeq2::counts(dds, normalized = TRUE))
-normCounts.wide$msuId <- rownames(normCounts.wide)
-normCounts <- reshape2::melt(normCounts.wide, id.vars = "msuId",
-                             variable.name = "Library", value.name = "count")
-normCounts <- as.data.table(normCounts, keep.rownames = F)
-setkey(normCounts, "Library")
-setkey(colData.table, "rn")
-
-plotData <- colData.table[normCounts]
-setnames(plotData, "rn", "Library")
-
-ggplot(plotData[msuId == "LOC_Os11g10590"], aes(x = stage, y = count)) +
-  stat_smooth(aes(group = accession), method = "lm", se = FALSE, size = 0.5) +
-  geom_point(position = position_jitter(width = 0.2)) +
-  facet_wrap(~ accession)
-oryzr::LocToGeneName("LOC_Os02g47390")
- 
+# exit 0
+quit(save = "no", status = 0)
