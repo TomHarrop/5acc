@@ -206,7 +206,7 @@ def firstMapping_sh(inputFiles, outputFiles, species):
 def secondMapping_sh(inputFiles, outputFiles, species):
     jobScript = 'src/sh/secondMapping.sh'
     ntasks = '1'
-    cpus_per_task = '7'
+    cpus_per_task = '8'
     job_name = species + '_secondMapping'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
@@ -221,6 +221,26 @@ def unloadGenome_sh(inputFiles, outputFiles):
     job_name = 'unloadGenome'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
+
+#---------------------------------------------------------------
+# sort bamfiles
+#
+
+
+#---------------------------------------------------------------
+# compress unmapped read files
+#
+def compressUnmappedReads_sh(inputFiles, outputFiles, species):
+    jobScript = 'src/sh/compressUnmappedReads.sh'
+    ntasks = '1'
+    cpus_per_task = '7'
+    job_name = species + '_gzip'
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
+    print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
+
+#---------------------------------------------------------------
+# remap reads
+#
 
 #---------------------------------------------------------------
 # DOWNSTREAM ANALYSIS
@@ -331,6 +351,13 @@ parseStats = main_pipeline.merge(task_func = parseStarStats_R,
 deseq2 = main_pipeline.merge(task_func = deseq2_R,
                                  input = secondStep,
                                  output = "output/deseq2/SessionInfo.txt")
+
+# compress unmapped read files
+compress = main_pipeline.transform(task_func = compressUnmappedReads_sh,
+                                   input = secondStep,
+                                   filter = regex(r"output/(.*)/STAR/METADATA.csv"),
+                                    output = r"output/\1/STAR/compressStats.txt",
+                                    extras = [r"\1"])
 
 ## run QC on deseq2 output
 #deseqQC = main_pipeline.transform(task_func = deseqQC_R,
