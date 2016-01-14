@@ -241,6 +241,13 @@ def compressUnmappedReads_sh(inputFiles, outputFiles, species):
 #---------------------------------------------------------------
 # remap reads
 #
+def remap_sh(inputFiles, outputFiles, species):
+    jobScript = 'src/sh/remap.sh'
+    ntasks = '1'
+    cpus_per_task = '7'
+    job_name = species + '_remap'
+    jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
+    print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
 
 #---------------------------------------------------------------
 # DOWNSTREAM ANALYSIS
@@ -358,6 +365,13 @@ compress = main_pipeline.transform(task_func = compressUnmappedReads_sh,
                                    filter = regex(r"output/(.*)/STAR/METADATA.csv"),
                                     output = r"output/\1/STAR/compressStats.txt",
                                     extras = [r"\1"])
+
+# remap unmapped read files
+remap = main_pipeline.transform(task_func = remap_sh,
+                                input = compress,
+                                filter = regex(r"output/(.*)/STAR/compressStats.txt"),
+                                output = r"output/\1/STAR/remap/METADATA.csv",
+                                extras = [r"\1"])
 
 ## run QC on deseq2 output
 #deseqQC = main_pipeline.transform(task_func = deseqQC_R,

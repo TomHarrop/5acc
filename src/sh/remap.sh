@@ -65,35 +65,31 @@ else
   maxCpus=1
 fi
 
-### CODE STARTS HERE ------------------------------------------------------------------
-
 set -u
 
-outdir="output/"$species"/STAR"
+### CODE STARTS HERE ------------------------------------------------------------------
 
-echo -e "[ "$(date)": Second mapping step with STAR ]"
+# make output directory
+outdir="output/"$species"/STAR/remap"
+if [[ ! -d "$outdir" ]]; then
+  mkdir -p "$outdir"
+fi
+
+echo -e "[ "$(date)": Remapping unmapped reads with STAR ]"
 
 # stop if there is no STAR index
 star_index_dir="output/star-index"
 if [[ ! -d "$star_index_dir" ]]; then
-	echo -e "[ "$(date)": No STAR index found ]"
-	exit 1
+  echo -e "[ "$(date)": No STAR index found ]"
+  exit 1
 fi
 echo -e "[ "$(date)": Using STAR index $star_index_dir ]"
-
-# stop if there is no cutadapt folder
-cutadapt_dir="output/"$species"/cutadapt"
-if [[ ! -d "$cutadapt_dir" ]]; then
-	echo -e "[ "$(date)": No cutadapt folder found ]"
-	exit 1
-fi
-echo -e "[ "$(date)": Using cutadapt folder $cutadapt_dir ]"
 
 # stop if there is no step 1 folder
 step1_dir="output/"$species"/STAR/step1"
 if [[ ! -d "$step1_dir" ]]; then
-	echo -e "[ "$(date)": First step splice junctions not found ]"
-	exit 1
+  echo -e "[ "$(date)": First step splice junctions not found ]"
+  exit 1
 fi
 
 # recover the splice junction files from step 1
@@ -108,34 +104,45 @@ cat <<- _EOF_
   $(for tab in $first_pass_junctions; do echo $tab; done)
 _EOF_
 
-# set STAR options
-OPTIONS="--sjdbFileChrStartEnd $(echo $first_pass_junctions) --genomeLoad NoSharedMemory --runThreadN "$maxCpus" --genomeDir "$star_index_dir" --outSJfilterReads Unique --readFilesCommand zcat --outSAMtype BAM Unsorted --quantMode GeneCounts --outBAMcompression 10 --outReadsUnmapped Fastx"
+# set relaxed mapping options
+# setting --outFilterMismatchNmax to a high number means that number of mismatches will be 
+# controlled by the --outFilterMismatchNoverLmax parameter (defaults to 0.3, so about 60
+# mismatches for a 200nt alignment). Setting --outFilterMatchNminOverLread to 0.45 means
+# that 50nt alignments are acceptable for a read of 112nt.
 
-# run step 2 mapping
+relaxedMapping="--outFilterMismatchNmax 1000 --outFilterMatchNminOverLread 0.45"
+
+# set STAR options
+OPTIONS=""$relaxedMapping" --sjdbFileChrStartEnd "$first_pass_junctions" --genomeLoad NoSharedMemory --runThreadN "$maxCpus" --genomeDir "$star_index_dir" --outSJfilterReads Unique --readFilesCommand zcat --outSAMtype BAM Unsorted --quantMode GeneCounts --outBAMcompression 10 --outReadsUnmapped Fastx"
+
+# find unmapped mate1 files
+star_dir="output/"$species"/STAR"
 shopt -s nullglob
-fastq_files=("$cutadapt_dir/*R1.fastq.gz")
+unmappedMate1Files=(""$star_dir"/*.Unmapped.out.mate1.gz")
 shopt -u nullglob
-for fwd_read_file in $fastq_files
+
+# match mate1 to mate2 and map
+for fwdMate in $unmappedMate1Files
 do
-  n=$(basename $fwd_read_file)
+  n=$(basename $fwdMate)
   library_name=${n:0:2}
-  rev_read_file=${fwd_read_file/$library_name.R1/$library_name.R2}
+  revMate=${fwdMate/mate1/mate2}
   # double check rev_read_file exists
-  if [[ ! -e $rev_read_file ]]; then
-    echo -e "[ "$(date)" : Couldn't find reverse read file $rev_read_file for library $library_name ]"
+  if [[ ! -e $revMate ]]; then
+    echo -e "[ "$(date)" : Couldn't find reverse read file $revMate for library $library_name ]"
     exit 1
   fi
   cat <<- _EOF_
   [ $(date) : Submitting STAR run ]
   library_name: $library_name
-  fwd_read_file: $fwd_read_file
-  rev_read_file: $rev_read_file
+  fwdMate: $fwdMate
+  revMate: $revMate
 _EOF_
-  cmd="STAR $OPTIONS --readFilesIn $fwd_read_file $rev_read_file --outFileNamePrefix $outdir/$library_name."
-  srun --output $outdir/$library_name.out --exclusive --ntasks=1 --cpus-per-task="$maxCpus" $cmd &  
+  cmd="STAR $OPTIONS --readFilesIn $fwdMate $revMate --outFileNamePrefix $outdir/$library_name."
+  srun --output $outdir/$library_name.out --exclusive --ntasks=1 --cpus-per-task="$maxCpus" $cmd &
 done
 
-echo -e "[ "$(date)": Waiting for step 2 jobs to finish ]"
+echo -e "[ "$(date)": Waiting for remapping jobs to finish ]"
 fail_wait
 
 # log metadata
@@ -146,7 +153,6 @@ cat <<- _EOF_ > $outdir/METADATA.csv
   date,$(date +%F)
   STAR version,$(STAR --version)
   STAR index,$star_index_dir
-  cutadapt folder,$cutadapt_dir
 _EOF_
 
 echo -e "[ "$(date)": Jobs finished, exiting ]"

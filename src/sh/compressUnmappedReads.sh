@@ -91,7 +91,7 @@ shopt -u nullglob
 
 for read_file in $unmapped_reads; do
   echo -e "[ "$(date)" : compressing "$read_file" ]"
-  srun --output="$star_dir/compress.log.txt" --open-mode=append --exclusive --ntasks=1 --cpus-per-task=1 gzip --best "$read_file" &
+  srun --exclusive --ntasks=1 --cpus-per-task=1 gzip --best "$read_file" &
 done
 echo -e "[ "$(date)" : waiting for gzip jobs to finish ]"
 fail_wait
