@@ -83,9 +83,16 @@ cat <<- _EOF_ > "$star_dir"/compressStats.txt
 	$(du -shc $star_dir/*.Unmapped.out.mate*)
 _EOF_
 
-find "$star_dir" -type f -name "*.Unmapped.out.mate*" -exec bash -c \
-	'echo -e "[ "$(date)" : compressing {} ]" ;
-	srun --exclusive --ntasks=1 --cpus-per-task=1 gzip --best {} &' \;
+FAIL=0
+
+shopt -s nullglob
+unmapped_reads=("$star_dir/*.Unmapped.out.mate*")
+shopt -u nullglob
+
+for read_file in $unmapped_reads; do
+  echo -e "[ "$(date)" : compressing "$read_file" ]"
+  srun --output="$star_dir/compress.log.txt" --open-mode=append --exclusive --ntasks=1 --cpus-per-task=1 gzip --best "$read_file" &
+done
 echo -e "[ "$(date)" : waiting for gzip jobs to finish ]"
 fail_wait
 

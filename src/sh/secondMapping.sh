@@ -122,7 +122,7 @@ do
   rev_read_file=${fwd_read_file/$library_name.R1/$library_name.R2}
   # double check rev_read_file exists
   if [[ ! -e $rev_read_file ]]; then
-    echo -e "[ "$(date)" : Error! Couldn't find reverse read file $rev_read_file for library $library_name ]"
+    echo -e "[ "$(date)" : Couldn't find reverse read file $rev_read_file for library $library_name ]"
     exit 1
   fi
   cat <<- _EOF_
