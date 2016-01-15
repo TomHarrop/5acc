@@ -31,8 +31,9 @@ output: word_document
     * If we increase the number of allowed mismatches to get reads from non-reference species to map to the Nipponbare genome, multimapping could also increase, *e.g.* reads that previously mapped to a single location may now map to > 1. How does this balance against the increased mapping rate provided by relaxing the mismatch parameters?
         * Can try an initial mapping with normal (strict) parameters and then re-map the unmapped reads with relaxed parameters.
         * Could do an initial mapping and then call variants vs. the reference genome to create a derived transcriptome, and re-map to that. (Does this deal with indels, CNV, etc.?)
+        * Gene families (or genes that share high homology with other genes in the genome) may be particularly difficult to map properly
     * Genes with more coding sequence changes may have lower mapping success. This would mean that genes under relaxed selection (*e.g.* new duplicates ) may be incorrectly given a lower expression level in non-reference species. This should be the same between stages in the same species, though.
-        * "Most accurate expression information is likely to come from ... genes having a high level of expression and low rates of evolutionary change" (Hornett *et al*., 2012). 
+        * "Most accurate expression information is likely to come from ... genes having a high level of expression and low rates of evolutionary change" (Hornett *et al*., 2012).
     * Genes that are consistently different between species (regardless of stage) could indicate CNV:
         * A duplication in a non-reference species could show up as increased expression in that species (if both paralogs are expressed);
         * A deletion may show up as severely reduced expression;

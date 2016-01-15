@@ -233,7 +233,7 @@ def unloadGenome_sh(inputFiles, outputFiles):
 def compressUnmappedReads_sh(inputFiles, outputFiles, species):
     jobScript = 'src/sh/compressUnmappedReads.sh'
     ntasks = '1'
-    cpus_per_task = '7'
+    cpus_per_task = '8'
     job_name = species + '_gzip'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
@@ -244,7 +244,7 @@ def compressUnmappedReads_sh(inputFiles, outputFiles, species):
 def remap_sh(inputFiles, outputFiles, species):
     jobScript = 'src/sh/remap.sh'
     ntasks = '1'
-    cpus_per_task = '7'
+    cpus_per_task = '8'
     job_name = species + '_remap'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name, extras = species)
     print("[", print_now(), ": Job " + job_name + " run with JobID " + jobId + " ]")
@@ -287,7 +287,23 @@ def deseqQC_R(inputFiles, outputFiles):
 def cutoffs_R(inputFiles, outputFiles, species):
     pass
 
-    
+#---------------------------------------------------------------
+# POST-PIPELINE BACKUP. HOW TO IMPLEMENT???
+#---------------------------------------------------------------
+
+def backup_sh():
+    # run backup
+    proc = Popen(['sbatch', '--mail-type=ALL', '/home/tom/scripts/test.sh'],
+                 stdout = PIPE, stderr = PIPE)
+    out, err = proc.communicate()
+    jobRegex = re.compile(b'\d+')
+    jobIdBytes = jobRegex.search(out).group(0)
+    jobId = jobIdBytes.decode("utf-8")
+    assert type(int(jobId)) == int, ("[" + print_now() + ": Tried to submit "
+    "backup but couldn't get jobId")
+    print("[" + print_now() + ": Added backup to SLURM queue with JobId " + jobId + " ]")
+    return(jobId)
+   
 #---------------------------------------------------------------
 # RUN THE PIPELINE
 #---------------------------------------------------------------
@@ -371,7 +387,8 @@ remap = main_pipeline.transform(task_func = remap_sh,
                                 input = compress,
                                 filter = regex(r"output/(.*)/STAR/compressStats.txt"),
                                 output = r"output/\1/STAR/remap/METADATA.csv",
-                                extras = [r"\1"])
+                                extras = [r"\1"])\
+                    .posttask(backup_sh)
 
 ## run QC on deseq2 output
 #deseqQC = main_pipeline.transform(task_func = deseqQC_R,

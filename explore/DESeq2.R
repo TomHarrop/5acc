@@ -5,8 +5,9 @@ library(DESeq2)
 library(ggplot2)
 
 # load the quant files
-quantFiles <- list.files("output", pattern = "ReadsPerGene", recursive = TRUE,
-                         full.names = TRUE)
+quant.files.all <- list.files("output", pattern = "ReadsPerGene", recursive = TRUE,
+                             full.names = TRUE)
+quantFiles <- quant.files.all[!grepl("remap", quant.files.all)]
 if (length(quantFiles) == 0) {
   stop("Couldn't find quant files, exiting\n")
   quit(save = "no", status = 1)

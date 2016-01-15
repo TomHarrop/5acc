@@ -3,8 +3,9 @@
 library(data.table)
 
 # load the quant files
-quantFiles <- list.files("output", pattern = "ReadsPerGene", recursive = TRUE,
-                         full.names = TRUE)
+quantFiles.all <- list.files("output", pattern = "ReadsPerGene", recursive = TRUE,
+                             full.names = TRUE)
+quantFiles <- quant.files.all[!grepl("remap", quant.files.all)]
 if (length(quantFiles) == 0) {
   stop("Couldn't find quant files, exiting\n")
   quit(save = "no", status = 1)

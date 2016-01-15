@@ -110,7 +110,7 @@ _EOF_
 # mismatches for a 200nt alignment). Setting --outFilterMatchNminOverLread to 0.45 means
 # that 50nt alignments are acceptable for a read of 112nt.
 
-relaxedMapping="--outFilterMismatchNmax 30"
+relaxedMapping="--outFilterMismatchNmax 30 --outFilterMatchNmin 50 --outFilterMatchNminOverLread 0"
 
 # set STAR options
 OPTIONS=""$relaxedMapping" --sjdbFileChrStartEnd "$first_pass_junctions" --genomeLoad NoSharedMemory --runThreadN "$maxCpus" --genomeDir "$star_index_dir" --outSJfilterReads Unique --readFilesCommand zcat --outSAMtype BAM Unsorted --quantMode GeneCounts --outBAMcompression 10"
