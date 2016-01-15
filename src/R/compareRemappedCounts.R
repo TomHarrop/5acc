@@ -105,20 +105,18 @@ setkey(col.data.full, "rn")
 plot.data <- col.data.full[counts.normalized]
 
 PlotGeneCounts <- function(gene.name, pd = plot.data) {
-  
+  pd <- plot.data
+  gene.plot.data <- pd[msu.id == gene.name]
+  g <- ggplot(data = gene.plot.data,
+              mapping = aes(x = stage, y = counts, group = accession)) +
+    geom_smooth(method = lm, se = FALSE, na.rm = TRUE, size = 0.5) +
+    geom_point(position = position_jitter(width = 0.2), size = 4, alpha = 0.5) +
+    facet_grid(accession ~ combined)
+  return(g)  
 }
 
-gene.name <- "LOC_Os12g34620"
-pd <- plot.data
-gene.plot.data <- pd[msu.id == gene.name]
-ggplot(data = gene.plot.data,
-       mapping = aes(x = stage, y = counts, colour = accession, shape = combined)) +
- geom_point() +
-  geom_smooth()
-
-lm(counts ~ stage, gene.plot.data)
-
-qplot(rnorm(10), rnorm(10)) + geom_smooth(method = lm, se = F)
+PlotGeneCounts("LOC_Os02g47100")
+summary(res)
 
 subset(res, padj < 0.1)
 res[order(abs(res$log2FoldChange), decreasing = TRUE), ]
