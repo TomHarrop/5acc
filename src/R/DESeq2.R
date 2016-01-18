@@ -3,7 +3,7 @@
 library(data.table)
 
 # load the quant files
-quantFiles.all <- list.files("output", pattern = "ReadsPerGene", recursive = TRUE,
+quant.files.all <- list.files("output", pattern = "ReadsPerGene", recursive = TRUE,
                              full.names = TRUE)
 quantFiles <- quant.files.all[!grepl("remap", quant.files.all)]
 if (length(quantFiles) == 0) {

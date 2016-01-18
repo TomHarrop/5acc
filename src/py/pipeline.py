@@ -293,7 +293,7 @@ def cutoffs_R(inputFiles, outputFiles, species):
 
 def backup_sh():
     # run backup
-    proc = Popen(['sbatch', '--mail-type=ALL', '/home/tom/scripts/test.sh'],
+    proc = Popen(['sbatch', '--mail-type=ALL', '/home/tom/scripts/obnamBackupSlurm.sh'],
                  stdout = PIPE, stderr = PIPE)
     out, err = proc.communicate()
     jobRegex = re.compile(b'\d+')
