@@ -1,5 +1,19 @@
 #!/bin/bash
 
+while [ "$1" != "" ]; do
+	case $1 in
+		-e )	shift
+				jgi_logon=$1
+				;;
+		-p )	shift
+				jgi_password=$1
+				;;
+		* )		echo "Bad input"
+				exit 1
+	esac
+	shift
+done
+
 set -eu
 
 mail_output() {
@@ -50,7 +64,11 @@ trap _exit_trap EXIT
 trap _err_trap ERR
 
 # start code
-
-src/py/pipeline.py -v5 > ruffus/pipeline.log.txt 2>&1
+if [[ "$jgi_logon" -a "$jgi_password" ]]; then
+	src/py/pipeline.py -e "$jgi_logon" -p "$jgi_password" -v5 \
+		&> ruffus/pipeline.log.txt
+else
+	src/py/pipeline.py -v5 &> ruffus/pipeline.log.txt
+fi
 mail_output
 exit 0
