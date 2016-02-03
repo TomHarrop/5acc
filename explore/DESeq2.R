@@ -61,6 +61,10 @@ ddsSpecies <- DESeq2::DESeq(ddsSpecies)
 DESeq2::resultsNames(dds)
 res <- DESeq2::results(dds, name = "domesticationdomesticated.stageSM", alpha = 0.05)
 summary(res)
+
+res[order(res$padj),]
+
+subset(res, padj < 0.05)
 someGenes <- rownames(subset(as.data.frame(res), padj < 0.05))
 
 oryzr::LocToGeneName(someGenes)
@@ -70,9 +74,13 @@ DESeq2::plotCounts(dds, gene = "LOC_Os04g11980", intgroup = c("stage", "accessio
 
 # investigate species-specific changes
 DESeq2::resultsNames(ddsSpecies)
-someRes <- DESeq2::results(ddsSpecies, contrast = c("accession", "japonica", "rufipogon"), lfcThreshold = 5, alpha = 0.05)
+someRes <- DESeq2::results(ddsSpecies,
+                           contrast = c("accession", "japonica", "rufipogon"),
+                           lfcThreshold = 5, alpha = 0.05)
 subset(data.frame(someRes), padj < 0.05)
 rufipogon <- DESeq2::results(ddsSpecies, name = "accessionrufipogon.stageSM", alpha = 0.05, lfcThreshold = 1)
+
+
 summary(rufipogon)
 oryzr::LocToGeneName(rownames(subset(rufipogon, padj < 0.05)))
 
@@ -91,9 +99,12 @@ setkey(colData.table, "rn")
 plotData <- colData.table[normCounts]
 setnames(plotData, "rn", "Library")
 
-ggplot(plotData[msuId == "LOC_Os11g10590"], aes(x = stage, y = count)) +
+ggplot(plotData[msuId == "LOC_Os07g04310"], aes(x = stage, y = count)) +
   stat_smooth(aes(group = accession), method = "lm", se = FALSE, size = 0.5) +
   geom_point(position = position_jitter(width = 0.2)) +
-  facet_wrap(~ accession)
-oryzr::LocToGeneName("LOC_Os02g47390")
+  facet_wrap(~ accession) +
+  ggtitle(paste0("LOC_Os07g04310 (", oryzr::LocToGeneName("LOC_Os07g04310")$symbols, ")"))
+
+ggsave("~/Desktop/LOC_Os05g41760.pdf")
+oryzr::LocToGeneName("LOC_Os05g03760")
  

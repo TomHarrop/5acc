@@ -6,6 +6,7 @@ library(data.table)
 starLogFiles <- list.files(path = 'output', pattern = "Log.final.out",
                            full.names = TRUE, recursive = TRUE)
 starLogFiles <- starLogFiles[!grepl("step1", starLogFiles)]
+starLogFiles <- starLogFiles[!grepl("remap", starLogFiles)]
 starLogs <- lapply(starLogFiles, read.delim, header = FALSE, sep = "|", fill = TRUE,
                    strip.white = TRUE, stringsAsFactors = FALSE)
 names(starLogs) <- gsub('.Log.final.out', '', basename(starLogFiles), fixed = TRUE)

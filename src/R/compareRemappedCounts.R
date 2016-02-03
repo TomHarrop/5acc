@@ -93,7 +93,7 @@ dds.full <- DESeqDataSetFromMatrix(
 # run DESeq2 and extract results for "combined" factor
 dds.full <- DESeq(dds.full)
 resultsNames(dds.full)
-res <- results(dds.full, name = "stageSM.combinedyes")
+res <- results(dds.full, name = "combined_yes_vs_no")
 
 # set up normalized counts for plotting
 counts.normalized.wide <- counts(dds.full, normalized = TRUE)
@@ -115,10 +115,12 @@ PlotGeneCounts <- function(gene.name, pd = plot.data) {
   return(g)  
 }
 
-PlotGeneCounts("LOC_Os02g47100")
+PlotGeneCounts("LOC_Os07g41970")
+oryzr::LocToGeneName("LOC_Os07g41970")
+
 summary(res)
 
-subset(res, padj < 0.1)
+subset(res, padj < 0.05)
 res[order(abs(res$log2FoldChange), decreasing = TRUE), ]
 
 counts(dds.full)["LOC_Os03g63250", ]

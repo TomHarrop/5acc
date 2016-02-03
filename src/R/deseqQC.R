@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
 library(DESeq2)
+library(data.table)
 
 # load the deseq files
 ddsFile <- "output/deseq2/dds.Rds"
@@ -17,7 +18,8 @@ lapply(list(ddsFile, vstFile), findFiles)
 dds <- readRDS(ddsFile)
 vst <- readRDS(vstFile)
 
-# choose genes for vst; come back to this once expression cutoffs have been defined
+# choose genes for vst; come back to this once expression cutoffs have been
+# defined
 qS <- quantile(rowSums(counts(dds)), 0.7)
 qM <- quantile(rowMeans(counts(dds)), 0.7)
 
@@ -40,7 +42,11 @@ pcaPlotData <- data.frame(
 library(ggplot2)
 library(scales)
 
-pcaPlot <- ggplot(pcaPlotData,
+pcaPlotData[pcaPlotData$Accession == "barthii",]
+
+pcaPlotData
+
+pcaPlot <- ggplot(pcaPlotData[pcaPlotData$Accession == "glaberrima",],
                   aes(x = PCA1, y = PCA2, colour = Accession,
                       shape = Stage, label = label)) +
   theme_grey(base_size = 8) +
@@ -66,4 +72,4 @@ densityPlot <- ggplot(densityPlotData,
   scale_fill_brewer(palette = "Set1") +
   geom_density(alpha = 0.8, colour = NA) +
   facet_wrap(~Var2)
-
+densityPlot

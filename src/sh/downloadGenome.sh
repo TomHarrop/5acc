@@ -20,8 +20,8 @@ while [ "$1" != "" ]; do
 done
 
 genome_dir='data/genome/os'
-genome_url='http://genome.jgi.doe.gov/Osativa/download/_JAMO/53112abc49607a1be00559bc/Osativa_204_v7.0.fa.gz'
-annot_url='http://genome.jgi.doe.gov/Osativa/download/_JAMO/53112ab649607a1be00559b0/Osativa_204_v7.0.gene_exons.gff3.gz'
+genome_url='http://genome.jgi.doe.gov/Osativa/download/_JAMO/5693356c0d87851ee9726b00/Osativa_323_v7.0.fa.gz'
+annot_url='http://genome.jgi.doe.gov/Osativa/download/_JAMO/5693356b0d87851ee9726af7/Osativa_323_v7.0.gene_exons.gff3.gz'
 
 genome_file="$(basename $genome_url .fa.gz)"
 annotation_file="$(basename $annot_url .gff3.gz)"
