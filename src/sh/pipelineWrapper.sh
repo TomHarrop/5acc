@@ -64,7 +64,7 @@ trap _exit_trap EXIT
 trap _err_trap ERR
 
 # start code
-if [[ "$jgi_logon" -a "$jgi_password" ]]; then
+if [[ "$jgi_logon" && "$jgi_password" ]]; then
 	src/py/pipeline.py -e "$jgi_logon" -p "$jgi_password" -v5 \
 		&> ruffus/pipeline.log.txt
 else

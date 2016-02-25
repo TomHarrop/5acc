@@ -143,7 +143,7 @@ def downloadGenome_sh(outputFiles, jgiLogon, jgiPassword):
 def starGenomeGenerate_sh(inputFiles, outputFiles):
     jobScript = 'src/sh/starGenomeGenerate.sh'
     ntasks = '1'
-    cpus_per_task = '4'
+    cpus_per_task = '2'
     job_name = 'stargg'
     jobId = submit_job(jobScript, ntasks, cpus_per_task, job_name)
     # update ruffus flag

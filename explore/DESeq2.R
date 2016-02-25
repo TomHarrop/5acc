@@ -99,12 +99,40 @@ setkey(colData.table, "rn")
 plotData <- colData.table[normCounts]
 setnames(plotData, "rn", "Library")
 
-ggplot(plotData[msuId == "LOC_Os07g04310"], aes(x = stage, y = count)) +
+ggplot(plotData[msuId == "LOC_Os05g41760"], aes(x = stage, y = count)) +
   stat_smooth(aes(group = accession), method = "lm", se = FALSE, size = 0.5) +
   geom_point(position = position_jitter(width = 0.2)) +
   facet_wrap(~ accession) +
-  ggtitle(paste0("LOC_Os07g04310 (", oryzr::LocToGeneName("LOC_Os07g04310")$symbols, ")"))
+  ggtitle(paste0("LOC_Os05g41760 (", oryzr::LocToGeneName("LOC_Os05g41760")$symbols, ")"))
 
 ggsave("~/Desktop/LOC_Os05g41760.pdf")
 oryzr::LocToGeneName("LOC_Os05g03760")
- 
+
+# investigate landmark genes
+
+landmark.genes <- c("LOC_Os02g52340", "LOC_Os06g11330", "LOC_Os10g33780",
+                    "LOC_Os03g51690", "LOC_Os08g39890", "LOC_Os01g61480",
+                    "LOC_Os04g51000", "LOC_Os06g45460", "LOC_Os03g11614")
+
+transformed.counts <- counts(dds, normalized = TRUE)
+
+plotdata.wide <- data.table(transformed.counts[landmark.genes,],
+                            keep.rownames = TRUE, key = "rn")
+plotdata <- reshape2::melt(plotdata.wide, id.vars = "rn",
+                           variable.name = "Sample", value.name = "Counts")
+plotdata[, symbol := oryzr::LocToGeneName(rn)$symbols, by = rn]
+plotdata[, Species := substr(Sample, 1, 1)]
+plotdata[as.numeric(substr(Sample, 2, 2)) <= 3, Stage := "PBM"]
+plotdata[as.numeric(substr(Sample, 2, 2)) >= 4, Stage := "SM"]
+
+ggplot(plotdata,
+       aes(x = Stage, y = log2(Counts + 0.5), colour = Species, group = Species)) +
+  facet_wrap(~symbol, scales = "free_y") +
+  scale_color_brewer(palette = "Set1") +
+  ylab(expression(Log[2] (Normalised~read~count + 0.5))) + xlab(NULL) +
+  geom_smooth(se = FALSE) +
+  geom_point(size = 3, position = position_jitter(width = 0.3), alpha = 0.8)
+ggsave(filename = "explore/landmark.pdf")
+
+
+

@@ -54,8 +54,8 @@ if [[ ! -d $outdir ]]; then
 fi
 
 # set parameters
-genomeFastaFiles="data/genome/os/Osativa_204_v7.0.fa"
-sjdbGTFfile="data/genome/os/Osativa_204_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
+genomeFastaFiles="data/genome/os/Osativa_323_v7.0.fa"
+sjdbGTFfile="data/genome/os/Osativa_323_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
 sjdbGTFtagExonParentTranscript="oId"
 sjdbGTFtagExonParentGene="gene_name"
 sjdbOverhang=109
