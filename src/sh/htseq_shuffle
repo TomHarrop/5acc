@@ -106,10 +106,9 @@ for bam_file in "${bam_files[@]}"; do
       output: $output
          log: $log
 _EOF_
-  cmd="/usr/local/bin/htseq-count -t CDS -f bam -s reverse -i ID -r name \
-    $bam_file $gff"
-  srun --ntasks=1 --cpus-per-task=1 --exclusive  --output="$output" \
-    --error="$log" "$cmd" &
+  cmd="htseq-count -t CDS -f bam -s reverse -i ID -r name "$bam_file" "$gff""
+  echo "$cmd"
+  srun --ntasks=1 --cpus-per-task=1 --exclusive  --output="$output" --error="$log" $cmd &
 done
 
 echo -e "[ "$(date)": Waiting for htseq-count jobs to finish ]"
@@ -121,7 +120,7 @@ cat <<- _EOF_ > $outdir/METADATA.csv
   branch,$(git rev-parse --abbrev-ref HEAD)
   hash,$(git rev-parse HEAD)
   date,$(date +%F)
-  htseq-count version, $(/usr/local/bin/htseq-count --help 2>&1 | tail -n 1)
+  htseq-count version, $(htseq-count --help 2>&1 | tail -n 1)
   gff3,$gff
   output,$outdir
 _EOF_
