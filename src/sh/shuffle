@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -e
 
 # bash traceback code from https://docwhat.org/tracebacks-in-bash/
 
@@ -63,6 +63,8 @@ if [[ ! "$FAIL" == 0 ]]; then
 fi
 }
 
+set -u
+
 # CODE STARTS HERE -------------------------------------------------------------
 
 # make output directory
@@ -80,8 +82,7 @@ cat <<- _EOF_ > $outdir/METADATA.csv
 	gff2bed version,$(convert2bed --version 2>&1 | sed '2q;d')
 	wgsim version,$(wgsim 2>&1 | sed '3q;d')
 	bedtools version,$(bedtools --version)
-	tophat2 version,$(tophat2 --version)
-	bowtie2-build version,$(bowtie2-build --version | head -n 1)
+  STAR version,$(STAR --version)
 _EOF_
 
 
@@ -160,7 +161,7 @@ echo -e "[ $(date): Converting mapped reads to bed6 ]"
 bedtools bamtobed -i $outdir/TIGR_Oryza_Repeats.Aligned.sortedByCoord.out.bam \
   > $outdir/TIGR_Oryza_Repeats.bed6
 
-# 3. combine features and add 500b of slop ----------------------------------------------------------------
+# 3. combine features and add 100b of slop -------------------------------------
 
 # count chromosome lengths
 echo -e "[ $(date): Getting chromosome lengths ]"
@@ -168,7 +169,7 @@ src/py/seqLength.py data/genome/os/Osativa_323_v7.0.fa > $outdir/genome.bed
 
 # add slop
 echo -e "[ $(date): Adding slop to gtf ]"
-bedtools slop -b 500 -i $outdir/Osativa.gene.bed6 -g \
+bedtools slop -b 100 -i $outdir/Osativa.gene.bed6 -g \
   $outdir/genome.bed > $outdir/Osativa.gene.slop.bed6
 
 # mask unslopped gtf as tmp
@@ -187,19 +188,30 @@ sort-bed $bed6files	| bedtools merge -i stdin > $outdir/excl.combined.bed
 
 mv $outdir/Osativa.gene.tmp $outdir/Osativa.gene.bed6 
 
-# 4. convert the combined bedfile to GTF and shuffle ----------------------------------------------------------------
+# 4. convert the combined bedfile to GTF and shuffle ---------------------------
 
-# UP TO HERE
-# NEED TO CHECK TPMLENGTH - WHAT IS IT AND HOW IS IT IMPLEMENTED???
-
-
-# make a GTF file from the combined bedfile (takes ages)
+# make a GTF file from the combined bedfile
 echo -e "[ $(date): Generating dummy GTF from combined bedfile ]"
-src/R/generate_cds_lengths_for_shuffle.R $outdir
+src/R/generate_dummy_gff.R $outdir
 
 # *finally* shuffle
 echo -e "[ $(date): Shuffling the dummy GTF ]"
-bedtools shuffle -excl $outdir/excl.combined.bed -chromFirst -chrom -noOverlapping -seed 1 -i $outdir/dummyGff.gff3 -g $outdir/genome.bed > $outdir/Osativa_204_v7.shuffled.gff3
+bedtools shuffle -excl $outdir/excl.combined.bed -chromFirst -chrom  \
+  -noOverlapping -seed 1 -i $outdir/dummyGff.gff3 -g $outdir/genome.bed \
+  > $outdir/Osativa_v7.shuffled.gff3
 
 echo -e "[ $(date): Done ]"
+
+# log metadata
+cat <<- _EOF_ > $outdir/METADATA.csv
+  Script,${0}
+  branch,$(git rev-parse --abbrev-ref HEAD)
+  hash,$(git rev-parse HEAD)
+  date,$(date +%F)
+  gff2bed version,$(convert2bed --version 2>&1 | sed '2q;d')
+  wgsim version,$(wgsim 2>&1 | sed '3q;d')
+  bedtools version,$(bedtools --version)
+  STAR version,$(STAR --version)
+_EOF_
+
 exit 0

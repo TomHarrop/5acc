@@ -31,11 +31,30 @@ def downloadGenome_sh(outputFiles, jgi_logon, jgi_password):
 def starGenomeGenerate_sh(inputFiles, outputFiles):
     jobScript = 'src/sh/starGenomeGenerate.sh'
     ntasks = '1'
-    cpus_per_task = '2'
+    cpus_per_task = '8'
     job_name = 'stargg'
     job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
     functions.print_job_submission(job_name, job_id)
 
+
+# calculate feature lengths from GTF
+def calculate_feature_lengths_R(inputFiles, outputFiles):
+    jobScript = 'src/R/calculate_feature_lengths.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'feature_lengths'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
+# shuffle the GTF
+def shuffle(inputFiles, outputFiles):
+    jobScript = 'src/sh/shuffle'
+    ntasks = '1'
+    cpus_per_task = '8'
+    job_name = 'shuffle'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
 
 ##################################
 # MAPPING AND TRIMMING FUNCTIONS #
@@ -211,6 +230,19 @@ def main():
         input=os_genome,
         filter=ruffus.suffix("data/genome/os/METADATA.csv"),
         output="output/star-index/METADATA.csv")
+
+    # calculate feature lengths
+    feature_lengths = main_pipeline.transform(
+        task_func=calculate_feature_lengths_R,
+        input=os_genome,
+        filter=ruffus.suffix("data/genome/os/METADATA.csv"),
+        output="output/tpm/SessionInfo.calculate_feature_lengths.txt")
+
+    # shuffle the GTF
+    shuffled_gff = main_pipeline.merge(
+        task_func=shuffle,
+        input=[os_genome, feature_lengths],
+        output="output/shuffle/METADATA.csv")
 
     # define the reads
     species = ["osj", "osi", "or", "ob", "og"]
