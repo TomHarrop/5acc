@@ -157,6 +157,17 @@ def remap_sh(inputFiles, outputFiles, species):
     functions.print_job_submission(job_name, job_id)
 
 
+# count reads in shuffled GFF
+def htseq_shuffle(inputFiles, outputFiles, species):
+    jobScript = 'src/sh/htseq_shuffle'
+    ntasks = '4'
+    cpus_per_task = '1'
+    job_name = species + '_count'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name,
+                                  extras=["-s", species])
+    functions.print_job_submission(job_name, job_id)
+
+
 #################################
 # DOWNSTREAM ANALYSIS FUNCTIONS #
 #################################
@@ -239,10 +250,11 @@ def main():
         output="output/tpm/SessionInfo.calculate_feature_lengths.txt")
 
     # shuffle the GTF
-    shuffled_gff = main_pipeline.merge(
+    shuffled_gff = main_pipeline.transform(
         task_func=shuffle,
-        input=[os_genome, feature_lengths],
-        output="output/shuffle/METADATA.csv")
+        input=feature_lengths,
+        filter=ruffus.suffix("tpm/SessionInfo.calculate_feature_lengths.txt"),
+        output="shuffle/METADATA.csv")
 
     # define the reads
     species = ["osj", "osi", "or", "ob", "og"]
@@ -298,6 +310,15 @@ def main():
         task_func=parseStarStats_R,
         input=secondStep,
         output="output/mappingStats/starLogs.Rds")
+
+    # count reads in shuffled GFF
+    main_pipeline.transform(
+        task_func=htseq_shuffle,
+        input=secondStep,
+        add_inputs=ruffus.add_inputs(shuffled_gff),
+        filter=ruffus.formatter(),
+        output=["output/shuffle/htseq/{subdir[0][1]}/METADATA.csv"],
+        extras=["{subdir[0][1]}"])
 
     # run deseq2 for basic comparisons and QC tasks
     deseq2 = main_pipeline.merge(task_func=deseq2_R,
