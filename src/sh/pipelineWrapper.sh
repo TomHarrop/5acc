@@ -65,10 +65,10 @@ trap _err_trap ERR
 
 # start code
 if [[ "$jgi_logon" && "$jgi_password" ]]; then
-	src/py/pipeline.py -e "$jgi_logon" -p "$jgi_password" -v5 \
+	python fiveAccessions -e "$jgi_logon" -p "$jgi_password" -v5 \
 		&> ruffus/pipeline.log.txt
 else
-	src/py/pipeline.py -v5 &> ruffus/pipeline.log.txt
+	python fiveAccessions -v5 &> ruffus/pipeline.log.txt
 fi
 mail_output
 exit 0
