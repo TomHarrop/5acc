@@ -1,0 +1,8 @@
+Script,src/sh/shuffle
+branch,pythonize
+hash,de68b23061f74c9cce065ba5f96c1a403f3ad5f9
+date,2016-02-26
+gff2bed version,  version:  2.4.15
+wgsim version,Version: 0.3.1-r13
+bedtools version,bedtools v2.24.0
+  STAR version,STAR_2.5.1b
