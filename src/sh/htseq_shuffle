@@ -107,8 +107,8 @@ for bam_file in "${bam_files[@]}"; do
          log: $log
 _EOF_
   cmd="htseq-count -t CDS -f bam -s reverse -i ID -r name "$bam_file" "$gff""
-  echo "$cmd"
-  srun --ntasks=1 --cpus-per-task=1 --exclusive  --output="$output" --error="$log" $cmd &
+  srun --ntasks=1 --cpus-per-task=1 --exclusive  --output="$output" \
+    --error="$log" $cmd &
 done
 
 echo -e "[ "$(date)": Waiting for htseq-count jobs to finish ]"
