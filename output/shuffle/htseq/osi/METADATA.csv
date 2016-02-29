@@ -1,0 +1,7 @@
+  Script,src/sh/htseq_shuffle
+  branch,master
+  hash,baa74e56a017d109bc67c4ae72686285c3bec79e
+  date,2016-02-26
+  htseq-count version, Public License v3. Part of the 'HTSeq' framework, version 0.6.1p1.
+  gff3,output/shuffle/Osativa_v7.shuffled.gff3
+  output,output/shuffle/htseq/osi
