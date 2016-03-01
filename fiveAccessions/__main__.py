@@ -193,6 +193,11 @@ def deseq2_R(inputFiles, outputFiles):
     functions.print_job_submission(job_name, job_id)
 
 
+# calculate TPM
+def tpm_R(inputFiles, outputFiles):
+    pass
+
+
 # perform QC checks on DESeq2 output
 def deseqQC_R(inputFiles, outputFiles):
     pass
@@ -306,13 +311,13 @@ def main():
         .follows(genomeUnload)
 
     # parse stats from the mapping
-    parseStats = main_pipeline.merge(
+    parsed_stats = main_pipeline.merge(
         task_func=parseStarStats_R,
         input=secondStep,
         output="output/mappingStats/starLogs.Rds")
 
     # count reads in shuffled GFF
-    main_pipeline.transform(
+    shuffled_reads = main_pipeline.transform(
         task_func=htseq_shuffle,
         input=secondStep,
         add_inputs=ruffus.add_inputs(shuffled_gff),
@@ -324,6 +329,12 @@ def main():
     deseq2 = main_pipeline.merge(task_func=deseq2_R,
                                  input=secondStep,
                                  output="output/deseq2/SessionInfo.txt")
+
+    # convert transformed read counts to TPM
+    tpm = main_pipeline.merge(
+        task_func=tpm_R,
+        input=[parsed_stats, deseq2, feature_lengths],
+        output=["output/tpm/SessionInfo.tpm.txt"])
 
     # compress unmapped read files
     compress = main_pipeline.transform(
