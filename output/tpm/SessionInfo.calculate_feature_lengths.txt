@@ -1,5 +1,5 @@
-git branch: pythonize
-git hash: de68b23061f74c9cce065ba5f96c1a403f3ad5f9
+git branch: master
+git hash: 76f5d292861c79717f6b3ae06edf8b812834c4b1
 R version 3.2.3 (2015-12-10)
 Platform: x86_64-pc-linux-gnu (64-bit)
 Running under: Ubuntu 15.10
@@ -18,7 +18,7 @@ attached base packages:
 
 other attached packages:
 [1] dplyr_0.4.3          rtracklayer_1.30.2   GenomicRanges_1.22.4
-[4] GenomeInfoDb_1.6.3   IRanges_2.4.7        S4Vectors_0.8.11    
+[4] GenomeInfoDb_1.6.3   IRanges_2.4.8        S4Vectors_0.8.11    
 [7] BiocGenerics_0.16.1 
 
 loaded via a namespace (and not attached):

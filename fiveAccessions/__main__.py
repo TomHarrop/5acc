@@ -195,7 +195,12 @@ def deseq2_R(inputFiles, outputFiles):
 
 # calculate TPM
 def tpm_R(inputFiles, outputFiles):
-    pass
+    jobScript = 'src/R/tpm.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = "tpm"
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
 
 
 # perform QC checks on DESeq2 output
@@ -204,8 +209,14 @@ def deseqQC_R(inputFiles, outputFiles):
 
 
 # calculate expression cutoffs
-def cutoffs_R(inputFiles, outputFiles, species):
-    pass
+def calculate_cutoffs_R(inputFiles, outputFiles):
+    jobScript = 'src/R/calculate_cutoffs.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'cutoffs'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
 
 
 ##############################
@@ -331,10 +342,21 @@ def main():
                                  output="output/deseq2/SessionInfo.txt")
 
     # convert transformed read counts to TPM
-    tpm = main_pipeline.merge(
+    tpm = main_pipeline.transform(
         task_func=tpm_R,
-        input=[parsed_stats, deseq2, feature_lengths],
+        input=deseq2,
+        add_inputs=ruffus.add_inputs([parsed_stats, feature_lengths]),
+        filter=ruffus.formatter(),
         output=["output/tpm/SessionInfo.tpm.txt"])
+
+    # calculate cutoffs
+    expressed_genes = main_pipeline.transform(
+        task_func=calculate_cutoffs_R,
+        input=tpm,
+        add_inputs=ruffus.add_inputs(shuffled_reads),
+        filter=ruffus.formatter(),
+        output=['output/tpm/SessionInfo.cutoffs.txt']
+        )
 
     # compress unmapped read files
     compress = main_pipeline.transform(
@@ -357,13 +379,6 @@ def main():
     #                                  input = deseq2,
     #                                  filter = suffix("SessionInfo.txt"),
     #                                  output = "someFileHere.csv")
-
-    # calculate cutoffs
-    #deseq2 = main_pipeline.transform(task_func = cutoffs_R,
-    #                                 input = secondStep,
-    #                                 filter = regex(r"output/(.*)/STAR/METADATA.csv"),
-    #                                 output = r"output/\1/cutoffs/SessionInfo.txt",
-    #                                 extras = [r"\1"])
 
     # COMMAND-LINE OPTIONS
 

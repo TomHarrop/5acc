@@ -15,14 +15,14 @@ library(data.table)
 #   T = total number of transcripts sampled in a sequencing run
 
 # messages
-GenerateMessageText <- function(message.text){
-  paste0("[ ", date(), " ]: ", message.text)
+GenerateMessage <- function(message.text){
+  message(paste0("[ ", date(), " ]: ", message.text))
 }
 
-message(GenerateMessageText("Calculate TPM"))
+GenerateMessage("Calculate TPM")
 
 # load feature.lengths
-message(GenerateMessageText("Loading feature lengths"))
+GenerateMessage("Loading feature lengths")
 f.length.file <- "output/tpm/feature_lengths.Rds"
 if (!file.exists(f.length.file)) {
   stop("feature_lengths.Rds not found")
@@ -33,7 +33,7 @@ setnames(feature.lengths, "rn", "gene")
 setkey(feature.lengths, "gene")
 
 # retrieve mu (average mapped length) from parsed STAR results
-message(GenerateMessageText("Reading average mapped length from STAR results"))
+GenerateMessage("Reading average mapped length from STAR results")
 star.log.file <- "output/mappingStats/starLogs.Rds"
 if (!file.exists(star.log.file)) {
   stop("starLogs.Rds file not found")
@@ -42,7 +42,7 @@ if (!file.exists(star.log.file)) {
 star.logs <- readRDS(star.log.file)
 
 # load DESeq2 results
-message(GenerateMessageText("Loading DESeq2 results"))
+GenerateMessage("Loading DESeq2 results")
 dds.file <- "output/deseq2/dds.Rds"
 if (!file.exists(dds.file)) {
   stop("dds.Rds file not found")
@@ -60,41 +60,43 @@ normalized.counts <- reshape2::melt(
 setkey(normalized.counts, "gene")
 
 # merge feature.lengths
+GenerateMessage("Merging feature lengths")
 tpm <- feature.lengths[normalized.counts]
 
 # add mu per gene per sample
+GenerateMessage("Merging mu (average mapped length)")
 tpm[, rl := star.logs[Library == sample, `Average mapped length`], by = sample]
+fl.nc <- copy(tpm)
 
 # calculate T per gene
+GenerateMessage("Calculating T")
 tpm[, T.g := r.g * rl / Length, by = .(gene, sample)]
 
 # sum T.g per sample
 tpm[, T.sum := sum(T.g), by = sample]
 
 # calculate TPM
+GenerateMessage("Calculating TPM")
 tpm[, tpm := (r.g * rl * 1e6) / (Length * T.sum)]
 
+tpm.wide <- data.table(reshape2::dcast(tpm, gene ~ sample, value.var = "tpm"),
+                       key = "gene")
 
-reshape2::dcast(tpm, gene ~ sample, value.var = "tpm")[1000:1005,]
+# output results
+out.dir <- "output/tpm"
+GenerateMessage(paste("Saving output to", out.dir))
+saveRDS(tpm[, .(gene, sample, tpm)], paste0(out.dir, "/tpm.Rds"))
+saveRDS(tpm.wide, paste0(out.dir, "/tpm_wide.Rds"))
+saveRDS(fl.nc, paste0(out.dir, "/fl_nc.Rds"))
 
+# save logs
+sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",
+                                     intern = TRUE)),
+          paste("git hash:", system("git rev-parse HEAD", intern = TRUE)),
+          capture.output(sessionInfo()))
+logLocation <- paste0(out.dir, "/SessionInfo.tpm.txt")
+writeLines(sInf, logLocation)
 
-############################################## 
-# below is taken from Harold Pimentel's code #
-##############################################
-# calculate effective length per gene in each sample
-# effective length = feature length - mu + 1
-tpm[, li := Length - mu + 1, by = .(gene, sample)]
+GenerateMessage("Done")
 
-# calculate rate (counts per base)
-tpm[, rate := Xi/li, by = .(gene, sample)]
-
-# set the rate to zero if li == 0
-tpm[li == 0, rate := 0]
-
-# calculate the sum of rates per sample (Xj/lj)
-tpm[, sum.of.rates := sum(rate), by = sample]
-
-# calculate the TPM
-tpm[, tpm := rate * 1e6 / sum.of.rates]
-
-
+quit(save = "no", status = 0)
