@@ -81,6 +81,9 @@ setnames(results.table, ".id", "domestication")
 GenerateMessage("Saving output")
 out.dir <- "output/deseq2/wald_domestication_by_continent"
 GenerateMessage(paste("Saving output to", out.dir))
+if(!dir.exists(out.dir)) {
+  dir.create(out.dir, recursive = TRUE)
+}
 
 saveRDS(dds.domestication.by.continent, paste0(out.dir, "/dds_domestication_by_continent.Rds"))
 saveRDS(results.table, paste0(out.dir, "/results_table.Rds"))

@@ -55,6 +55,9 @@ setnames(results.table, "rn", "gene")
 GenerateMessage("Saving output")
 out.dir <- "output/deseq2/wald_domestication"
 GenerateMessage(paste("Saving output to", out.dir))
+if(!dir.exists(out.dir)) {
+  dir.create(out.dir, recursive = TRUE)
+}
 
 saveRDS(dds.domestication, paste0(out.dir, "/dds_domestication.Rds"))
 saveRDS(results.table, paste0(out.dir, "/results_table.Rds"))

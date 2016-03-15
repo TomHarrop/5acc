@@ -78,6 +78,9 @@ setnames(contrast.results, ".id", "contrast")
 GenerateMessage("Saving output")
 out.dir <- "output/deseq2/wald_species"
 GenerateMessage(paste("Saving output to", out.dir))
+if(!dir.exists(out.dir)) {
+  dir.create(out.dir, recursive = TRUE)
+}
 
 saveRDS(dds.species, paste0(out.dir, "/dds.species.Rds"))
 saveRDS(contrast.results, paste0(out.dir, "/contrast_results.Rds"))
