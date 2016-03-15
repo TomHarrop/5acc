@@ -59,7 +59,8 @@ ddsSpecies <- DESeq2::DESeq(ddsSpecies)
 
 # investigate stage:domestication interaction
 DESeq2::resultsNames(dds)
-res <- DESeq2::results(dds, name = "domesticationdomesticated.stageSM", alpha = 0.05)
+res <- DESeq2::results(dds, name = "domesticationdomesticated.stageSM",
+                       alpha = 0.05)
 summary(res)
 
 res[order(res$padj),]

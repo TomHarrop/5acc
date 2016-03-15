@@ -10,6 +10,7 @@ import functions
 import ruffus
 import os
 import datetime
+import re
 
 ###################
 # SETUP FUNCTIONS #
@@ -218,6 +219,19 @@ def calculate_cutoffs_R(inputFiles, outputFiles):
     functions.print_job_submission(job_name, job_id)
 
 
+# wald species
+def wald_tests(inputFiles, outputFiles):
+    ntasks = '1'
+    cpus_per_task = '8'
+    for output in outputFiles:
+        bn = os.path.basename(output)
+        job_name_re = re.search('wald_[^.]+', bn)
+        job_name = job_name_re.group()
+        jobScript = 'src/R/' + job_name + '.R'
+        job_id = functions.submit_job(
+            jobScript, ntasks, cpus_per_task, job_name)
+        functions.print_job_submission(job_name, job_id)
+
 
 ##############################
 # IMPLEMENT POST-RUN BACKUP? #
@@ -373,6 +387,34 @@ def main():
         filter=ruffus.regex(r"output/(.*)/STAR/compressStats.txt"),
         output=r"output/\1/STAR/remap/METADATA.csv",
         extras=[r"\1"])
+
+    # wald tests
+    # species
+    wald_test_results = main_pipeline.transform(
+        task_func=wald_tests,
+        input=deseq2,
+        add_inputs=ruffus.add_inputs(expressed_genes),
+        filter=ruffus.formatter(),
+        output=["{path[0]}/wald_species/SessionInfo.wald_species.txt",
+                ("{path[0]}/wald_domestication/"
+                 "SessionInfo.wald_domestication.txt"),
+                ("{path[0]}/wald_domestication_by_continent/"
+                 "SessionInfo.wald_domestication_by_continent.txt")])
+    # domestication
+#    wald_domestication = main_pipeline.transform(
+#        task_func=wald_species_R,
+#        input=deseq2,
+#        add_inputs=ruffus.add_inputs(expressed_genes),
+#        filter=ruffus.formatter(),
+#        output=["{path[0]}/wald_domestication/SessionInfo.wald_domestication.txt"])
+#    # domestication by continent
+#    wald_domestication_by_continent = main_pipeline.transform(
+#        task_func=wald_species_R,
+#        input=deseq2,
+#        add_inputs=ruffus.add_inputs(expressed_genes),
+#        filter=ruffus.formatter(),
+#        output=[("{path[0]}/wald_domestication_by_continent/"
+#                 "SessionInfo.wald_domestication_by_continent.txt")])
 
     # run QC on deseq2 output
     #deseqQC = main_pipeline.transform(task_func = deseqQC_R,

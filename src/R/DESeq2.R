@@ -3,8 +3,8 @@
 library(data.table)
 
 # load the quant files
-quant.files.all <- list.files("output", pattern = "ReadsPerGene", recursive = TRUE,
-                             full.names = TRUE)
+quant.files.all <- list.files("output", pattern = "ReadsPerGene",
+                              recursive = TRUE, full.names = TRUE)
 quantFiles <- quant.files.all[!grepl("remap", quant.files.all)]
 if (length(quantFiles) == 0) {
   stop("Couldn't find quant files, exiting\n")
@@ -31,8 +31,14 @@ colData.table[, accession := plyr::mapvalues(substr(rn, 1, 1),
                                      "glaberrima", "barthii"))]
 colData.table[as.numeric(substr(rn, 2, 2)) < 4, stage := "PBM"]
 colData.table[as.numeric(substr(rn, 2, 2)) > 3, stage := "SM"]
-colData.table[accession %in% c("barthii", "rufipogon"), domestication := "wild"]
-colData.table[!accession %in% c("barthii", "rufipogon"), domestication := "domesticated"]
+colData.table[accession %in% c("barthii", "rufipogon"),
+              domestication := "wild"]
+colData.table[!accession %in% c("barthii", "rufipogon"),
+              domestication := "domesticated"]
+colData.table[accession %in% c("barthii", "glaberrima"),
+              continent := "Africa"]
+colData.table[accession %in% c("rufipogon", "indica", "japonica"),
+              continent := "Asia"]
 
 colData <- data.frame(colData.table, row.names = "rn")
 ind <- sapply(colData, is.character)
@@ -49,9 +55,9 @@ dds <- DESeq2::DESeqDataSetFromMatrix(
 # run DESeq2
 dds <- DESeq2::DESeq(dds)
 
-# run transformations
-vst <- DESeq2::varianceStabilizingTransformation(dds)
-rld <- DESeq2::rlogTransformation(dds)
+# run transformations (need to use blind=TRUE for QC)
+vst <- DESeq2::varianceStabilizingTransformation(dds, blind = FALSE)
+rld <- DESeq2::rlogTransformation(dds, blind = FALSE)
 
 # normalized counts matrix
 normCounts <- DESeq2::counts(dds, normalized = TRUE)
@@ -69,7 +75,8 @@ saveRDS(rld, paste0(outDir, "/rld.Rds"))
 saveRDS(normCounts, paste0(outDir, "/normCounts.Rds"))
 
 # SAVE LOGS
-sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD", intern = TRUE)),
+sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",
+                                     intern = TRUE)),
           paste("git hash:", system("git rev-parse HEAD", intern = TRUE)),
           capture.output(sessionInfo()))
 writeLines(sInf, paste0(outDir, "/SessionInfo.txt"))

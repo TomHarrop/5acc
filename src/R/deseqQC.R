@@ -5,18 +5,16 @@ library(data.table)
 
 # load the deseq files
 ddsFile <- "output/deseq2/dds.Rds"
-vstFile <- "output/deseq2/vst.Rds"
-
 findFiles <- function(x) {
   if (!file.exists(x)) {
     stop("Couldn't find dds.Rds, exiting\n")
     quit(save = "no", status = 1)
   }
 }
-lapply(list(ddsFile, vstFile), findFiles)
+findFiles(ddsFile)
 
 dds <- readRDS(ddsFile)
-vst <- readRDS(vstFile)
+vst <- DESeq2::varianceStabilizingTransformation(dds)
 
 # choose genes for vst; come back to this once expression cutoffs have been
 # defined
