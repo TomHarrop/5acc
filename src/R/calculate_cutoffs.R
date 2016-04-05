@@ -17,7 +17,6 @@ if (!file.exists(tpm.file)) {
 }
 tpm <- readRDS(tpm.file)
 
-
 # load feature lengths and normalised counts for genic data
 fl.nc.file <- "output/tpm/fl_nc.Rds"
 GenerateMessage("Loading feature lengths and normalised counts for genes")
@@ -69,7 +68,7 @@ combined.counts[, tpm := (r.g * rl * 1e6) / (Length * T.sum)]
 combined.counts[grep("^intergenic", gene), type := "intergenic"]
 combined.counts[is.na(type), type := "genic"]
 
-# calculate quartiles
+# calculate quantiles
 GenerateMessage("Calculating threshhold for intergenic reads")
 threshhold <- combined.counts[type == "intergenic",
                               .(q95 = quantile(tpm, 0.95)),
@@ -121,7 +120,3 @@ writeLines(sInf, logLocation)
 GenerateMessage("Done")
 
 quit(save = "no", status = 0)
-
-
-
-

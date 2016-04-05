@@ -400,21 +400,6 @@ def main():
                  "SessionInfo.wald_domestication.txt"),
                 ("{path[0]}/wald_domestication_by_continent/"
                  "SessionInfo.wald_domestication_by_continent.txt")])
-    # domestication
-#    wald_domestication = main_pipeline.transform(
-#        task_func=wald_species_R,
-#        input=deseq2,
-#        add_inputs=ruffus.add_inputs(expressed_genes),
-#        filter=ruffus.formatter(),
-#        output=["{path[0]}/wald_domestication/SessionInfo.wald_domestication.txt"])
-#    # domestication by continent
-#    wald_domestication_by_continent = main_pipeline.transform(
-#        task_func=wald_species_R,
-#        input=deseq2,
-#        add_inputs=ruffus.add_inputs(expressed_genes),
-#        filter=ruffus.formatter(),
-#        output=[("{path[0]}/wald_domestication_by_continent/"
-#                 "SessionInfo.wald_domestication_by_continent.txt")])
 
     # run QC on deseq2 output
     #deseqQC = main_pipeline.transform(task_func = deseqQC_R,

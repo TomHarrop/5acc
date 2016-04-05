@@ -3,25 +3,41 @@ title: "Notes for the 5 accessions project"
 output: word_document
 ---
 
-# Results
+# Biological questions for RNA-seq analysis
+
+1. Structural variation between species
+    * *Are there genes that are present/absent in particular species*?
+        * **differential expression between species regardless of stage**
+        * support with genomic evidence for structural variation e.g. whole-genome alignment data
+
+2. Basic molecular mechanisms involved in branching
+    * *Are there genes that might be involved in branching in **all** species*? These could be involved in basic mechanisms
+        * **genes that are differentially expressed between PBM and SM in all species**
+        * How can we support this information? *O. sativa* mutants?
+    * Divergence between African and Asian rice
+        * comparison between subsets of species, e.g. potential branching genes in Asian species vs. potential branching genes in African species
+
+3. Domestication and convergent evolution
+    * *What are the genes that might have been involved in the domestication of rice and convergent evolution of panicle phenotypes*?
+        * **Genes where the L2FC between PBM and SM is dependent on whether or not the species is domesticated**, e.g. there is a significant change between PBM and SM in *glaberrima* but not *barthi*
+        * consider three separate domestications: Nipponbare/IR64 vs. *rufipogon* and *glaberrima* vs. *barthii*.
+        * **genes from at least one asian and one african domestication: convergent evolution**
+        * support with genomic evidence:
+            * look for variation in non-coding region of genes of interest (possible regulatory change) in these accessions
+            * look for evidence of linkage disequilebrium around these genes in resequencing panels
+            * possible to find transposable elements?
+    * *How has domestication affected known regulators of panicle architecture*?
+        * Family-wise comparisons of interesting families between the 5 accessions like in the LMD paper, *e.g.* a hormone pathway, production of a metabolite, a particular TF network or family, etc.
+
+# Other results
 
 * Phenotyping:
     * panicle morphology (p-trap) from 5 accessions (± other accessions?);
-    * timing of transitions in developmental stages by histology.
-* RNA seq:
-    * Differential expression analysis:
-        * Simple case: genes that are differentially expressed between stages in the same species;
-        * To find genes that may be involved in domestication:
-            * Test if the relationship between stage and gene expression is **different** between domesticated and wild species;
-            * *i.e.* `expression ~ stage + domestication + (stage × domestication)`;
-            * the interaction term (`stage × domestication`) tests if the effect of `stage` is **different** at different levels of the `domestication` variable.
-        * Can ask other questions, *e.g.* is the relationship between stage and gene expression different in accessions with higher yield, more primary/secondary branches, etc.;
-        * Find evidence to support candidates, *e.g.* selective sweeps or CNV, in genomic sequencing data.
-    * Comparison between the 5 accessions of expression of genes involved in an interesting pathway, *e.g.* a hormone pathway, production of a metabolite, a particular TF network, etc.
+    * timing of transitions in developmental stages by histology (**is this still possible with the data we have**?)
 * Extended expression studies of interesting genes:
     * *e.g.* *in situ*/fluidigm/qPCR analysis of differentially expressed genes in all the developmental stages that were sampled (not just the sequenced stages).
 * Hormones/metabolites?
-    * if we can relate to DE genes, or to changes in expression between species.
+    * Try to relate changes in hormones to changes in expression between species e.g. of genes implicated in hormone signalling
     
 # Other considerations & discussion ideas
 

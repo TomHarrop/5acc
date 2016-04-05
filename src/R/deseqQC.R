@@ -3,29 +3,48 @@
 library(DESeq2)
 library(data.table)
 
-# load the deseq files
-ddsFile <- "output/deseq2/dds.Rds"
-findFiles <- function(x) {
-  if (!file.exists(x)) {
-    stop("Couldn't find dds.Rds, exiting\n")
-    quit(save = "no", status = 1)
-  }
+# messages
+GenerateMessage <- function(message.text){
+  message(paste0("[ ", date(), " ]: ", message.text))
 }
-findFiles(ddsFile)
+GenerateMessage("QC plots for DESeq2 results")
 
-dds <- readRDS(ddsFile)
-vst <- DESeq2::varianceStabilizingTransformation(dds)
+# set up parallel processing
+cpus <- as.numeric(Sys.getenv("SLURM_JOB_CPUS_PER_NODE"))
+if (is.na(cpus)) {
+  cpus <- 1
+}
+GenerateMessage(paste("Allocating", cpus, "cpu(s)"))
+BiocParallel::register(BiocParallel::MulticoreParam(cpus))
 
-# choose genes for vst; come back to this once expression cutoffs have been
-# defined
-qS <- quantile(rowSums(counts(dds)), 0.7)
-qM <- quantile(rowMeans(counts(dds)), 0.7)
+# load data
+GenerateMessage("Loading base DESeq2 object")
+dds.file <- "output/deseq2/dds.Rds"
+if (!file.exists(dds.file)) {
+  stop("Couldn't find dds.Rds")
+}
+dds <- readRDS(dds.file)
 
-exprGenes <- rownames(counts(dds)[rowSums(counts(dds)) > qS | rowMeans(counts(dds)) > qM, ])
-exprVst <- assay(vst[exprGenes,])
+# pre-filter genes based on tpm cutoffs
+GenerateMessage("Removing undetected genes")
+detected.genes.file <- "output/tpm/detected_genes.Rds"
+if (!file.exists(detected.genes.file)) {
+  stop("Couldn't find detected_genes.Rds")
+}
+detected.genes <- readRDS(detected.genes.file)
+
+# have to re-run deseq b/c of change in genes
+dds.qc <- DESeq2::DESeqDataSetFromMatrix(
+  countData = DESeq2::counts(dds)[detected.genes,],
+  colData = SummarizedExperiment::colData(dds),
+  design = DESeq2::design(dds))
+dds.qc <- DESeq2::DESeq(dds.qc, parallel = TRUE)
+
+vst <- DESeq2::varianceStabilizingTransformation(dds, blind = TRUE)
+vst.assay <- SummarizedExperiment::assay(vst)
 
 # run pca on expressed genes
-pca <- prcomp(t(exprVst))
+pca <- prcomp(t(vst.assay))
 percentVar <- pca$sdev^2/sum(pca$sdev^2)
 
 # set up plot
@@ -40,29 +59,25 @@ pcaPlotData <- data.frame(
 library(ggplot2)
 library(scales)
 
-pcaPlotData[pcaPlotData$Accession == "barthii",]
-
-pcaPlotData
-
-pcaPlot <- ggplot(pcaPlotData[pcaPlotData$Accession == "glaberrima",],
+pcaPlot <- ggplot(pcaPlotData,
                   aes(x = PCA1, y = PCA2, colour = Accession,
                       shape = Stage, label = label)) +
   theme_grey(base_size = 8) +
   scale_color_brewer(palette = "Set1") +
-  #geom_point(size = 5, alpha = 0.8) +
-  #geom_label(size = 2.82, colour = "black", nudge_x = 2, nudge_y = 0)
-  geom_text(size = 2.82)
+  geom_point(size = 3, alpha = 0.75) +
+  geom_text(colour = "black", nudge_x = 2, nudge_y = 0)
 pcaPlot
 
 # density plot
 #densityPlotData <- reshape2::melt(log2(counts(dds)[exprGenes,]) + 0.5)
-densityPlotData <- reshape2::melt(counts(dds)[exprGenes,])
+densityPlotData <- reshape2::melt(
+  DESeq2::counts(dds.qc))
 #densityPlotData <- reshape2::melt(exprVst)
 densityPlotData$colour <- substr(densityPlotData$Var2, 1, 1)
 densityPlot <- ggplot(densityPlotData,
        aes(x = value, fill = colour),
        alpha = 0.5) +
-  xlab("Transformed counts") + ylab(NULL) + guides(fill = FALSE, colour = FALSE) +
+  xlab("Counts") + ylab("Density") + guides(fill = FALSE, colour = FALSE) +
   scale_x_continuous(trans = log2_trans(),
                      breaks = trans_breaks("log2", function(x) 2^x),
                      labels = trans_format("log2", math_format(2^.x))) +
@@ -71,3 +86,20 @@ densityPlot <- ggplot(densityPlotData,
   geom_density(alpha = 0.8, colour = NA) +
   facet_wrap(~Var2)
 densityPlot
+
+# heatmap of sample distances
+sample.dists <- dist(t(vst.assay))
+sample.dist.matrix <- as.matrix(sample.dists)
+rownames(sample.dist.matrix) <- paste(
+  rownames(SummarizedExperiment::colData(vst)), vst$accession, vst$stage, sep = ".")
+colnames(sample.dist.matrix) <- rownames(sample.dist.matrix)
+
+
+colours <- colorRampPalette(rev(RColorBrewer::brewer.pal(6, "Blues")))(255)
+pheatmap::pheatmap(sample.dist.matrix,
+                   clustering_distance_rows = sample.dists,
+                   clustering_distance_cols = sample.dists,
+                   col = colours)
+
+
+
