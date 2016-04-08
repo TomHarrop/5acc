@@ -77,6 +77,11 @@ results.tables <- lapply(results.list, ConvertResultsToDt)
 results.table <- rbindlist(results.tables, idcol = TRUE)
 setnames(results.table, ".id", "domestication")
 
+# # find genes that are significant twice
+# results.table.wide <- data.table::dcast(results.table, gene ~ domestication,
+#                                         value.var = c("log2FoldChange", "padj"))
+# results.table.wide[padj_africa < 0.1 & padj_asia < 0.1]
+
 # save output
 GenerateMessage("Saving output")
 out.dir <- "output/deseq2/wald_domestication_by_continent"
