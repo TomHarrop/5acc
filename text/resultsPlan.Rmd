@@ -11,6 +11,9 @@ output: word_document
         * support with genomic evidence for structural variation e.g. whole-genome alignment data
 
 2. Basic molecular mechanisms involved in branching
+    * *Which Nipponbare genes might be involved in branching*?
+        - **differentially expressed genes between PBM and SM in Nipponbare**
+        - compare these genes to significantly differentially expressed genes from the laser microdissection dataset
     * *Are there genes that might be involved in branching in all species*? These genes could encode basic mechanisms
         * **genes that are differentially expressed between PBM and SM in all species**
         * How can we support this information? *O. sativa* mutants?
