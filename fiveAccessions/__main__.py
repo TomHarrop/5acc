@@ -57,6 +57,11 @@ def shuffle(inputFiles, outputFiles):
     job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
     functions.print_job_submission(job_name, job_id)
 
+
+# download the tfdb
+def prepare_tfdb_R(output_files):
+    pass
+
 ##################################
 # MAPPING AND TRIMMING FUNCTIONS #
 ##################################
@@ -264,6 +269,11 @@ def main():
     os_genome = main_pipeline.originate(downloadGenome_sh,
                                         "data/genome/os/METADATA.csv",
                                         jgi_logon, jgi_password)
+
+    # download the tfdb
+    tfdb = main_pipeline.originate(
+        task_func=prepare_tfdb_R,
+        output='data/tfdb/SessionInfo.txt')
 
     # create the STAR index
     os_index = main_pipeline.transform(

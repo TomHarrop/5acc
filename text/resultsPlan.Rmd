@@ -11,27 +11,30 @@ output: word_document
         * support with genomic evidence for structural variation e.g. whole-genome alignment data
 
 2. Basic molecular mechanisms involved in branching
-    * *Which Nipponbare genes might be involved in branching*?
+    * *Which Nipponbare genes are involved in branching*?
         - **differentially expressed genes between PBM and SM in Nipponbare**
         - compare these genes to significantly differentially expressed genes from the laser microdissection dataset
-    * *Are there genes that might be involved in branching in all species*? These genes could encode basic mechanisms
+    * *Are there genes that are involved in branching in all species*? These genes could encode basic mechanisms
         * **genes that are differentially expressed between PBM and SM in all species**
         * How can we support this information? *O. sativa* mutants?
     * *Are potential branching genes divergent between African and Asian rice?*
         * **comparison of genes that are differentially expressed between PBM and SM in African and Asian species**
 
-3. Domestication and convergent evolution
-    * *What are the genes that might have been under selection during the domestication of rice and convergent evolution of panicle phenotypes*?
+3. Domestication and parallel evolution
+    * *Which genes were under selection during the domestication of rice and parallel evolution of panicle phenotypes*?
         * **Genes where the L2FC between PBM and SM is dependent on whether or not the species is domesticated**
             * *e.g.* genes where there is a significant change between PBM and SM in *glaberrima* but not *barthi* may be involved in the African domestication
-        * consider three separate domestications: Nipponbare/IR64 vs. *rufipogon* and *glaberrima* vs. *barthii*.
+        * consider two or three domestications: Nipponbare/IR64 vs. *rufipogon* and *glaberrima* vs. *barthii*.
         * **genes implicated in at least one asian and one african domestication: convergent evolution**
         * support with genomic evidence:
             * look for variation in non-coding region of genes of interest (possible regulatory change) in these accessions
             * look for evidence of linkage disequilebrium around these genes in resequencing panels
             * possible to find transposable elements?
     * *How has domestication and selection affected known regulators of panicle architecture*?
-        * Family-wise comparisons of interesting families between the 5 accessions like in the LMD paper, *e.g.* a hormone pathway, production of a metabolite, a particular TF network or family, etc.
+        * Family-wise comparisons of interesting families between the 5 accessions like in the LMD paper:
+            * transcription factors
+            * hormone pathways
+            * cell division / cell cycle genes
 
 # Other results
 
