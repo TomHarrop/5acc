@@ -27,6 +27,9 @@ tfdb.raw <- data.table(read.table(tmp, header = T, sep = '\t',
 # tidy
 GenerateMessage("Tidying data")
 setkey(tfdb.raw, 'Species', 'Family', 'Protein.ID', 'Category')
+tfdb.raw[grep("\\.[[:digit:]]+$", Protein.ID),
+         Protein.ID := gsub("\\.[[:digit:]]+$", "", Protein.ID),
+         by = Protein.ID]
 tfdb.raw[, Genome.EST := NULL]
 tfdb <- unique(tfdb.raw)
 

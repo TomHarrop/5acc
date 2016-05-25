@@ -24,12 +24,20 @@ stage.results.table[ , accession := factor(plyr::revalue(
   replace = ord),  levels = ord)]
 setkey(stage.results.table, gene)
 
-# select genes
-alog <- c('LOC_Os07g04670', 'LOC_Os02g07030', 'LOC_Os06g46030',
-          'LOC_Os02g41460', 'LOC_Os04g43580', 'LOC_Os10g33780',
-          'LOC_Os02g56610', 'LOC_Os01g61310', 'LOC_Os05g39500',
-          'LOC_Os05g28040')
-pd <- stage.results.table[alog]
+# select genes (testing)
+# alog <- c('LOC_Os07g04670', 'LOC_Os02g07030', 'LOC_Os06g46030',
+#           'LOC_Os02g41460', 'LOC_Os04g43580', 'LOC_Os10g33780',
+#           'LOC_Os02g56610', 'LOC_Os01g61310', 'LOC_Os05g39500',
+#           'LOC_Os05g28040')
+# pd <- stage.results.table[alog]
+tfdb.os <- readRDS("data/tfdb/tfdb_os.Rds")
+goi <- tfdb.os[Family == "HB", unique(Protein.ID)]
+tfdb.os[,unique(Family)]
+
+
+goi <- unique(rownames(oryzr::SearchByGeneSymbol("RCN")))
+
+pd <- stage.results.table[goi]
 
 # add symbols
 pd[, symbol := oryzr::LocToGeneName(gene)$symbols, by = gene]
