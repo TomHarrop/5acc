@@ -51,7 +51,7 @@ sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",
                                      intern = TRUE)),
           paste("git hash:", system("git rev-parse HEAD", intern = TRUE)),
           capture.output(sessionInfo()))
-logLocation <- paste0(out.dir, "/SessionInfo.wald_stage_species.txt")
+logLocation <- paste0(out.dir, "/SessionInfo.txt")
 writeLines(sInf, logLocation)
 
 GenerateMessage("Done")

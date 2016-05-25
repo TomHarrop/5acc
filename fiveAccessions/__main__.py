@@ -60,7 +60,13 @@ def shuffle(inputFiles, outputFiles):
 
 # download the tfdb
 def prepare_tfdb_R(output_files):
-    pass
+    jobScript = 'src/R/prepare_tfdb.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'tfdb_download'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
 
 ##################################
 # MAPPING AND TRIMMING FUNCTIONS #
