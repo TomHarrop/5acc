@@ -61,14 +61,14 @@ setnames(results.table, ".id", "continent")
 
 # save output
 GenerateMessage("Saving output")
-out.dir <- "output/deseq2/wald_stage_continent"
+out.dir <- "output/deseq2/wald_tests"
 GenerateMessage(paste("Saving output to", out.dir))
 if(!dir.exists(out.dir)) {
   dir.create(out.dir, recursive = TRUE)
 }
 
 saveRDS(dds.stage.continent, paste0(out.dir, "/dds_stage_continent.Rds"))
-saveRDS(results.table, paste0(out.dir, "/results_table.Rds"))
+saveRDS(results.table, paste0(out.dir, "/stage_continent_results_table.Rds"))
 
 # save logs
 sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",

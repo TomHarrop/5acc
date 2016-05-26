@@ -53,14 +53,14 @@ setnames(results.table, "rn", "gene")
 
 # save output
 GenerateMessage("Saving output")
-out.dir <- "output/deseq2/wald_domestication"
+out.dir <- "output/deseq2/wald_tests"
 GenerateMessage(paste("Saving output to", out.dir))
 if(!dir.exists(out.dir)) {
   dir.create(out.dir, recursive = TRUE)
 }
 
 saveRDS(dds.domestication, paste0(out.dir, "/dds_domestication.Rds"))
-saveRDS(results.table, paste0(out.dir, "/results_table.Rds"))
+saveRDS(results.table, paste0(out.dir, "/domestication_results_table.Rds"))
 
 # save logs
 sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",

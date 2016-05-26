@@ -76,14 +76,14 @@ setnames(contrast.results, ".id", "contrast")
 
 # save output
 GenerateMessage("Saving output")
-out.dir <- "output/deseq2/wald_species"
+out.dir <- "output/deseq2/wald_tests"
 GenerateMessage(paste("Saving output to", out.dir))
 if(!dir.exists(out.dir)) {
   dir.create(out.dir, recursive = TRUE)
 }
 
-saveRDS(dds.species, paste0(out.dir, "/dds.species.Rds"))
-saveRDS(contrast.results, paste0(out.dir, "/contrast_results.Rds"))
+saveRDS(dds.species, paste0(out.dir, "/dds_species.Rds"))
+saveRDS(contrast.results, paste0(out.dir, "/species_results_table.Rds"))
 
 # save logs
 sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",

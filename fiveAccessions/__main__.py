@@ -230,7 +230,7 @@ def calculate_cutoffs_R(inputFiles, outputFiles):
     functions.print_job_submission(job_name, job_id)
 
 
-# wald species
+# wald tests
 def wald_tests(inputFiles, outputFiles):
     ntasks = '1'
     cpus_per_task = '8'
@@ -405,20 +405,23 @@ def main():
         extras=[r"\1"])
 
     # wald tests
-    # species
     wald_test_results = main_pipeline.transform(
         task_func=wald_tests,
         input=deseq2,
         add_inputs=ruffus.add_inputs(expressed_genes),
         filter=ruffus.formatter(),
-        output=["{path[0]}/wald_species/SessionInfo.wald_species.txt",
-                ("{path[0]}/wald_domestication/"
-                 "SessionInfo.wald_domestication.txt"),
-                ("{path[0]}/wald_domestication_by_continent/"
-                 "SessionInfo.wald_domestication_by_continent.txt")])
+        output=[
+            ('{path[0]}/wald_tests/SessionInfo.wald_domestication_asia.txt'),
+            ('{path[0]}/wald_tests/'
+                'SessionInfo.wald_domestication_by_continent.txt'),
+            ('{path[0]}/wald_tests/SessionInfo.wald_domestication.txt'),
+            ('{path[0]}/wald_tests/SessionInfo.wald_species.txt'),
+            ('{path[0]}/wald_tests/SessionInfo.wald_stage_species.txt'),
+            ('{path[0]}/wald_tests/SessionInfo.wald_stage.txt'),
+            ('{path[0]}/wald_tests/SessionInfo.wald_stage_continent.txt')])
 
     # run QC on deseq2 output
-    #deseqQC = main_pipeline.transform(task_func = deseqQC_R,
+    # deseqQC = main_pipeline.transform(task_func = deseqQC_R,
     #                                  input = deseq2,
     #                                  filter = suffix("SessionInfo.txt"),
     #                                  output = "someFileHere.csv")

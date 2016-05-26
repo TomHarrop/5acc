@@ -30,30 +30,45 @@ setkey(stage.results.table, gene)
 #           'LOC_Os02g56610', 'LOC_Os01g61310', 'LOC_Os05g39500',
 #           'LOC_Os05g28040')
 # pd <- stage.results.table[alog]
+goi <- c('LOC_Os01g44170', 'LOC_Os01g49310', 'LOC_Os01g65370', 'LOC_Os01g67310', 'LOC_Os02g13800', 'LOC_Os02g16690', 'LOC_Os03g42464', 'LOC_Os04g30610', 'LOC_Os04g40630', 'LOC_Os04g55159', 'LOC_Os04g57550', 'LOC_Os04g59260', 'LOC_Os05g08420', 'LOC_Os05g15040', 'LOC_Os05g29810', 'LOC_Os05g37520', 'LOC_Os05g41760', 'LOC_Os05g41780', 'LOC_Os06g24910', 'LOC_Os06g42560', 'LOC_Os08g19670', 'LOC_Os08g31580', 'LOC_Os08g34640', 'LOC_Os08g39450', 'LOC_Os09g36420', 'LOC_Os10g38489', 'LOC_Os11g08440', 'LOC_Os12g31748', 'LOC_Os12g32660')
+
+
 tfdb.os <- readRDS("data/tfdb/tfdb_os.Rds")
-goi <- tfdb.os[Family == "HB", unique(Protein.ID)]
 tfdb.os[,unique(Family)]
 
+# goi <- unique(rownames(oryzr::SearchByGeneSymbol("RCN")))
+LOB
+SBP
+GRF
+GRAS
+ARF
+AUX/IAA
 
-goi <- unique(rownames(oryzr::SearchByGeneSymbol("RCN")))
+goi <- tfdb.os[Family == "SBP", unique(Protein.ID)]
 
 pd <- stage.results.table[goi]
+pd <- pd[!is.na(accession)]
 
 # add symbols
 pd[, symbol := oryzr::LocToGeneName(gene)$symbols, by = gene]
 pd[is.na(symbol), symbol := gene]
 
-# cluster the y-axis
-yclust.dt <- dcast(pd, symbol ~ accession, value.var = "log2FoldChange")
-yclust <- as.matrix(data.frame(yclust.dt, row.names = "symbol"))
-y.hc <- hclust(dist(yclust, method = "minkowski"), method = "ward.D2")
-y.ord <- rev(rownames(yclust)[y.hc$order])
-pd[, symbol := factor(symbol, levels = y.ord)]
+# cluster the y-axis, not really nice
+# yclust.dt <- dcast(pd, symbol ~ accession, value.var = "log2FoldChange")
+# yclust <- as.matrix(data.frame(yclust.dt, row.names = "symbol"))
+# y.hc <- hclust(dist(yclust, method = "minkowski"), method = "ward.D2")
+# y.ord <- rev(rownames(yclust)[y.hc$order])
+# pd[, symbol := factor(symbol, levels = y.ord)]
+
+# sort y-axis by lfc in rufipogon
+setkey(pd, "accession", "log2FoldChange")
+y.ord <- pd[accession == levels(accession)[1], as.character(unique(symbol))]
+pd[, symbol := factor(symbol, levels = rev(y.ord))]
 
 ggplot(pd, aes(
   y = symbol, x = log2FoldChange, colour = symbol,
   xmax = log2FoldChange + lfcSE, xmin = log2FoldChange - lfcSE)) +
-  theme_minimal() +
+  theme_minimal() + xlab(expression(Log[2]~fold~change)) + ylab(NULL) +
   facet_grid(~ accession) +
   scale_colour_hue(c = 100, l = 50, h.start = 359) +
   guides(colour = FALSE) +
@@ -62,4 +77,3 @@ ggplot(pd, aes(
              size = 0.5, linetype = 2, colour = "grey") +
   geom_errorbarh(height = 0.3, size = 0.3, colour = "black") +
   geom_point(size = 2) 
-

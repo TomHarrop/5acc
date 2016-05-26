@@ -7,7 +7,8 @@ library(data.table)
 GenerateMessage <- function(message.text){
   message(paste0("[ ", date(), " ]: ", message.text))
 }
-GenerateMessage("Calculate interaction between domestication and stage")
+GenerateMessage(
+  "Calculate domestication effect separately for japonica and indica")
 
 # set up parallel processing
 cpus <- as.numeric(Sys.getenv("SLURM_JOB_CPUS_PER_NODE"))
@@ -16,9 +17,6 @@ if (is.na(cpus)) {
 }
 GenerateMessage(paste("Allocating", cpus, "cpu(s)"))
 BiocParallel::register(BiocParallel::MulticoreParam(cpus))
-
-# new design
-design <- ~ group + stage + group:stage
 
 # load data
 GenerateMessage("Loading base DESeq2 object")
@@ -36,51 +34,48 @@ if (!file.exists(detected.genes.file)) {
 }
 detected.genes <- readRDS(detected.genes.file)
 
-# set up grouping variable
-colData <- SummarizedExperiment::colData(dds)
-colData$group <- factor(paste0(colData$continent, colData$domestication))
+# setup new deseq obect
+col.data <- SummarizedExperiment::colData(dds)
+col.data$accession <- factor(
+  col.data$accession,
+  levels = c("rufipogon", "indica", "japonica", "barthii", "glaberrima"))
 
-# set up new DESeq2 object
-dds.domestication.by.continent <- DESeq2::DESeqDataSetFromMatrix(
+dds.domestication.asia <- DESeq2::DESeqDataSetFromMatrix(
   countData = DESeq2::counts(dds)[detected.genes, ],
-  colData = colData,
-  design = design)
+  colData = col.data,
+  design = ~ stage + accession + stage:accession)
 
-# run DESeq2
+# rerun with updated design
 GenerateMessage("Running DESeq2 with updated design")
-dds.domestication.by.continent <- DESeq2::DESeq(dds.domestication.by.continent,
-                                                parallel = TRUE)
+dds.domestication.asia <- DESeq2::DESeq(dds.domestication.asia,
+                                        parallel = TRUE)
 
 # extract results
 GenerateMessage("Extracting results")
-results.asia.contrast <- list("groupAsiawild.stageSM",
-                              "groupAsiadomesticated.stageSM")
-results.asia <- DESeq2::results(
-  dds.domestication.by.continent,
-  contrast = results.asia.contrast,
+results.japonica <- DESeq2::results(
+  dds.domestication.asia,
+  name = "stageSM.accessionjaponica",
   alpha = 0.05, parallel = TRUE)
-results.africa <- DESeq2::results(
-  dds.domestication.by.continent,
-  name = "groupAfricawild.stageSM",
+results.indica <- DESeq2::results(
+  dds.domestication.asia,
+  name = "stageSM.accessionindica",
   alpha = 0.05, parallel = TRUE)
 
 # combine results
 GenerateMessage("Combining results")
-results.list <- list(asia = results.asia, africa = results.africa)
-
+results.list <- list(japonica = results.japonica, indica = results.indica)
 ConvertResultsToDt <- function(x) {
   x <- data.table(data.frame(x), keep.rownames = TRUE, key = "rn")
   setnames(x, "rn", "gene")
 }
-
 results.tables <- lapply(results.list, ConvertResultsToDt)
 results.table <- rbindlist(results.tables, idcol = TRUE)
 setnames(results.table, ".id", "domestication")
 
-# # find genes that are significant twice
-# results.table.wide <- data.table::dcast(results.table, gene ~ domestication,
-#                                         value.var = c("log2FoldChange", "padj"))
-# results.table.wide[padj_africa < 0.1 & padj_asia < 0.1]
+# find genes that are significant twice: THIS WORKS
+# results.table.wide <- dcast(
+#   results.table, gene ~ domestication, value.var = c("log2FoldChange", "padj"))
+# results.table.wide[padj_indica < 0.05 & padj_japonica < 0.05, unique(gene)]
 
 # save output
 GenerateMessage("Saving output")
@@ -90,11 +85,9 @@ if(!dir.exists(out.dir)) {
   dir.create(out.dir, recursive = TRUE)
 }
 
-saveRDS(dds.domestication.by.continent,
-        paste0(out.dir, "/dds_domestication_by_continent.Rds"))
-saveRDS(
-  results.table,
-  paste0(out.dir, "/domestication_by_continent_results_table.Rds"))
+saveRDS(dds.domestication.asia,
+        paste0(out.dir, "/dds_domestication_asia.Rds"))
+saveRDS(results.table, paste0(out.dir, "/domestication_asia_results_table.Rds"))
 
 # save logs
 sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",
@@ -102,10 +95,11 @@ sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",
           paste("git hash:", system("git rev-parse HEAD", intern = TRUE)),
           capture.output(sessionInfo()))
 logLocation <- paste0(out.dir,
-                      "/SessionInfo.wald_domestication_by_continent.txt")
+                      "/SessionInfo.wald_domestication_asia.txt")
 writeLines(sInf, logLocation)
 
 GenerateMessage("Done")
 
 quit(save = "no", status = 0)
+
 

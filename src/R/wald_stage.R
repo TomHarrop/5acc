@@ -37,7 +37,7 @@ setnames(stage.results.table, "rn", "gene")
 
 # save output
 GenerateMessage("Saving output")
-out.dir <- "output/deseq2/wald_species"
+out.dir <- "output/deseq2/wald_tests"
 GenerateMessage(paste("Saving output to", out.dir))
 if(!dir.exists(out.dir)) {
   dir.create(out.dir, recursive = TRUE)
