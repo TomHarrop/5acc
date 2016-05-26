@@ -19,17 +19,32 @@ GenerateMessage(paste("Allocating", cpus, "cpu(s)"))
 BiocParallel::register(BiocParallel::MulticoreParam(cpus))
 
 # load data
-GenerateMessage("Loading DESeq2 object")
-dds.species.file <- "output/deseq2/wald_species/dds.species.Rds"
-if (!file.exists(dds.species.file)) {
-  stop("Couldn't find dds.species.Rds")
+GenerateMessage("Loading base DESeq2 object")
+dds.file <- "output/deseq2/dds.Rds"
+if (!file.exists(dds.file)) {
+  stop("Couldn't find dds.Rds")
 }
-dds.species <- readRDS(dds.species.file)
+dds <- readRDS(dds.file)
+
+# pre-filter based on tpm cutoffs
+GenerateMessage("Removing undetected genes")
+detected.genes.file <- "output/tpm/detected_genes.Rds"
+if (!file.exists(detected.genes.file)) {
+  stop("Couldn't fine detected_genes.Rds")
+}
+detected.genes <- readRDS(detected.genes.file)
+
+# rerun deseq2 with filtered data
+dds.stage <- DESeq2::DESeqDataSetFromMatrix(
+  countData = DESeq2::counts(dds)[detected.genes, ],
+  colData = colData(dds),
+  design = design(dds))
+dds.stage <- DESeq(dds.stage)
 
 # extract results for stage
 GenerateMessage("Extracting results")
 stage.results <- DESeq2::results(
-  dds.species, contrast = c("stage", "SM", "PBM"), lfcThreshold = log(1.5, 2),
+  dds.stage, contrast = c("stage", "SM", "PBM"), lfcThreshold = log(1.5, 2),
   alpha = 0.05, parallel = TRUE)
 stage.results.table <- data.table(data.frame(stage.results),
                                   keep.rownames = TRUE, key = "rn")
@@ -43,6 +58,7 @@ if(!dir.exists(out.dir)) {
   dir.create(out.dir, recursive = TRUE)
 }
 
+saveRDS(stage.results.table, paste0(out.dir, "/dds_stage.Rds"))
 saveRDS(stage.results.table, paste0(out.dir, "/stage_results_table.Rds"))
 
 # save logs
