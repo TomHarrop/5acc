@@ -19,22 +19,34 @@ GenerateMessage(paste("Allocating", cpus, "cpu(s)"))
 BiocParallel::register(BiocParallel::MulticoreParam(cpus))
 
 # load data
-GenerateMessage("Loading DESeq2 object")
-dds.species.file <- "output/deseq2/wald_species/dds.species.Rds"
-if (!file.exists(dds.species.file)) {
-  stop("Couldn't find dds.species.Rds")
+GenerateMessage("Loading base DESeq2 object")
+dds.file <- "output/deseq2/dds.Rds"
+if (!file.exists(dds.file)) {
+  stop("Couldn't find dds.Rds")
 }
-dds.species <- readRDS(dds.species.file)
+dds <- readRDS(dds.file)
+
+# pre-filter based on tpm cutoffs
+GenerateMessage("Removing undetected genes")
+detected.genes.file <- "output/tpm/detected_genes.Rds"
+if (!file.exists(detected.genes.file)) {
+  stop("Couldn't fine detected_genes.Rds")
+}
+detected.genes <- readRDS(detected.genes.file)
 
 # set up group variable and design
-SummarizedExperiment::colData(dds.species)$group <- factor(paste(
-  SummarizedExperiment::colData(dds.species)$stage,
-  colData(dds.species)$continent, sep = "."))
-DESeq2::design(dds.species) <- ~ group
+col.data <- SummarizedExperiment::colData(dds)
+col.data$group <- factor(paste(col.data$stage, col.data$continent, sep = "."))
+
+# set up new DESeq2 object
+dds.stage.continent <- DESeq2::DESeqDataSetFromMatrix(
+  countData = DESeq2::counts(dds)[detected.genes, ],
+  colData = col.data,
+  design = ~ group)
 
 # re-run DESeq2
 GenerateMessage("Running filtered DE analysis with new design")
-dds.stage.continent <- DESeq2::DESeq(dds.species, parallel = TRUE)
+dds.stage.continent <- DESeq2::DESeq(dds.stage.continent, parallel = TRUE)
 
 # extract results
 GenerateMessage("Extracting results")
