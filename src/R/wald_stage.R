@@ -39,7 +39,7 @@ dds.stage <- DESeq2::DESeqDataSetFromMatrix(
   countData = DESeq2::counts(dds)[detected.genes, ],
   colData = colData(dds),
   design = design(dds))
-dds.stage <- DESeq(dds.stage)
+dds.stage <- DESeq(dds.stage, parallel = TRUE)
 
 # extract results for stage
 GenerateMessage("Extracting results")
