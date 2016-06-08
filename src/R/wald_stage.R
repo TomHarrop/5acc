@@ -7,7 +7,6 @@ library(data.table)
 GenerateMessage <- function(message.text){
   message(paste0("[ ", date(), " ]: ", message.text))
 }
-
 GenerateMessage("Differential expression between stages across species")
 
 # set up parallel processing

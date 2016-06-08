@@ -68,6 +68,16 @@ def prepare_tfdb_R(output_files):
     functions.print_job_submission(job_name, job_id)
 
 
+# download GWAS data
+def download_gwas_crowell_R(output_files):
+    jobScript = 'src/R/download_gwas_crowell.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'crowell_gwas_download'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
 ##################################
 # MAPPING AND TRIMMING FUNCTIONS #
 ##################################
@@ -244,6 +254,16 @@ def wald_tests(inputFiles, outputFiles):
         functions.print_job_submission(job_name, job_id)
 
 
+# get list of GWAS genes
+def retrieve_gwas_genes_biomart_R(input_files, output_files):
+    jobScript = 'src/R/retrieve_gwas_genes_biomart.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'retrieve_gwas_genes'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
 ##############################
 # IMPLEMENT POST-RUN BACKUP? #
 ##############################
@@ -280,6 +300,18 @@ def main():
     tfdb = main_pipeline.originate(
         task_func=prepare_tfdb_R,
         output='data/tfdb/SessionInfo.txt')
+
+    # download GWAS results
+    gwas_regions = main_pipeline.originate(
+        task_func=download_gwas_crowell_R,
+        output='data/gwas/crowell/SessionInfo.txt')
+
+    # get genes for GWAS regions
+    gwas_genes = main_pipeline.transform(
+        task_func=retrieve_gwas_genes_biomart_R,
+        input=gwas_regions,
+        filter=ruffus.formatter(),
+        output='output/gwas/crowell/SessionInfo.crowell_genes.txt')
 
     # create the STAR index
     os_index = main_pipeline.transform(
