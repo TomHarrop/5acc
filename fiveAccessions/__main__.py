@@ -254,6 +254,16 @@ def wald_tests(inputFiles, outputFiles):
         functions.print_job_submission(job_name, job_id)
 
 
+# combine wald tests
+def extract_dom_lists_R(input_files, output_files):
+    jobScript = 'src/R/extract_dom_lists.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'extract_dom_lists'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
 # get list of GWAS genes
 def retrieve_gwas_genes_biomart_R(input_files, output_files):
     jobScript = 'src/R/retrieve_gwas_genes_biomart.R'
@@ -451,6 +461,12 @@ def main():
             ('{path[0]}/wald_tests/SessionInfo.wald_stage_species.txt'),
             ('{path[0]}/wald_tests/SessionInfo.wald_stage.txt'),
             ('{path[0]}/wald_tests/SessionInfo.wald_stage_continent.txt')])
+
+    # combine domestication and stage results
+    stage_l2fc_dom_padj = main_pipeline.merge(
+        task_func=extract_dom_lists_R,
+        input=wald_test_results,
+        output='output/deseq2/wald_tests/SessionInfo.extract_dom_lists.txt')
 
     # run QC on deseq2 output
     # deseqQC = main_pipeline.transform(task_func = deseqQC_R,
