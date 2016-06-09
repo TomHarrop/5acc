@@ -69,7 +69,7 @@ if(!dir.exists(out.dir)) {
   dir.create(out.dir, recursive = TRUE)
 }
 
-saveRDS(gwas.crowell.genes, paste0(out.dir, "/gwas.crowell.genes.Rds"))
+saveRDS(gwas.crowell.genes, paste0(out.dir, "/gwas_crowell_genes.Rds"))
 
 # save logs
 sInf <- c(paste("git branch:",system("git rev-parse --abbrev-ref HEAD",

@@ -13,8 +13,10 @@ GenerateMessage("Generate tables of wald test results")
 list.files("output/deseq2/wald_tests",
            pattern = ".*results_table.Rds")
 
-dom.asia <- readRDS("output/deseq2/wald_tests/domestication_asia_results_table.Rds")
-dom.continent <- readRDS("output/deseq2/wald_tests/domestication_by_continent_results_table.Rds")
+dom.asia <- readRDS(
+  "output/deseq2/wald_tests/domestication_asia_results_table.Rds")
+dom.continent <- readRDS(
+  "output/deseq2/wald_tests/domestication_by_continent_results_table.Rds")
 
 head(dom.asia)
 head(dom.continent)
