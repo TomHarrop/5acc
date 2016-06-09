@@ -12,7 +12,7 @@ GenerateMessage(
 
 # data files
 GenerateMessage("Loading data")
-dom.file <- "output/deseq2/wald_tests/domestication_results_table.Rds"
+dom.file.all <- "output/deseq2/wald_tests/domestication_results_table.Rds"
 dom.asia.file <-
   "output/deseq2/wald_tests/domestication_asia_results_table.Rds"
 dom.continent.file <- 
@@ -20,13 +20,13 @@ dom.continent.file <-
 stage.results.file <-
   "output/deseq2/wald_tests/stage_species_results_table.Rds"
 for (dom.file in list(
-  dom.all.file, dom.asia.file, dom.continent.file, stage.results.file)) {
+  dom.file.all, dom.asia.file, dom.continent.file, stage.results.file)) {
   if (!file.exists(dom.file)) {
     stop(paste("Couldn't find", basename(dom.file)))
     quit(save = "no", status = "1")
   }
 }
-dom <- readRDS(dom.all.file)
+dom <- readRDS(dom.file.all)
 dom.asia <- readRDS(dom.asia.file)
 dom.continent <- readRDS(dom.continent.file)
 stage.results.table <- readRDS(stage.results.file)
