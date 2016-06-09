@@ -254,7 +254,7 @@ def wald_tests(inputFiles, outputFiles):
         functions.print_job_submission(job_name, job_id)
 
 
-# combine wald tests
+# combine wald tests for domestications
 def extract_dom_lists_R(input_files, output_files):
     jobScript = 'src/R/extract_dom_lists.R'
     ntasks = '1'
@@ -463,10 +463,13 @@ def main():
             ('{path[0]}/wald_tests/SessionInfo.wald_stage_continent.txt')])
 
     # combine domestication and stage results
-    stage_l2fc_dom_padj = main_pipeline.merge(
+    stage_l2fc_dom_padj = main_pipeline.transform(
         task_func=extract_dom_lists_R,
         input=wald_test_results,
-        output='output/deseq2/wald_tests/SessionInfo.extract_dom_lists.txt')
+        filter=ruffus.formatter(),
+        output=['{path[0]}/SessionInfo.extract_dom_lists.txt'])
+
+
 
     # run QC on deseq2 output
     # deseqQC = main_pipeline.transform(task_func = deseqQC_R,
