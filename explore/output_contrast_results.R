@@ -14,6 +14,12 @@ AnnotateResults <- function(x) {
   return(my.dt)
 }
 
+# function to write output
+WriteOutput <- function(x, file.name, out.dir = "explore/xlsx") {
+  write.table(x, paste0(out.dir, "/", file.name), quote = FALSE, sep = "\t",
+              na = "", row.names = FALSE)
+}
+
 # 1. species differential expression
 species.results <- readRDS("output/deseq2/wald_species/contrast_results.Rds")
 species.results[, unique(contrast)]
@@ -47,12 +53,24 @@ sig.sd.results[, abs.l2fc := abs(log2FoldChange)]
 setorder(sig.sd.results, -abs.l2fc)
 sig.sd.results[, abs.l2fc := NULL]
 
-# write output
-WriteOutput <- function(x, file.name, out.dir = "explore/xlsx") {
-  write.table(x, paste0(out.dir, "/", file.name), quote = FALSE, sep = "\t",
-              na = "", row.names = FALSE)
-}
+# 4. combined gwas/DE results
+gwas.domestication <- readRDS("output/gwas/gwas_domestication.Rds")
+gwas.dom.sig <- gwas.domestication[
+  dom_all < 0.05 | dom_africa < 0.05 | dom_asia < 0.05 | dom_japonica < 0.05 |
+    dom_indica < 0.05
+  ]
+gwas.annot <- gwas.dom.sig[, data.table(
+  oryzr::LocToGeneName(gene), keep.rownames = TRUE, key = "rn"),
+  by = gene]
+gwas.sig.annot <- gwas.annot[gwas.dom.sig, .(
+  gene, symbols, MsuAnnotation, dom_all, dom_africa, dom_asia, dom_japonica,
+  dom_indica, accession, log2FoldChange, padj, Bin_id, trait.collapsed,
+  subpop.collapsed)]
 
+WriteOutput(gwas.domestication, "gwas_domestication_all.tab")
+WriteOutput(gwas.sig.annot, "gwas_domestication_sig.tab")
+
+# save
 WriteOutput(sig.species.results, "species_diff_exp.tsv")
 WriteOutput(sig.stage.results, "stage_diff_exp.tsv")
 WriteOutput(sig.sd.results, "stage_domestication_interaction.tsv")

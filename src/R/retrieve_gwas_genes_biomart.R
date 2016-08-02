@@ -10,7 +10,7 @@ GenerateMessage("Use biomaRt to get genes in GWAS regions")
 
 # IRD network blocks the switch to GET after phytozome returns 302 from initial
 # POST. Tell RCurl to use POST instead.
-options(RCurlOptions=list(followlocation=TRUE, postredir=2L))
+options(RCurlOptions = list(followlocation = TRUE, postredir = 2L))
 
 # load crowell data
 GenerateMessage("Loading GWAS regions")
@@ -63,7 +63,7 @@ setkey(bin.to.gene, Bin_id)
 gwas.crowell.genes <- bin.to.gene[gwas.crowell.binned, allow.cartesian = TRUE]
 
 # save output
-out.dir <- "output/gwas/crowell/"
+out.dir <- "output/gwas/crowell"
 GenerateMessage(paste("Saving output to", out.dir))
 if(!dir.exists(out.dir)) {
   dir.create(out.dir, recursive = TRUE)

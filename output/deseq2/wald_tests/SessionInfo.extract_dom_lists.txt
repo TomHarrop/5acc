@@ -1,5 +1,5 @@
 git branch: master
-git hash: 335440026cc999593dd360367ad49fff980c47ab
+git hash: a45999c812234697591ad8cf6f62b1b190c6659a
 R version 3.3.0 (2016-05-03)
 Platform: x86_64-pc-linux-gnu (64-bit)
 Running under: Ubuntu 16.04 LTS
@@ -19,4 +19,4 @@ other attached packages:
 [1] data.table_1.9.6
 
 loaded via a namespace (and not attached):
-[1] methods_3.3.0 chron_2.3-47 
+[1] plyr_1.8.4    Rcpp_0.12.5   methods_3.3.0 chron_2.3-47 

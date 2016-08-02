@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(data.table)
+library(ggplot2)
 
 # messages
 GenerateMessage <- function(message.text){
@@ -69,23 +70,28 @@ setkey(pd, "accession", "log2FoldChange")
 y.ord <- pd[accession == levels(accession)[1], as.character(unique(symbol))]
 pd[, symbol := factor(symbol, levels = rev(y.ord))]
 
+# colour the points
+plot.cols <- pd[, rev(wesanderson::wes_palette(
+  "Zissou", length(unique(symbol)), "continuous"))]
+
 family_plot <- ggplot(pd, aes(
   y = symbol, x = log2FoldChange, colour = symbol,
   xmax = log2FoldChange + lfcSE, xmin = log2FoldChange - lfcSE)) +
   theme_grey(base_size = 16) +
   theme(axis.text.y	= element_text(face = "italic"),
         strip.text = element_text(face = "italic")) +
-  xlab(expression(L[2]*FC["(PBM–SM)"] %+-% se)) + ylab(NULL) +
+  xlab(expression(L[2]*FC["PBM–SM"] %+-% se)) + ylab(NULL) +
   facet_grid(~ accession) +
-  scale_colour_hue(c = 100, l = 50, h.start = 359) +
+#  scale_colour_hue(c = 100, l = 50, h.start = 359) +
+  scale_colour_manual(values = plot.cols) +
   guides(colour = FALSE) +
   geom_vline(xintercept = 0, size = 0.5, colour = "grey") +
   geom_vline(xintercept = c(-log(1.5, 2), log(1.5, 2)),
              size = 0.5, linetype = 2, colour = "grey") +
-  geom_errorbarh(height = 0.1, size = 0.5, colour = "black") +
+  geom_errorbarh(height = 1/3, size = 0.5, colour = alpha("black", 0.5)) +
   geom_point(size = 2) 
 
-cairo_pdf("~/Desktop/alog.pdf", width = 10, height = 7.5, pointsize = 16,
+cairo_pdf("~/Desktop/test.pdf", width = 10, height = 7.5, pointsize = 16,
           bg = "transparent")
 print(family_plot)
 dev.off()

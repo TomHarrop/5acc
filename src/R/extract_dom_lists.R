@@ -45,6 +45,14 @@ stage.l2fc.dom.padj <- dom.padj[stage.results.table]
 old.names <- c("all", "africa", "asia", "indica", "japonica")
 setnames(stage.l2fc.dom.padj, old.names, paste("dom", old.names, sep = "_"))
 
+# fix accession names
+ord <- c(rufipogon = "O. rufipogon", indica = "O. sativa indica",
+         japonica = "O. sativa japonica", barthii = "O. barthii",
+         glaberrima = "O. glaberrima")
+stage.l2fc.dom.padj[ , accession := factor(plyr::revalue(
+  accession,
+  replace = ord),  levels = ord)]
+
 # save output
 out.dir <- "output/deseq2/wald_tests"
 GenerateMessage(paste("Saving output to", out.dir))

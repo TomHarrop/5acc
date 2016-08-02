@@ -52,8 +52,8 @@ pcaPlotData <- data.frame(
   label = toupper(rownames(pca$x)),
   PCA1 = pca$x[,1],
   PCA2 = pca$x[,2],
-  Stage = GenomicRanges::colData(vst)$stage,
-  Accession = GenomicRanges::colData(vst)$accession
+  Stage = SummarizedExperiment::colData(vst)$stage,
+  Accession = SummarizedExperiment::colData(vst)$accession
   )
 
 library(ggplot2)
@@ -88,10 +88,11 @@ densityPlot <- ggplot(densityPlotData,
 densityPlot
 
 # heatmap of sample distances
-sample.dists <- dist(t(vst.assay))
+sample.dists <- dist(t(vst.assay), method = "minkowski")
 sample.dist.matrix <- as.matrix(sample.dists)
 rownames(sample.dist.matrix) <- paste(
-  rownames(SummarizedExperiment::colData(vst)), vst$accession, vst$stage, sep = ".")
+  rownames(SummarizedExperiment::colData(vst)),
+  vst$accession, vst$stage, sep = ".")
 colnames(sample.dist.matrix) <- rownames(sample.dist.matrix)
 
 

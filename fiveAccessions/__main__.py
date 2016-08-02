@@ -78,6 +78,16 @@ def download_gwas_crowell_R(output_files):
     functions.print_job_submission(job_name, job_id)
 
 
+# download pettko cell cycle genes
+def download_pettko_cycle_genes_R(output_files):
+    jobScript = 'src/R/download_pettko_cycle_genes.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'pettko_genes_download'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
 ##################################
 # MAPPING AND TRIMMING FUNCTIONS #
 ##################################
@@ -274,6 +284,16 @@ def retrieve_gwas_genes_biomart_R(input_files, output_files):
     functions.print_job_submission(job_name, job_id)
 
 
+# Look for domestication-associated genes in GWAS regions
+def gwas_domestication_genes_R(input_files, output_files):
+    jobScript = 'src/R/gwas_domestication_genes.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'gwas_domestication_genes'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
 ##############################
 # IMPLEMENT POST-RUN BACKUP? #
 ##############################
@@ -315,6 +335,11 @@ def main():
     gwas_regions = main_pipeline.originate(
         task_func=download_gwas_crowell_R,
         output='data/gwas/crowell/SessionInfo.txt')
+
+    # download pettko genes
+    pettko_genes = main_pipeline.originate(
+        task_func=download_pettko_cycle_genes_R,
+        output='data/goi/SessionInfo.pettko_cycle.genes.txt')
 
     # get genes for GWAS regions
     gwas_genes = main_pipeline.transform(
@@ -469,6 +494,11 @@ def main():
         filter=ruffus.formatter(),
         output=['{path[0]}/SessionInfo.extract_dom_lists.txt'])
 
+    # Look for domestication-associated genes in GWAS regions
+    gwas_dom_genes = main_pipeline.merge(
+        task_func=gwas_domestication_genes_R,
+        input=[stage_l2fc_dom_padj, gwas_genes],
+        output=['output/gwas/SessionInfo.domestication_genes.txt'])
 
 
     # run QC on deseq2 output
