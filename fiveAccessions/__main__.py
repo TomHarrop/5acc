@@ -88,6 +88,16 @@ def download_pettko_cycle_genes_R(output_files):
     functions.print_job_submission(job_name, job_id)
 
 
+# download ENSEMBL homology data
+def genewise_homology_ensembl_R(output_files):
+    jobScript = 'src/R/genewise_homology_ensembl.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'ensembl_homology_download'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
 ##################################
 # MAPPING AND TRIMMING FUNCTIONS #
 ##################################
@@ -340,6 +350,11 @@ def main():
     pettko_genes = main_pipeline.originate(
         task_func=download_pettko_cycle_genes_R,
         output='data/goi/SessionInfo.pettko_cycle.genes.txt')
+
+    # download ensembl homology
+    ensembl_homolgy = main_pipeline.originate(
+        task_func=genewise_homology_ensembl_R,
+        output='data/goi/SessionInfo.genewise_homology_ensembl.txt')
 
     # get genes for GWAS regions
     gwas_genes = main_pipeline.transform(
