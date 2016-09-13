@@ -98,6 +98,16 @@ def genewise_homology_ensembl_R(output_files):
     functions.print_job_submission(job_name, job_id)
 
 
+# download hirano hormone genes
+def hirano_hormone_genes_R(output_files):
+    jobScript = 'src/R/hirano_hormone_genes.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'hirano_hormone_genes'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
 ##################################
 # MAPPING AND TRIMMING FUNCTIONS #
 ##################################
@@ -355,6 +365,11 @@ def main():
     ensembl_homolgy = main_pipeline.originate(
         task_func=genewise_homology_ensembl_R,
         output='data/goi/SessionInfo.genewise_homology_ensembl.txt')
+
+    # download hirano genes
+    hirano_hormone_genes = main_pipeline.originate(
+        task_func=hirano_hormone_genes_R,
+        output='data/goi/SessionInfo.hirano_hormone_genes.txt')
 
     # get genes for GWAS regions
     gwas_genes = main_pipeline.transform(

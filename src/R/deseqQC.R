@@ -40,7 +40,7 @@ dds.qc <- DESeq2::DESeqDataSetFromMatrix(
   design = DESeq2::design(dds))
 dds.qc <- DESeq2::DESeq(dds.qc, parallel = TRUE)
 
-vst <- DESeq2::varianceStabilizingTransformation(dds, blind = TRUE)
+vst <- DESeq2::varianceStabilizingTransformation(dds.qc, blind = TRUE)
 vst.assay <- SummarizedExperiment::assay(vst)
 
 # run pca on expressed genes
@@ -48,7 +48,7 @@ pca <- prcomp(t(vst.assay))
 percentVar <- pca$sdev^2/sum(pca$sdev^2)
 
 # set up plot
-pcaPlotData <- data.frame(
+pcaPlotData <- data.table(
   label = toupper(rownames(pca$x)),
   PCA1 = pca$x[,1],
   PCA2 = pca$x[,2],
@@ -56,17 +56,32 @@ pcaPlotData <- data.frame(
   Accession = SummarizedExperiment::colData(vst)$accession
   )
 
+species.order <- c("O. rufipogon", "O. sativa indica", "O. sativa japonica",
+           "O. barthii", "O. glaberrima")
+
+pcaPlotData[, Accession := factor(plyr::mapvalues(
+  Accession,
+  from = c("rufipogon", "indica", "japonica", "barthii", "glaberrima"),
+  to = species.order),
+  levels = species.order)]
+
 library(ggplot2)
 library(scales)
 
 pcaPlot <- ggplot(pcaPlotData,
                   aes(x = PCA1, y = PCA2, colour = Accession,
                       shape = Stage, label = label)) +
+  xlab(paste0("PCA1 (", round(percentVar[[1]] * 100, 1), "%)")) +
+  ylab(paste0("PCA2 (", round(percentVar[[2]] * 100, 1), "%)")) +
   theme_grey(base_size = 8) +
+  theme(legend.text = element_text(face = "italic")) +
+  scale_shape(guide = FALSE) +
   scale_color_brewer(palette = "Set1") +
   geom_point(size = 3, alpha = 0.75) +
-  geom_text(colour = "black", nudge_x = 2, nudge_y = 0)
-pcaPlot
+  geom_text(colour = "black", nudge_x = 3, nudge_y = 0)
+
+ggsave("explore/pca.pdf", pcaPlot, width = 10, height = 7.5)
+
 
 # density plot
 #densityPlotData <- reshape2::melt(log2(counts(dds)[exprGenes,]) + 0.5)
