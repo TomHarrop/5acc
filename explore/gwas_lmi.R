@@ -1,0 +1,264 @@
+#!/usr/bin/env Rscript
+
+library(ggplot2)
+library(data.table)
+library(gtable)
+library(gridExtra)
+
+# load l2fc data
+stage.l2fc.dom.padj <- readRDS(
+  "output/deseq2/wald_tests/stage_l2fc_dom_padj.Rds")
+
+# load tpm data
+tpm.long <- readRDS("output/tpm/tpm.Rds")
+ord <- c("O. rufipogon", "O. sativa indica", "O. sativa japonica",
+         "O. barthii", "O. glaberrima")
+tpm.long[, accession := substr(sample, 1, 1)]
+tpm.long[ , accession := factor(plyr::mapvalues(
+  accession,
+  from = c("R", "I", "J", "B", "G"),
+  to = ord),  levels = ord)
+  ]
+tpm.basemean <- tpm.long[, .(mean.tpm = mean(tpm)), by = .(gene, accession)]
+
+# load gwas qtl regions
+lmi.gwas <- data.table(
+  read.csv("data/gwas/lmi/2014_results_synthesis_ EDI.csv"))[
+    !is.na(chromosome)]
+lmi.gwas[, Size..bp. := NULL]
+
+# set up bin_id (numeric)
+setkey(lmi.gwas, chromosome, start, end)
+lmi.gwas[, bin.name := paste0(
+  QTL.name, " | ", "Chr", chromosome, ": ", start, "-", end)]
+
+# get genes from phytozome:
+# IRD network blocks GET after phytozome returns 302 from initial POST. Tell
+# RCurl to use POST instead.
+options(RCurlOptions = list(followlocation = TRUE, postredir = 2L))
+
+# set up biomaRt
+phytozome <- biomaRt::useMart(biomart = "phytozome_mart",
+                              dataset = "phytozome",
+                              host = "phytozome.jgi.doe.gov",
+                              path = "/biomart/martservice/")
+
+# setup query
+bm.filters <- c("organism_id", "region_name", "region_start", "region_end")
+bm.attributes <- c("gene_name1")
+
+# setup query function
+RetrieveRegionGenes <- function(region_name, region_start, region_end) {
+  bm.values <- list(
+    organism_id = "323", # O. sativa
+    region_name = region_name,
+    region_start = region_start,
+    region_end = region_end)
+  unique(biomaRt::getBM(bm.attributes, bm.filters, bm.values,
+                        phytozome, uniqueRows = TRUE)$gene_name1)
+}
+
+# run query
+lmi.gwas[, region.name := paste0("Chr", chromosome)]
+qtl.to.gene <- lmi.gwas[, .(
+  gene = RetrieveRegionGenes(region.name, start, end)),
+  by = bin.name]
+
+# merge results
+setkey(lmi.gwas, bin.name)
+setkey(qtl.to.gene, bin.name)
+gwas.lmi.genes <- qtl.to.gene[lmi.gwas, .(
+  bin.name, gene, region.name, start, end
+), allow.cartesian = TRUE]
+
+# join domestication results to gwas
+setkey(stage.l2fc.dom.padj, gene, accession)
+setkey(gwas.lmi.genes, gene)
+gwas.with.p <- stage.l2fc.dom.padj[gwas.lmi.genes]
+
+# tidy (select rows)
+GenerateMessage("Tidying up the table")
+setkey(gwas.with.p, gene, accession)
+gwas.with.p <- unique(gwas.with.p)[, .(
+  gene, dom_all, dom_africa, dom_asia, dom_japonica, dom_indica, accession,
+  baseMean, log2FoldChange, lfcSE, padj, bin.name, region.name, start, end)]
+
+# annotate and output
+gwas.annot <- gwas.with.p[, data.table(oryzr::LocToGeneName(gene)), by = gene]
+setkey(gwas.annot, gene)
+gwas.annot.full <- gwas.annot[gwas.with.p]
+setkey(gwas.annot.full, bin.name, gene, accession)
+setcolorder(gwas.annot.full,
+            c("bin.name", "gene", "symbols", "names", "MsuAnnotation",
+              "dom_all", "dom_africa", "dom_asia", "dom_japonica", "dom_indica",
+              "accession", "baseMean", "log2FoldChange", "lfcSE", "padj",
+              "OgroObjective", "OgroRef", "RapID",
+              "region.name", "start", "end"
+            ))
+gwas.dom.sig <- gwas.annot.full[
+  dom_all < 0.05 | dom_africa < 0.05 | dom_asia < 0.05 | dom_japonica < 0.05 |
+    dom_indica < 0.05
+  ]
+write.table(gwas.annot.full,
+            "explore/xlsx/gwas_lmi_all.tab",
+            quote = FALSE, sep = "\t",
+            na = "", row.names = FALSE)
+write.table(gwas.dom.sig,
+            "explore/xlsx/gwas_lmi_sig.tab",
+            quote = FALSE, sep = "\t",
+            na = "", row.names = FALSE)
+
+# plot the regions
+PlotGwasBin <- function(bin) {
+  cat("bin.name:", bin, "\n")
+  
+  plot.data <- gwas.annot.full[bin.name == bin]
+  
+  plot.title <- plot.data[, unique(bin.name)]
+  
+  # if no genes, return empty plot
+  if (dim(plot.data[!is.na(accession)])[1] == 0) {
+    return(ggplot() + ggtitle(plot.title))
+  }
+  
+  # clean up NAs
+  plot.data <- plot.data[!is.na(accession)]
+  
+  # add tpm data
+  setkey(tpm.basemean, gene, accession)
+  setkey(plot.data, gene, accession)
+  plot.data <- tpm.basemean[plot.data]
+  
+  # fix gene names
+  plot.data[is.na(symbols), symbols := gene]
+  
+  # sort y-axis by lfc in rufipogon
+  setkey(plot.data, accession, log2FoldChange)
+  y.ord <- plot.data[accession == levels(accession)[1],
+                     as.character(unique(symbols))]
+  id.ord <- plot.data[accession == levels(accession)[1],
+                      as.character(unique(gene))]
+  plot.data[, symbols := factor(symbols, levels = rev(y.ord))]
+  
+  # colour the points
+  heatscale <- RColorBrewer::brewer.pal(6, "YlOrRd")
+  
+  # main plot
+  main.plot <- ggplot(plot.data, aes(
+    y = symbols, x = log2FoldChange, colour = mean.tpm + 1,
+    xmax = log2FoldChange + lfcSE, xmin = log2FoldChange - lfcSE)) +
+    theme_grey(base_size = 12) +
+    theme(axis.text.y	= element_text(face = "italic"),
+          strip.text.x = element_text(face = "italic"),
+          legend.title = element_text(size = rel(0.5)),
+          legend.text = element_text(size = rel(0.5)),
+          legend.key.size = unit(0.8, "lines"),
+          plot.margin = unit(c(1, 1, 1, 1), "lines")) +
+    xlab(expression(L[2]*FC[(PBM -  SM)] %+-% se)) + ylab(NULL) +
+    facet_grid(~ accession, scales = "free_y", space = "free_y") +
+    scale_colour_gradientn(
+      limits = c(1, 2^10),
+      colours = heatscale,
+      trans = scales::log2_trans(),
+      breaks = scales::trans_breaks("log2", function(x) 2^x),
+      name = expression(bar(TPM) + 1),
+      na.value = "#800026") +
+    geom_vline(xintercept = 0, size = 0.5, colour = "grey") +
+    geom_vline(xintercept = c(-log(1.5, 2), log(1.5, 2)),
+               size = 0.5, linetype = 2, colour = "grey") +
+    geom_errorbarh(height = 0.1, size = 0.5, colour = "black") +
+    geom_point(size = 2) +
+    ggtitle(plot.title)
+  
+  # convert p < 0.05 domestication results to numerical for symbols
+  tt.gene.dom <- plot.data[,lapply(.SD, function(x) as.character(x <  0.05)),
+                           .SDcols = c(
+                             "dom_all", "dom_africa", "dom_asia", "dom_indica",
+                             "dom_japonica"),
+                           by = gene]
+  tt.gene.dom[dom_all == "TRUE", dom_all := "All"]
+  tt.gene.dom[dom_asia == "TRUE", dom_asia := "Asia"]
+  tt.gene.dom[dom_africa == "TRUE", dom_africa := "Africa"]
+  tt.gene.dom[dom_indica == "TRUE", dom_indica := "Indica"]
+  tt.gene.dom[dom_japonica == "TRUE", dom_japonica := "Japonica"]
+  tt.long <- melt(tt.gene.dom, id.vars = "gene", variable.name = "domestication",
+                  value.name = "shape")
+  tt.long[shape == "FALSE", shape := NA]
+  shape.levels <- c("All", "Africa", "Asia", "Indica",
+    "Japonica")
+  tt.long[, shape := factor(shape, levels = shape.levels)]
+  
+  # if no significant genes, just return main plot
+  if (dim(tt.long[!is.na(shape)])[1] == 0) {
+    return(ggplotGrob(main.plot))
+  }
+  
+  # subset by plotted genes
+  setkey(plot.data, gene)
+  setkey(tt.long, gene)
+  symbol.plot.data <- tt.long[plot.data, .(
+    gene, domestication, shape, symbols
+  ), by = .EACHI]
+  setkey(symbol.plot.data, gene, domestication)
+  symbol.plot.data <- unique(symbol.plot.data)
+  
+  # order tt.gene by plot.data symbols
+  symbol.plot.data[, gene := factor(gene, levels = rev(id.ord))]
+  
+  # draw the symbol panel
+  symbol.plot <- ggplot(symbol.plot.data,
+                        aes(y = gene, x = domestication, shape = shape)) +
+    theme_void(base_size = 12) +
+    #  theme(legend.title = element_text()) +
+    geom_point(size = 1, colour = "red") +
+    scale_shape_manual(
+      name = "Domestication",
+      breaks = shape.levels,
+      labels = shape.levels,
+      values = c(0, 2, 3, 4, 5),
+      drop = FALSE, na.value = NA)
+  
+  # extract panel from symbol.panel
+  symbol.grob <- ggplotGrob(symbol.plot)
+  symbol.panel <- gtable_filter(symbol.grob, "panel")
+  symbol.legend <- gtable_filter(symbol.grob, "guide-box")
+  
+  # add the panel to main.figure
+  main.plot.grob <- ggplotGrob(main.plot)
+  axis.l <- subset(main.plot.grob$layout, name == "axis-l")
+  plot.with.panel <- gtable_add_cols(
+    main.plot.grob,
+    unit(2/3, "null"),
+    axis.l$l - 1)
+  plot.with.panel <- gtable_add_grob(
+    plot.with.panel, symbol.panel,
+    t = axis.l$t, b = axis.l$b,
+    l = axis.l$l, r = axis.l$r)
+  
+  # add the legend outside the plot
+  plot.complete <- gtable_add_cols(
+    plot.with.panel,
+    unit(2/3, "null"),
+    axis.l$r - 1
+  )
+  plot.complete <- gtable_add_grob(
+    plot.complete, symbol.legend,
+    t = axis.l$t, b = axis.l$b,
+    l = axis.l$r, r = axis.l$r,
+    clip = "on"
+  )
+  
+  return(plot.complete)
+  
+}
+
+# one plot per bin in a list
+all.bins <- gwas.annot.full[, unique(bin.name)]
+list.of.plots <- lapply(all.bins, PlotGwasBin)
+
+# print to pdf
+plots.arranged <- do.call(gridExtra::marrangeGrob, args = list(
+  grobs = list.of.plots,
+  nrow = 1, ncol = 1))
+
+ggsave("explore/gwas_lmi_rnaseq.pdf", plots.arranged, width = 10.69, height = 7.27)
