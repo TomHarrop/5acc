@@ -9,7 +9,6 @@ GenerateMessage <- function(message.text){
 GenerateMessage(
   "Download GWAS data from Crowell et al. 10.1038/ncomms10527.")
 
-
 # download the data from crowell paper
 GenerateMessage("Requesting tar file from ricediversity.org")
 crowell.url <- "https://ricediversity.org/data/sams_data/GWAS-And-Association-Network-Results-Suppl-1-11.tar.gz"

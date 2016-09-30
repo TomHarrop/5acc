@@ -314,6 +314,16 @@ def gwas_domestication_genes_R(input_files, output_files):
     functions.print_job_submission(job_name, job_id)
 
 
+# analyse LMI GWAS regions
+def gwas_lmi_R(input_files, output_files):
+    jobScript = 'src/R/gwas_lmi.R'
+    ntasks = '1'
+    cpus_per_task = '1'
+    job_name = 'gwas_lmi'
+    job_id = functions.submit_job(jobScript, ntasks, cpus_per_task, job_name)
+    functions.print_job_submission(job_name, job_id)
+
+
 ##############################
 # IMPLEMENT POST-RUN BACKUP? #
 ##############################
@@ -530,6 +540,11 @@ def main():
         input=[stage_l2fc_dom_padj, gwas_genes],
         output=['output/gwas/SessionInfo.domestication_genes.txt'])
 
+    # Analyse the LMI QTLs
+    gwas_lmi_results = main_pipeline.merge(
+        task_func=gwas_lmi_R,
+        input=[stage_l2fc_dom_padj, tpm],
+        output='output/gwas/lmi/SessionInfo.gwas_lmi.txt')
 
     # run QC on deseq2 output
     # deseqQC = main_pipeline.transform(task_func = deseqQC_R,
