@@ -80,8 +80,13 @@ pcaPlot <- ggplot(pcaPlotData,
   geom_point(size = 3, alpha = 0.75) +
   geom_text(colour = "black", nudge_x = 3, nudge_y = 0)
 
-ggsave("explore/pca.pdf", pcaPlot, width = 10, height = 7.5)
-
+ggsave(plot = pcaPlot,
+       filename = "pca_plot.pdf",
+       path = "text",
+       device = cairo_pdf(),
+       width = 10,
+       height = 7.5,
+       units = "in")
 
 # density plot
 #densityPlotData <- reshape2::melt(log2(counts(dds)[exprGenes,]) + 0.5)
@@ -100,7 +105,14 @@ densityPlot <- ggplot(densityPlotData,
   scale_fill_brewer(palette = "Set1") +
   geom_density(alpha = 0.8, colour = NA) +
   facet_wrap(~Var2)
-densityPlot
+
+ggsave(plot = densityPlot,
+       filename = "density_plot.pdf",
+       path = "text",
+       device = cairo_pdf(),
+       width = 10,
+       height = 7.5,
+       units = "in")
 
 # heatmap of sample distances
 sample.dists <- dist(t(vst.assay), method = "minkowski")
@@ -112,10 +124,11 @@ colnames(sample.dist.matrix) <- rownames(sample.dist.matrix)
 
 
 colours <- colorRampPalette(rev(RColorBrewer::brewer.pal(6, "Blues")))(255)
+cairo_pdf(filename = "text/sample_heatmap.pdf",
+          width = 10,
+          height = 7.5)
 pheatmap::pheatmap(sample.dist.matrix,
                    clustering_distance_rows = sample.dists,
                    clustering_distance_cols = sample.dists,
                    col = colours)
-
-
-
+dev.off()

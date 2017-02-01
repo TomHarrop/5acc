@@ -33,6 +33,11 @@ ggplot(starLogs, aes(x = `Number of input reads`/1000000,
   scale_colour_brewer(palette = "Set1", guide = guide_legend(title = NULL)) +
   geom_text(aes(x = (`Number of input reads`/1000000) - 2),
             check_overlap = TRUE, size = 2.82)
+ggsave(filename = "exonic_mapping.pdf",
+       device = cairo_pdf(),
+       width = 10,
+       height = 7.5,
+       units = "in")
 ```
 
 
@@ -49,6 +54,11 @@ ggplot(starLogs, aes(y = `Uniquely mapped reads %`,
   scale_colour_brewer(palette = "Set1", guide = guide_legend(title = NULL))
 #  geom_text(aes(x = (`Number of input reads`/1000000) - 2),
             #check_overlap = TRUE, size = 2.82)
+ggsave(filename = "reads_per_accession.pdf",
+       device = cairo_pdf(),
+       width = 10,
+       height = 7.5,
+       units = "in")
 ```
 
 ```{r facetPercents, fig.fullwidth = TRUE, fig.width = 6.48, fig.height = 4.21}
@@ -66,4 +76,10 @@ ggplot(mapping.percentages, aes(x = factor(Accession,
   facet_wrap(~variable, scales = "free_y") +
   geom_point(alpha = 0.8, position = position_jitter(width = 0.3)) +
   scale_colour_brewer(palette = "Set1", guide = FALSE)
+ggsave(filename = "mapping_percentages.pdf",
+       device = cairo_pdf(),
+       width = 10,
+       height = 7.5,
+       units = "in")
+
 ```

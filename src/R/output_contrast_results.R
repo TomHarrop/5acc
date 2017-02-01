@@ -5,9 +5,8 @@ library(data.table)
 # function to annotate the tables
 AnnotateResults <- function(x) {
   my.dt <- copy(x)
-  my.annot <- my.dt[, data.table(
-    oryzr::LocToGeneName(unique(gene)), keep.rownames = TRUE)]
-  merge(my.dt, my.annot, by.x = "gene", by.y = "rn")
+  my.annot <- my.dt[, oryzr::LocToGeneName(unique(gene))]
+  merge(my.dt, my.annot, by.x = "gene", by.y = "MsuID")
 }
 
 # function to write output

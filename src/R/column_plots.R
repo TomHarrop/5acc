@@ -25,11 +25,10 @@ tpm.long <- readRDS(tpm.file)
 ord <- c("O. rufipogon", "O. sativa indica", "O. sativa japonica",
          "O. barthii", "O. glaberrima")
 tpm.long[, accession := substr(sample, 1, 1)]
-tpm.long[ , accession := factor(plyr::mapvalues(
+tpm.long[, accession := factor(plyr::mapvalues(
   accession,
   from = c("R", "I", "J", "B", "G"),
-  to = ord),  levels = ord)
-  ]
+  to = ord),  levels = ord)]
 tpm.basemean <- tpm.long[, .(mean.tpm = mean(tpm)), by = .(gene, accession)]
 setkey(tpm.basemean, gene, accession)
 
@@ -38,6 +37,7 @@ ColumnPlot <- function(genes, species = "all", return.plot.data = FALSE){
   # just for testing
   # int.results.table <- readRDS("data/fiveacc/deseq2/wald_domestication/results_table.Rds")
   # genes <- int.results.table[padj < 0.05, unique(gene)]
+  # genes <- interesting.ap2s
   
   # column plot of genes
   plot.data <- stage.results.table[gene %in% genes]
@@ -52,7 +52,7 @@ ColumnPlot <- function(genes, species = "all", return.plot.data = FALSE){
     ]
   
   # insert gene names if available
-  plot.data[, symbol := oryzr::LocToGeneName(gene)$symbols, by = gene]
+  plot.data[, symbol := oryzr::LocToGeneName(gene)[, symbols], by = gene]
   plot.data[is.na(symbol), symbol := gene]
   
   # order by gene names
@@ -100,14 +100,15 @@ ColumnPlot <- function(genes, species = "all", return.plot.data = FALSE){
   }
   
   ggplot(plot.data, aes(y = symbol, x = log2FoldChange,
-                        colour = log(mean.tpm + 0.5, 2))) +
+                        colour = mean.tpm)) +
     facet_grid(~ accession) +
     ylab(NULL) +
-    xlab(expression(L[2]*FC["PBM–SM"] %+-% "se ("*italic(n) == "3)")) +
-#    scale_colour_hue(c = 100, l = 50, h.start = 359) +
-    scale_colour_gradientn(colours = heatscale,
-                           limits = c(0, 10),
-                           name = expression(Log[2]*TPM)) +
+    xlab(expression(L[2]*FC["PBM"-"SM"] %+-% "se ("*italic(n) == "3)")) +
+    scale_colour_gradientn(limits = c(1, 2^10),
+      trans = scales::log2_trans(),
+      breaks = scales::trans_breaks("log2", function(x) 2^x),
+      colours = heatscale,
+      name = "Mean TPM") +
     geom_vline(xintercept = 0, size = 0.5, colour = "grey") +
     geom_vline(xintercept = c(-log(1.5, 2), log(1.5, 2)),
                size = 0.5, linetype = 2, colour = "grey") +
