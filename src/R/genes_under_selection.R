@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(data.table)
+library(GenomicRanges)
 
 #############################
 # GRanges wrapper functions #
@@ -52,6 +53,8 @@ ExtractGenesInTestWindows <- function(test.range, gtf.genes = gtf.genes){
 # Get seqinfo from GTF #
 ########################
 
+rutils::GenerateMessage("Loading GTF")
+
 gtf.file <- 
   "data/genome/os/Osativa_323_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
 
@@ -63,6 +66,8 @@ gtf <- rtracklayer::import.gff(gtf.file,
 seq.info <- GenomicRanges::seqinfo(gtf)
 
 # split gtf by gene
+rutils::GenerateMessage("Splitting GTF by gene")
+
 gtf.split <- GenomicRanges::split(
   gtf, GenomicRanges::elementMetadata(gtf)$gene_name)
 gtf.genes <- GenomicRanges::reduce(gtf.split)
@@ -70,6 +75,8 @@ gtf.genes <- GenomicRanges::reduce(gtf.split)
 #########################################
 # Process test results into GRangesList #
 #########################################
+
+rutils::GenerateMessage("Loading regions under selection")
 
 test.result.files <- list.files(
   "data/genes_under_selection",
@@ -85,6 +92,8 @@ test.results <- lapply(test.result.files,
                        skip = "CHR",
                        encoding = "UTF-8")
 
+rutils::GenerateMessage("Generating GRanges objects")
+
 test.ranges <- lapply(test.results,
                       FUN = FormatRegionsAsGRange,
                       seqinfo = seq.info)
@@ -98,6 +107,8 @@ names(test.ranges.with.metadata) <- names(test.ranges)
 # find genes overlapping test regions #
 #######################################
 
+rutils::GenerateMessage("Finding genes in selection windows")
+
 window.genes.list <- lapply(test.ranges.with.metadata,
                             FUN = ExtractGenesInTestWindows,
                             gtf.genes = gtf.genes)
@@ -107,6 +118,8 @@ setkey(window.genes, gene)
 ###################
 # add annotations #
 ###################
+
+rutils::GenerateMessage("Annotating genes")
 
 annotations <- window.genes[, oryzr::LocToGeneName(gene)]
 setkey(annotations, MsuID)
@@ -119,6 +132,8 @@ annotated.window.genes <- annotations[window.genes, .(
 ###############
 # Save output #
 ###############
+
+rutils::GenerateMessage("Writing output")
 
 outdir = "output/genes_under_selection"
 if(!dir.exists(outdir)){
@@ -133,4 +148,4 @@ write.table(annotated.window.genes,
             row.names = FALSE)
 
 sinfo <- rutils::GitSessionInfo()
-writeLines(sinfo, paste0(outdir, "/SessionInfo.genes_under_selection.txt")
+writeLines(sinfo, paste0(outdir, "/SessionInfo.genes_under_selection.txt"))
