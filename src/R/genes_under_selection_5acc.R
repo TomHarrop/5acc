@@ -69,8 +69,3 @@ write.table(dom.in.selection,
 
 sinfo <- rutils::GitSessionInfo()
 writeLines(sinfo, paste0(outdir, "/SessionInfo.genes_under_selection_5acc.txt"))
-
-
-
-
-

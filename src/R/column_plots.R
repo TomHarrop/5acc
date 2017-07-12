@@ -38,6 +38,11 @@ ColumnPlot <- function(genes, species = "all", return.plot.data = FALSE){
   # int.results.table <- readRDS("data/fiveacc/deseq2/wald_domestication/results_table.Rds")
   # genes <- int.results.table[padj < 0.05, unique(gene)]
   # genes <- interesting.ap2s
+  # genes <- c("LOC_Os01g45570", "LOC_Os02g05640", "LOC_Os02g35770",
+  #            "LOC_Os03g12860", "LOC_Os04g46350", "LOC_Os06g04850",
+  #            "LOC_Os06g04870", "LOC_Os06g48290", "LOC_Os08g36220",
+  #            "LOC_Os09g27450", "LOC_Os10g01470", "LOC_Os10g39720", 
+  #            "LOC_Os10g41230")
   
   # column plot of genes
   plot.data <- stage.results.table[gene %in% genes]
@@ -89,6 +94,8 @@ ColumnPlot <- function(genes, species = "all", return.plot.data = FALSE){
   soi <- plot.data[, levels(accession)[levels(accession) %in% accession][1]]
   gene.order <- plot.data[accession == soi,
                           as.character(symbol[order(log2FoldChange)])]
+  soi.missing.genes <- setdiff(plot.data[, unique(symbol)], gene.order)
+  gene.order <- c(gene.order, soi.missing.genes)
   plot.data[, symbol := factor(symbol, levels = rev(gene.order))]
   
   # add tpm for heatscale
@@ -105,10 +112,10 @@ ColumnPlot <- function(genes, species = "all", return.plot.data = FALSE){
     ylab(NULL) +
     xlab(expression(L[2]*FC["PBM"-"SM"] %+-% "se ("*italic(n) == "3)")) +
     scale_colour_gradientn(limits = c(1, 2^10),
-      trans = scales::log2_trans(),
-      breaks = scales::trans_breaks("log2", function(x) 2^x),
-      colours = heatscale,
-      name = "Mean TPM") +
+                           trans = scales::log2_trans(),
+                           breaks = scales::trans_breaks("log2", function(x) 2^x),
+                           colours = heatscale,
+                           name = "Mean TPM") +
     geom_vline(xintercept = 0, size = 0.5, colour = "grey") +
     geom_vline(xintercept = c(-log(1.5, 2), log(1.5, 2)),
                size = 0.5, linetype = 2, colour = "grey") +
