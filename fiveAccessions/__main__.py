@@ -525,7 +525,8 @@ def main():
             ('{path[0]}/wald_tests/SessionInfo.wald_species.txt'),
             ('{path[0]}/wald_tests/SessionInfo.wald_stage_species.txt'),
             ('{path[0]}/wald_tests/SessionInfo.wald_stage.txt'),
-            ('{path[0]}/wald_tests/SessionInfo.wald_stage_continent.txt')])
+            ('{path[0]}/wald_tests/SessionInfo.wald_stage_continent.txt'),
+            ('{path[0]}/wald_tests/SessionInfo.wald_stage_between_species.txt')])
 
     # combine domestication and stage results
     stage_l2fc_dom_padj = main_pipeline.transform(

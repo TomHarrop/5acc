@@ -74,7 +74,7 @@ ExtractContrastResults <- function(denom,
                     alpha = alpha,
                     parallel = TRUE)
   my_dt <- data.table(data.frame(my_res), keep.rownames = TRUE)
-  setnames(my_dt, "rn", "gene_id")
+  setnames(my_dt, "rn", "gene")
   return(my_dt)
 }
 
@@ -105,7 +105,7 @@ summary_table <- contrast_results[
   padj < contrast_alpha,
   .(alpha = contrast_alpha,
     lfcThreshold = contrast_lfc,
-    number_of_genes = length(unique(gene_id))),
+    number_of_genes = length(unique(gene))),
   by = .(stage, wald_numerator, wald_denominator)]
 
 # save output
@@ -136,14 +136,14 @@ ExtractContrastGenes <- function(s1, s2, stage) {
   contrast_results[padj < contrast_alpha &
                      (wald_numerator %in% c(s1, s2)) &
                      (wald_denominator %in% c(s1, s2)) &
-                     stage == stage, unique(gene_id)]
+                     stage == stage, unique(gene)]
 }
 pbm_bj <- ExtractContrastGenes("barthii", "japonica", "PBM")
 
 contrast_results[padj < contrast_alpha &
                    (wald_numerator %in% c("barthii", "japonica")) &
                    (wald_denominator %in% c("barthii", "japonica")) &
-                   stage == "PBM", unique_gene_id]
+                   stage == "PBM", unique(gene)]
 
 Set1 <- RColorBrewer::brewer.pal(9, "Set1")
 vd <- VennDiagram::venn.diagram(
