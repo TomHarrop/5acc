@@ -77,7 +77,7 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        os_gtf,
+        'output/010_data/star-index/SA',
         expand('output/020_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
                species=all_species,
                stage=all_stages,
@@ -91,7 +91,7 @@ rule cutadapt:
         r1 = 'output/020_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
         r2 = 'output/020_trim-reads/{species}/{stage}_{rep}.r2.fastq.gz'
     threads:
-        8
+        1
     log:
         'output/000_logs/020_trim-reads/{species}_{stage}_{rep}.log'
     shell:
@@ -106,6 +106,33 @@ rule cutadapt:
         '&> {log}'
 
 # 010 prepare data
+rule generate_genome:
+    input:
+        os_genome = os_genome,
+        os_gtf = os_gtf
+    output:
+        'output/010_data/star-index/SA'
+    params:
+        outdir = 'output/010_data/star-index'
+    threads:
+        8
+    log:
+        'output/000_logs/010_prepare-data/generate_genome.log'
+    shell:
+        'STAR '
+        '--runThreadN {threads} '
+        '--runMode genomeGenerate '
+        '--genomeDir {params.outdir} '
+        '--genomeFastaFiles {input.os_genome} '
+        '--sjdbGTFfile {input.os_gtf} '
+        '--sjdbGTFtagExonParentTranscript oId '
+        '--sjdbGTFtagExonParentGene gene_name '
+        '--sjdbOverhang 109 '
+        '--outFileNamePrefix {params.outdir}/ '
+        '&> {log}'
+
+
+
 rule generate_gtf:
     input:
         os_genome = os_genome,
