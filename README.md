@@ -17,8 +17,10 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 #### `R` packages
 
-`rtracklayer` ≥ 1.38.3
-`valr` ≥ 0.4.0
+`data.table` ≥ 1.10.4-3  
+`GenomicRanges` ≥ 1.30.3  
+`rtracklayer` ≥ 1.38.3  
+`valr` ≥ 0.4.0  
 
 ### Input data files
 
