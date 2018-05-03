@@ -6,7 +6,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 `bbmap` script `repair.sh`  
 `cuffcompare` ≥ 2.2.1  
-`cutadapt` ≥ 1.13  
+`cutadapt` ≥ 1.16
 `snakemake` ≥ 4.7.0  
 `STAR` ≥ 2.5.3a  
 
@@ -23,4 +23,4 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Run the analysis
 
-`snakemake --cores={threads}`
+`snakemake --cores={threads} --resources mem_gb={ram_limit}`

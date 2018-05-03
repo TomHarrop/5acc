@@ -99,7 +99,9 @@ rule second_mapping:
         ('output/030_mapping/star-pass2/{species}/'
          '{stage}_{rep}.Aligned.out.bam')
     threads:
-        8
+        20
+    resources:
+        mem_gb = 40
     params:
         genome_dir = 'output/010_data/star-index',
         prefix = 'output/030_mapping/star-pass2/{species}/{stage}_{rep}.'
@@ -127,7 +129,9 @@ rule first_mapping:
     output:
         'output/030_mapping/star-pass1/{species}/{stage}_{rep}.SJ.out.tab'
     threads:
-        8
+        50
+    resources:
+        mem_gb = 40
     params:
         genome_dir = 'output/010_data/star-index',
         prefix = 'output/030_mapping/star-pass1/{species}/{stage}_{rep}.'
@@ -145,15 +149,24 @@ rule first_mapping:
         '&> {log}'
 
 
-
 # 020 trim reads
+rule gzip:
+    input:
+        'output/021_trim-reads/{species}/{stage}_{rep}.r{n}.fastq'
+    output:
+        'output/021_trim-reads/{species}/{stage}_{rep}.r{n}.fastq.gz'
+    threads:
+        1
+    shell:
+        'cat {input} | gzip -9 > {output}'
+
 rule cutadapt:
     input:
-        r1 = 'output/020_repair/{species}/{stage}_{rep}.r1.fastq.gz',
-        r2 = 'output/020_repair/{species}/{stage}_{rep}.r2.fastq.gz'
+        r1 = 'output/020_repair/{species}/{stage}_{rep}.r1.fastq',
+        r2 = 'output/020_repair/{species}/{stage}_{rep}.r2.fastq'
     output:
-        r1 = 'output/021_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
-        r2 = 'output/021_trim-reads/{species}/{stage}_{rep}.r2.fastq.gz'
+        r1 = temp('output/021_trim-reads/{species}/{stage}_{rep}.r1.fastq'),
+        r2 = temp('output/021_trim-reads/{species}/{stage}_{rep}.r2.fastq')
     threads:
         1
     log:
@@ -174,10 +187,12 @@ rule repair:
     input:
         unpack(FindInputReads)
     output:
-        r1 = 'output/020_repair/{species}/{stage}_{rep}.r1.fastq.gz',
-        r2 = 'output/020_repair/{species}/{stage}_{rep}.r2.fastq.gz'
+        r1 = temp('output/020_repair/{species}/{stage}_{rep}.r1.fastq'),
+        r2 = temp('output/020_repair/{species}/{stage}_{rep}.r2.fastq')
     threads:
         1
+    resources:
+        mem_gb = 50
     log:
         'output/000_logs/020_repair/{species}_{stage}_{rep}.log'
     shell:
@@ -188,7 +203,7 @@ rule repair:
         'out2={output.r2} '
         'zl=9 '
         'repair=t '
-        '-Xmx8g '
+        '-Xmx{resources.mem_gb}g '
         '2> {log}'
 
 
@@ -202,7 +217,7 @@ rule generate_genome:
     params:
         outdir = 'output/010_data/star-index'
     threads:
-        8
+        50
     log:
         'output/000_logs/010_prepare-data/generate_genome.log'
     shell:
