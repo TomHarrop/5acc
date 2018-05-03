@@ -1,5 +1,7 @@
 five_accessions
 ===============
 
-.. image:: https://raw.githubusercontent.com/TomHarrop/5acc/tidy-repo/text/dag.pdf
+Here's what the pipeline does
+
+.. image:: https://raw.githubusercontent.com/TomHarrop/5acc/tidy-repo/text/dag.svg
 
