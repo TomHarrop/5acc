@@ -5,10 +5,20 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 ### Requirements
 
 `bbmap` script `repair.sh`  
+`bedtools` ≥ 2.26.0   
 `cuffcompare` ≥ 2.2.1  
-`cutadapt` ≥ 1.16
-`snakemake` ≥ 4.7.0  
 `STAR` ≥ 2.5.3a  
+`wgsim` ≥ 0.3.2  
+
+#### `python` packages
+
+`cutadapt` ≥ 1.16  
+`snakemake` ≥ 4.7.0  
+
+#### `R` packages
+
+`rtracklayer` ≥ 1.38.3
+`valr` ≥ 0.4.0
 
 ### Input data files
 
@@ -19,7 +29,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Pipeline
 
-![](text/dag.svg)
+![](dag/dag.svg)
 
 ### Run the analysis
 

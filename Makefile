@@ -1,7 +1,7 @@
-dag: text/dag.svg
+dag: dag/dag.svg
 
-text/dag.svg: Snakefile
-	snakemake --forceall --dag \
+dag/dag.svg: Snakefile
+	snakemake --forceall --rulegraph \
 	output/030_mapping/star-pass2/osj/SM_1.ReadsPerGene.out.tab \
 	| dot -Tsvg \
-	> text/dag.svg
+	> dag/dag.svg

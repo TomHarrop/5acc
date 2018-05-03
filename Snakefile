@@ -49,6 +49,7 @@ def FindInputReads(wildcards):
                 and os.path.basename(x).startswith(my_fastq_name))][0]
     return({'r1': my_r1, 'r2': my_r2})
 
+
 ###########
 # GLOBALS #
 ###########
@@ -233,8 +234,6 @@ rule generate_genome:
         '--outFileNamePrefix {params.outdir}/ '
         '&> {log}'
 
-
-
 rule generate_gtf:
     input:
         os_genome = os_genome,
@@ -260,4 +259,3 @@ rule generate_gtf:
         '{output.cuffcomp_gtf} '
         ' | sed \'/LOC_Os09g00999/d\' '
         '> {output.os_gtf}'
-
