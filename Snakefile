@@ -21,33 +21,33 @@ def FindAllFastqFiles(read_dir):
 
 def FindInputReads(wildcards):
     # globals
-stage_rep_to_sample_number = {
-    'PBM_1': '1',
-    'PBM_2': '2',
-    'PBM_3': '3',
-    'SM_1': '4',
-    'SM_2': '5',
-    'SM_3': '6'}
-species_code_to_letter = {
-    'osj': 'J',
-    'osi': 'I',
-    'ob': 'B',
-    'or': 'R',
-    'og': 'G'}
-my_stage = wildcards.stage
-my_species = wildcards.species
-my_rep = wildcards.rep
-my_sample_number = stage_rep_to_sample_number[
-    '_'.join([my_stage, my_rep])]
-my_letter = species_code_to_letter[my_species]
-my_fastq_name = ''.join([my_letter, my_sample_number])
-my_r1 = [x for x in all_fastq_files
-         if('R1' in os.path.basename(x)
-            and os.path.basename(x).startswith(my_fastq_name))][0]
-my_r2 = [x for x in all_fastq_files
-         if('R2' in os.path.basename(x)
-            and os.path.basename(x).startswith(my_fastq_name))][0]
-return({'r1': my_r1, 'r2': my_r2})
+    stage_rep_to_sample_number = {
+        'PBM_1': '1',
+        'PBM_2': '2',
+        'PBM_3': '3',
+        'SM_1': '4',
+        'SM_2': '5',
+        'SM_3': '6'}
+    species_code_to_letter = {
+        'osj': 'J',
+        'osi': 'I',
+        'ob': 'B',
+        'or': 'R',
+        'og': 'G'}
+    my_stage = wildcards.stage
+    my_species = wildcards.species
+    my_rep = wildcards.rep
+    my_sample_number = stage_rep_to_sample_number[
+        '_'.join([my_stage, my_rep])]
+    my_letter = species_code_to_letter[my_species]
+    my_fastq_name = ''.join([my_letter, my_sample_number])
+    my_r1 = [x for x in all_fastq_files
+             if('R1' in os.path.basename(x)
+                and os.path.basename(x).startswith(my_fastq_name))][0]
+    my_r2 = [x for x in all_fastq_files
+             if('R2' in os.path.basename(x)
+                and os.path.basename(x).startswith(my_fastq_name))][0]
+    return({'r1': my_r1, 'r2': my_r2})
 
 ###########
 # GLOBALS #
