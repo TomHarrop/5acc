@@ -77,17 +77,72 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        'output/010_data/star-index/SA',
-        expand('output/021_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
+        expand(('output/030_mapping/star-pass2/{species}/'
+                '{stage}_{rep}.ReadsPerGene.out.tab'),
                species=all_species,
                stage=all_stages,
                rep=all_reps)
 
 # 030 map
-# rule first_mapping:
-#     input:
-#         r1 = 'output/020_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
-#         r2 = 'output/020_trim-reads/{species}/{stage}_{rep}.r2.fastq.gz',
+rule second_mapping:
+    input:
+        r1 = 'output/021_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
+        r2 = 'output/021_trim-reads/{species}/{stage}_{rep}.r2.fastq.gz',
+        genome = 'output/010_data/star-index/SA',
+        sjs = expand(('output/030_mapping/star-pass1/{{species}}/'
+                      '{stage}_{rep}.SJ.out.tab'),
+                     stage=all_stages,
+                     rep=all_reps)
+    output:
+        ('output/030_mapping/star-pass2/{species}/'
+         '{stage}_{rep}.ReadsPerGene.out.tab'),
+        ('output/030_mapping/star-pass2/{species}/'
+         '{stage}_{rep}.Aligned.out.bam')
+    threads:
+        8
+    params:
+        genome_dir = 'output/010_data/star-index',
+        prefix = 'output/030_mapping/star-pass2/{species}/{stage}_{rep}.'
+    shell:
+        'STAR '
+        '--sjdbFileChrStartEnd {input.sjs} '
+        '--runThreadN {threads} '
+        '--genomeDir {params.genome_dir} '
+        '--outSJfilterReads Unique '
+        '--readFilesCommand zcat '
+        '--outSAMtype BAM Unsorted '
+        '--quantMode GeneCounts '
+        '--outBAMcompression 10 '
+        '--outReadsUnmapped Fastx '
+        '--readFilesIn {input.r1} {input.r2} '
+        '--outFileNamePrefix {params.prefix} '
+        '&> {log}'
+
+
+rule first_mapping:
+    input:
+        r1 = 'output/021_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
+        r2 = 'output/021_trim-reads/{species}/{stage}_{rep}.r2.fastq.gz',
+        genome = 'output/010_data/star-index/SA'
+    output:
+        'output/030_mapping/star-pass1/{species}/{stage}_{rep}.SJ.out.tab'
+    threads:
+        8
+    params:
+        genome_dir = 'output/010_data/star-index',
+        prefix = 'output/030_mapping/star-pass1/{species}/{stage}_{rep}.'
+    log:
+        'output/000_logs/030_mapping/{species}-{stage}-{rep}_pass1.log'
+    shell:
+        'STAR '
+        '--runThreadN {threads} '
+        '--genomeDir {params.genome_dir} '
+        '--outSJfilterReads Unique '
+        '--readFilesCommand zcat '
+        '--outSAMtype None '
+        '--readFilesIn {input.r1} {input.r2} '
+        '--outFileNamePrefix {params.prefix} '
+        '&> {log}'
 
 
 
