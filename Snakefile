@@ -107,7 +107,7 @@ rule second_mapping:
         genome_dir = 'output/010_data/star-index',
         prefix = 'output/030_mapping/star-pass2/{species}/{stage}_{rep}.'
     log:
-        'output/000_logs/030_mapping/{species}-{stage}-{rep}_pass1.log'
+        'output/000_logs/030_mapping/{species}-{stage}-{rep}_pass2.log'
     shell:
         'STAR '
         '--sjdbFileChrStartEnd {input.sjs} '
