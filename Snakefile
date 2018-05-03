@@ -78,22 +78,31 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 rule target:
     input:
         'output/010_data/star-index/SA',
-        expand('output/020_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
+        expand('output/021_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
                species=all_species,
                stage=all_stages,
                rep=all_reps)
 
+# 030 map
+# rule first_mapping:
+#     input:
+#         r1 = 'output/020_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
+#         r2 = 'output/020_trim-reads/{species}/{stage}_{rep}.r2.fastq.gz',
+
+
+
 # 020 trim reads
 rule cutadapt:
     input:
-        unpack(FindInputReads)
+        r1 = 'output/020_repair/{species}/{stage}_{rep}.r1.fastq.gz',
+        r2 = 'output/020_repair/{species}/{stage}_{rep}.r2.fastq.gz'
     output:
-        r1 = 'output/020_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
-        r2 = 'output/020_trim-reads/{species}/{stage}_{rep}.r2.fastq.gz'
+        r1 = 'output/021_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
+        r2 = 'output/021_trim-reads/{species}/{stage}_{rep}.r2.fastq.gz'
     threads:
         1
     log:
-        'output/000_logs/020_trim-reads/{species}_{stage}_{rep}.log'
+        'output/000_logs/021_trim-reads/{species}_{stage}_{rep}.log'
     shell:
         'cutadapt '
         '-a \'TruSeq_adaptor=AGATCGGAAGAGCACACGTCTGAACTCCAGTC\' '
@@ -104,6 +113,29 @@ rule cutadapt:
         '--paired-output={output.r2} '
         '{input.r1} {input.r2} '
         '&> {log}'
+
+
+rule repair:
+    input:
+        unpack(FindInputReads)
+    output:
+        r1 = 'output/020_repair/{species}/{stage}_{rep}.r1.fastq.gz',
+        r2 = 'output/020_repair/{species}/{stage}_{rep}.r2.fastq.gz'
+    threads:
+        1
+    log:
+        'output/000_logs/020_repair/{species}_{stage}_{rep}.log'
+    shell:
+        'repair.sh '
+        'in={input.r1} '
+        'in2={input.r2} '
+        'out={output.r1} '
+        'out2={output.r2} '
+        'zl=9 '
+        'repair=t '
+        '-Xmx8g '
+        '2> {log}'
+
 
 # 010 prepare data
 rule generate_genome:
