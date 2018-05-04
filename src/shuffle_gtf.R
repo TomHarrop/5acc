@@ -20,6 +20,7 @@ tigr_repeats_fa <- snakemake@input[["tigr_repeats_fa"]]
 
 star_index_dir <- snakemake@params[["star_index_dir"]]
 cpus <- snakemake@threads[[1]]
+log_file <- snakemake@log[["log"]]
 
 shuffled_gtf_file <- snakemake@output[["shuffled_gtf"]]
 
