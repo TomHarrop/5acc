@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 library(data.table)
+library(dplyr)
 library(GenomicRanges)
 library(rtracklayer)
 library(valr)
@@ -15,9 +16,9 @@ os_gtf_file <- "output/010_data/Osativa_323_v7.0.gene_exons.cuffcomp.rRNAremoved
 star_index_dir <- "output/010_data/star-index"
 seqlengths_file <- "output/010_data/star-index/chrNameLength.txt"
 irgsp_gff_file <- "data/genome/os/irgsp1_rRNA_tRNA.gff"
-osa1r7_gff_file <- "output.bak_DO_NOT_DELETE/shuffle/rice_osa1r7_rm.gff3" # !!!
-osa1_mirbase_gff_file <- "output.bak_DO_NOT_DELETE/shuffle/osa.gff3" # !!!
-tigr_repeats_fa <- "output.bak_DO_NOT_DELETE/shuffle/TIGR_Oryza_Repeats.v3.3_0_0.fsa" # !!!
+osa1r7_gff_file <- "data/genome/os/rice_osa1r7_rm.gff3"
+osa1_mirbase_gff_file <- "data/genome/os/osa.gff3"
+tigr_repeats_fa <- "data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa"
 
 ########
 # MAIN #
@@ -48,7 +49,6 @@ system2("sed",
         args = c("913d", irgsp_tmp2),
         stdout = irgsp_tmp3)
 irgsp_gff <- import.gff(irgsp_tmp3)
-irgsp_tbl <- as.tbl_interval(irgsp_gff)
 
 # rename chromosomesq
 slr <- gsub("0(\\d)",
