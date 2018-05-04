@@ -230,7 +230,7 @@ rule shuffle_gtf:
     output:
         shuffled_gtf = 'output/010_data/shuffle/shuffed.gtf'
     log:
-        log = 'output/000_logs/010_prepare-data/generate_genome.log'
+        log = 'output/000_logs/010_prepare-data/shuffle_gtf.log'
     script:
         'src/shuffle_gtf.R'
 
