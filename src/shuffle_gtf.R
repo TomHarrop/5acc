@@ -10,19 +10,38 @@ library(valr)
 # GLOBALS #
 ###########
 
-cpus <- 8
-os_gff_file <- "data/genome/os/Osativa_323_v7.0.gene_exons.gff3"
-os_gtf_file <- "output/010_data/Osativa_323_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
-star_index_dir <- "output/010_data/star-index"
-seqlengths_file <- "output/010_data/star-index/chrNameLength.txt"
-irgsp_gff_file <- "data/genome/os/irgsp1_rRNA_tRNA.gff"
-osa1r7_gff_file <- "data/genome/os/rice_osa1r7_rm.gff3"
-osa1_mirbase_gff_file <- "data/genome/os/osa.gff3"
-tigr_repeats_fa <- "data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa"
+os_gff_file <- snakemake@input[["os_gff_file"]]
+os_gtf_file <- snakemake@input[["os_gtf_file"]]
+seqlengths_file <- snakemake@input[["seqlengths_file"]]
+irgsp_gff_file <- snakemake@input[["irgsp_gff_file"]]
+osa1r7_gff_file <- snakemake@input[["osa1r7_gff_file"]]
+osa1_mirbase_gff_file <- snakemake@input[["osa1_mirbase_gff_file"]]
+tigr_repeats_fa <- snakemake@input[["tigr_repeats_fa"]]
+
+star_index_dir <- snakemake@params[["star_index_dir"]]
+cpus <- snakemake@threads[[1]]
+
+shuffled_gtf_file <- snakemake@output[["shuffled_gtf"]]
+
+# dev
+# cpus <- 8
+# os_gff_file <- "data/genome/os/Osativa_323_v7.0.gene_exons.gff3"
+# os_gtf_file <- "output/010_data/Osativa_323_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
+# star_index_dir <- "output/010_data/star-index"
+# seqlengths_file <- "output/010_data/star-index/chrNameLength.txt"
+# irgsp_gff_file <- "data/genome/os/irgsp1_rRNA_tRNA.gff"
+# osa1r7_gff_file <- "data/genome/os/rice_osa1r7_rm.gff3"
+# osa1_mirbase_gff_file <- "data/genome/os/osa.gff3"
+# tigr_repeats_fa <- "data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa"
 
 ########
 # MAIN #
 ########
+
+# set log
+log <- file(log_file, open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
 
 # load tbl genome
 genome <- read_genome(seqlengths_file)
@@ -170,7 +189,7 @@ shuffled_gtf <- bed_shuffle(
   within = TRUE,
   seed = 1)
 
-# write?
+# convert to Granges
 shuffled_gr <- makeGRangesFromDataFrame(shuffled_gtf,
                                         keep.extra.columns=FALSE,
                                         ignore.strand=TRUE,
@@ -181,5 +200,8 @@ shuffled_gr <- makeGRangesFromDataFrame(shuffled_gtf,
                                         strand.field="strand")
 names(shuffled_gr) <- shuffled_gtf$ID
 
-export(shuffled_gr, "test.gff3", "gff3")
+# write output
+export(shuffled_gr, shuffled_gtf_file, "gff3")
 
+# write log
+sessionInfo()
