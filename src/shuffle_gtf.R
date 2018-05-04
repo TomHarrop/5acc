@@ -106,7 +106,7 @@ system2("wgsim",
                  tigr_repeats_fa,
                  wgsim1,
                  wgsim2),,
-        stdout = log_file
+        stdout = log_file,
         stderr = log_file)
 
 # map tigr repeats
@@ -127,7 +127,7 @@ system2("STAR",
                  wgsim1, wgsim2,
                  "--outFileNamePrefix",
                  prefix),,
-        stdout = log_file
+        stdout = log_file,
         stderr = log_file)
 
 # convert BAM to bed
