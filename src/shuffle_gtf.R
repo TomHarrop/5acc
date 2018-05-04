@@ -61,13 +61,16 @@ irgsp_tmp2 <- tempfile(fileext = ".gff")
 irgsp_tmp3 <- tempfile(fileext = ".gff")
 system2("sed",
         args = c("282d", irgsp_gff_file),
-        stdout = irgsp_tmp1)
+        stdout = irgsp_tmp1,
+        stderr = log_file)
 system2("sed",
         args = c("537d", irgsp_tmp1),
-        stdout = irgsp_tmp2)
+        stdout = irgsp_tmp2,
+        stderr = log_file)
 system2("sed",
         args = c("913d", irgsp_tmp2),
-        stdout = irgsp_tmp3)
+        stdout = irgsp_tmp3,
+        stderr = log_file)
 irgsp_gff <- import.gff(irgsp_tmp3)
 
 # rename chromosomesq
@@ -102,7 +105,9 @@ system2("wgsim",
                  "-s", "0",
                  tigr_repeats_fa,
                  wgsim1,
-                 wgsim2))
+                 wgsim2),,
+        stdout = log_file
+        stderr = log_file)
 
 # map tigr repeats
 star_outdir <- tempdir()
@@ -121,7 +126,9 @@ system2("STAR",
                  "--readFilesIn",
                  wgsim1, wgsim2,
                  "--outFileNamePrefix",
-                 prefix))
+                 prefix),,
+        stdout = log_file
+        stderr = log_file)
 
 # convert BAM to bed
 rpt_bed <- tempfile(fileext = ".bed6")
@@ -129,7 +136,8 @@ star_bamfile <- paste0(prefix, "Aligned.sortedByCoord.out.bam")
 system2("bedtools",
         args = c("bamtobed",
                  "-i", star_bamfile),
-        stdout = rpt_bed)
+        stdout = rpt_bed,
+        stderr = log_file)
 
 # read bed hits
 rpt_hits <- import.bed(rpt_bed)
