@@ -1,7 +1,6 @@
 #!/usr/bin/Rscript
 
 library(data.table)
-library(DESeq2)
 
 ###########
 # GLOBALS #
@@ -9,7 +8,7 @@ library(DESeq2)
 
 feature_lengths_file <- snakemake@input[["feature_lengths"]]
 star_log_file <- snakemake@input[["star_logs"]]
-norm_counts_file <- norm_counts@input[["star_logs"]]
+norm_counts_file <- norm_counts@input[["norm_counts"]]
 
 
 log_file <- snakemake@log[["log"]]
@@ -18,6 +17,10 @@ tpm_file <- snakemake@output[["tpm"]]
 tpm_wide_file <- snakemake@output[["tpm_wide"]]
 csv_file <- snakemake@output[["csv"]]
 
+# # dev
+# feature_lengths_file <- "output/010_data/feature_lengths.Rds"
+# star_log_file <- "output/030_mapping/stats/star_logs.Rds"
+# norm_counts_file <- "output/050_deseq/norm_counts.Rds"
 
 #########
 # NOTES #
