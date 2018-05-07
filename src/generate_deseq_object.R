@@ -22,6 +22,7 @@ GenerateName <- function(x, file) {
 read_count_list <- snakemake@input[["read_count_list"]]
 
 log_file <- snakemake@log[["log"]]
+cpus <- snakemake@threads[[1]]
 
 dds_file <- snakemake@output[["dds"]]
 vst_file <- snakemake@output[["vst"]]
@@ -45,6 +46,9 @@ norm_counts_file <- snakemake@output[["norm_counts"]]
 log <- file(log_file, open = "wt")
 sink(log, type = "message")
 sink(log, append = TRUE, type = "output")
+
+# number of CPUs to use
+BiocParallel::register(BiocParallel::MulticoreParam(cpus))
 
 # read counts
 names(read_count_list) <- GenerateName(read_count_list,
