@@ -17,11 +17,6 @@ tpm_file <- snakemake@output[["tpm"]]
 tpm_wide_file <- snakemake@output[["tpm_wide"]]
 csv_file <- snakemake@output[["csv"]]
 
-# # dev
-# feature_lengths_file <- "output/010_data/feature_lengths.Rds"
-# star_log_file <- "output/030_mapping/stats/star_logs.Rds"
-# norm_counts_file <- "output/050_deseq/norm_counts.Rds"
-
 #########
 # NOTES #
 #########
@@ -81,8 +76,3 @@ fwrite(tpm, csv_file)
 
 # write log
 sessionInfo()
-
-
-
-
-

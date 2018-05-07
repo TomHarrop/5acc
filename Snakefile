@@ -78,14 +78,8 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        'output/030_mapping/stats/star_logs.csv',
-        'output/050_deseq/dds.Rds',
-        expand(('output/040_background-counts/'
-                '{species}/{stage}_{rep}.htseq-count'),
-               species=all_species,
-               stage=all_stages,
-               rep=all_reps)
-
+        'output/060_tpm/tpm.Rds',
+        'output/040_background-counts/all_counts.Rds'
 
 # 060 calculate TPM
 rule calculate_tpm:
@@ -128,6 +122,28 @@ rule generate_deseq_object:
 
 
 # 040 count background
+# rule calculate_cutoffs:
+#     pass
+
+rule combine_background_counts:
+    input:
+        count_files = expand(
+            ('output/040_background-counts/'
+             '{species}/{stage}_{rep}.htseq-count'),
+            species=all_species,
+            stage=all_stages,
+            rep=all_reps)
+    output:
+        counts = 'output/040_background-counts/all_counts.Rds'
+    log:
+        log = ('output/000_logs/040_background-counts/'
+               'combine_background_counts.log')
+    threads:
+        1
+    script:
+        'src/combine_background_counts.R'
+
+
 rule count_background:
     input:
         bam = ('output/030_mapping/star-pass2/{species}/'
