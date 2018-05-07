@@ -8,7 +8,7 @@ library(data.table)
 
 feature_lengths_file <- snakemake@input[["feature_lengths"]]
 star_log_file <- snakemake@input[["star_logs"]]
-norm_counts_file <- norm_counts@input[["norm_counts"]]
+norm_counts_file <- snakemake@input[["norm_counts"]]
 
 
 log_file <- snakemake@log[["log"]]
