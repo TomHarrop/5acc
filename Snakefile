@@ -83,8 +83,37 @@ rule target:
                species=all_species,
                stage=all_stages,
                rep=all_reps),
-        'output/010_data/shuffle/shuffed.gtf'
+        expand(('output/040_background-counts/'
+                '{species}/{stage}_{rep}.htseq-count'),
+               species=all_species,
+               stage=all_stages,
+               rep=all_reps),
 
+
+# 040 count background
+rule count_background:
+    input:
+        bam = ('output/030_mapping/star-pass2/{species}/'
+               '{stage}_{rep}.Aligned.out.bam'),
+        shuffled_gff = 'output/010_data/shuffle/shuffed.gff3'
+    output:
+        counts = ('output/040_background-counts/'
+                  '{species}/{stage}_{rep}.htseq-count')
+    log:
+        'output/000_logs/040_background-counts/{species}_{stage}_{rep}.log'
+    threads:
+        1
+    shell:
+        'htseq-count '
+        '-t CDS '
+        '-f bam '
+        '-s reverse '
+        '-i ID '
+        '-r name '
+        '{input.bam} '
+        '{input.shuffled_gff} '
+        '> {output.counts} '
+        '2> {log}'
 
 # 030 map
 rule second_mapping:
@@ -228,7 +257,7 @@ rule shuffle_gtf:
     threads:
         10
     output:
-        shuffled_gtf = 'output/010_data/shuffle/shuffed.gtf'
+        shuffled_gff = 'output/010_data/shuffle/shuffed.gff3'
     log:
         log = 'output/000_logs/010_prepare-data/shuffle_gtf.log'
     script:

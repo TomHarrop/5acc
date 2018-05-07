@@ -13,6 +13,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 #### `python` packages
 
 `cutadapt` ≥ 1.16  
+`HTSeq` ≥ 0.9.1  
 `snakemake` ≥ 4.7.0  
 
 #### `R` packages
