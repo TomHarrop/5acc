@@ -79,11 +79,33 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 rule target:
     input:
         'output/030_mapping/stats/star_logs.csv',
+        'output/050_deseq/dds.Rds',
         expand(('output/040_background-counts/'
                 '{species}/{stage}_{rep}.htseq-count'),
                species=all_species,
                stage=all_stages,
-               rep=all_reps),
+               rep=all_reps)
+
+# 050 DEseq2 
+rule generate_deseq_object:
+    input:
+        read_count_list = expand(
+            ('output/030_mapping/star-pass2/{species}/'
+             '{stage}_{rep}.ReadsPerGene.out.tab'),
+            species=all_species,
+            stage=all_stages,
+            rep=all_reps)
+    output:
+        dds = 'output/050_deseq/dds.Rds',
+        vst = 'output/050_deseq/vst.Rds',
+        rld = 'output/050_deseq/rld.Rds',
+        norm_counts = 'output/050_deseq/norm_counts.Rds'
+    log:
+        log = 'output/000_logs/050_deseq/generate_deseq_object.log'
+    threads:
+        10
+    script:
+        'src/generate_deseq_object.R'
 
 
 # 040 count background
