@@ -308,6 +308,20 @@ rule shuffle_gtf:
     script:
         'src/shuffle_gtf.R'
 
+rule calculate_feature_lengths:
+    input:
+        os_gtf_file = ('output/010_data/'
+                       'Osativa_323_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf'),
+    output:
+        feature_lengths = 'output/010_data/feature_lengths.Rds'
+    threads:
+        1
+    log:
+        log = 'output/000_logs/010_prepare-data/calculate_feature_lengths.log'
+    script:
+        'src/calculate_feature_lengths.R'
+
+
 rule generate_genome:
     input:
         os_genome = os_genome,
