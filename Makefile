@@ -2,7 +2,7 @@ dag: dag/dag.svg
 
 dag/dag.svg: Snakefile
 	snakemake --forceall --rulegraph \
-	output/030_mapping/star-pass2/osj/SM_1.ReadsPerGene.out.tab \
-	output/010_data/shuffle/shuffed.gtf \
+	output/040_background-counts/osj/SM_1.htseq-count \
+	output/030_mapping/stats/star_logs.csv \
 	| dot -Tsvg \
 	> dag/dag.svg

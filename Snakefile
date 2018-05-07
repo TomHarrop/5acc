@@ -78,11 +78,7 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        expand(('output/030_mapping/star-pass2/{species}/'
-                '{stage}_{rep}.ReadsPerGene.out.tab'),
-               species=all_species,
-               stage=all_stages,
-               rep=all_reps),
+        'output/030_mapping/stats/star_logs.csv',
         expand(('output/040_background-counts/'
                 '{species}/{stage}_{rep}.htseq-count'),
                species=all_species,
@@ -116,6 +112,31 @@ rule count_background:
         '2> {log}'
 
 # 030 map
+rule parse_star_logs:
+    input:
+        log_file_list = expand(
+            ('output/030_mapping/star-pass2/{species}/'
+             '{stage}_{rep}.Log.final.out'),
+            species=all_species,
+            stage=all_stages,
+            rep=all_reps),
+        read_count_list = expand(
+            ('output/030_mapping/star-pass2/{species}/'
+             '{stage}_{rep}.ReadsPerGene.out.tab'),
+            species=all_species,
+            stage=all_stages,
+            rep=all_reps)
+    output:
+        csv = 'output/030_mapping/stats/star_logs.csv',
+        rds = 'output/030_mapping/stats/star_logs.Rds'
+    threads:
+        1
+    log:
+        log = 'output/000_logs/030_mapping/parse_star_logs.log'
+    script:
+        'src/'
+
+
 rule second_mapping:
     input:
         r1 = 'output/021_trim-reads/{species}/{stage}_{rep}.r1.fastq.gz',
@@ -129,7 +150,9 @@ rule second_mapping:
         ('output/030_mapping/star-pass2/{species}/'
          '{stage}_{rep}.ReadsPerGene.out.tab'),
         ('output/030_mapping/star-pass2/{species}/'
-         '{stage}_{rep}.Aligned.out.bam')
+         '{stage}_{rep}.Aligned.out.bam'),
+        ('output/030_mapping/star-pass2/{species}/'
+         '{stage}_{rep}.Log.final.out')
     threads:
         20
     resources:
