@@ -156,7 +156,7 @@ rule parse_star_logs:
     log:
         log = 'output/000_logs/030_mapping/parse_star_logs.log'
     script:
-        'src/'
+        'src/parse_star_logs.R'
 
 
 rule second_mapping:
