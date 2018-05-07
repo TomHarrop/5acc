@@ -86,6 +86,25 @@ rule target:
                stage=all_stages,
                rep=all_reps)
 
+
+# 060 calculate TPM
+rule calculate_tpm:
+    input:
+        feature_lengths = 'output/010_data/feature_lengths.Rds',
+        star_logs = 'output/030_mapping/stats/star_logs.Rds',
+        norm_counts = 'output/050_deseq/norm_counts.Rds'
+    output:
+        tpm = 'output/060_tpm/tpm.Rds',
+        tpm_wide = 'output/060_tpm/tpm_wide.Rds',
+        csv = 'output/060_tpm/tpm.csv'
+    log:
+        log = 'output/000_logs/060_tpm/calculate_tpm.log'
+    threads:
+        1
+    script:
+        'src/calculate_tpm.R'
+
+
 # 050 DEseq2 
 rule generate_deseq_object:
     input:
