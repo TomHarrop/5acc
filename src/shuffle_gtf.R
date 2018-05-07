@@ -22,19 +22,19 @@ star_index_dir <- snakemake@params[["star_index_dir"]]
 cpus <- snakemake@threads[[1]]
 log_file <- snakemake@log[["log"]]
 
-shuffled_gff_file <- snakemake@output[["shuffled_gtf"]]
+shuffled_gff_file <- snakemake@output[["shuffled_gff"]]
 
 # dev
-cpus <- 8
-os_gff_file <- "data/genome/os/Osativa_323_v7.0.gene_exons.gff3"
-os_gtf_file <- "output/010_data/Osativa_323_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
-star_index_dir <- "output/010_data/star-index"
-seqlengths_file <- "output/010_data/star-index/chrNameLength.txt"
-irgsp_gff_file <- "data/genome/os/irgsp1_rRNA_tRNA.gff"
-osa1r7_gff_file <- "data/genome/os/rice_osa1r7_rm.gff3"
-osa1_mirbase_gff_file <- "data/genome/os/osa.gff3"
-tigr_repeats_fa <- "data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa"
-log_file <- "/dev/null"
+# cpus <- 8
+# os_gff_file <- "data/genome/os/Osativa_323_v7.0.gene_exons.gff3"
+# os_gtf_file <- "output/010_data/Osativa_323_v7.0.gene_exons.cuffcomp.rRNAremoved.gtf"
+# star_index_dir <- "output/010_data/star-index"
+# seqlengths_file <- "output/010_data/star-index/chrNameLength.txt"
+# irgsp_gff_file <- "data/genome/os/irgsp1_rRNA_tRNA.gff"
+# osa1r7_gff_file <- "data/genome/os/rice_osa1r7_rm.gff3"
+# osa1_mirbase_gff_file <- "data/genome/os/osa.gff3"
+# tigr_repeats_fa <- "data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa"
+# log_file <- "/dev/null"
 
 ########
 # MAIN #
@@ -202,13 +202,14 @@ shuffled_gtf <- bed_shuffle(
 # convert to Granges
 shuffled_gr <- makeGRangesFromDataFrame(shuffled_gtf,
                                         keep.extra.columns=FALSE,
-                                        ignore.strand=TRUE,
+                                        ignore.strand=FALSE,
                                         seqinfo=NULL,
                                         seqnames.field="chrom",
                                         start.field="start",
                                         end.field="end",
                                         strand.field="strand")
 names(shuffled_gr) <- shuffled_gtf$ID
+shuffled_gr$type <- "CDS"
 
 # write output
 export(shuffled_gr, shuffled_gff_file, "gff3")
