@@ -35,17 +35,6 @@ log_file <- snakemake@log[["log"]]
 rds_file <- snakemake@output[["rds"]]
 csv_file <- snakemake@output[["csv"]]
 
-# dev
-# log_file_list <- list.files("output/030_mapping/star-pass2",
-#                             pattern = ".Log.final.out",
-#                             recursive = TRUE,
-#                             full.names = TRUE)
-# read_count_list <- list.files(path = 'output/030_mapping/star-pass2',
-#                                pattern = ".ReadsPerGene.out.tab",
-#                                full.names = TRUE,
-#                                recursive = TRUE)
-
-
 ########
 # MAIN #
 ########

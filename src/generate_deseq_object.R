@@ -29,15 +29,6 @@ vst_file <- snakemake@output[["vst"]]
 rld_file <- snakemake@output[["rld"]]
 norm_counts_file <- snakemake@output[["norm_counts"]]
 
-# debug
-# print(read_count_list)
-
-# dev
-# read_count_list <- list.files(path = 'output/030_mapping/star-pass2',
-#                               pattern = ".ReadsPerGene.out.tab",
-#                               full.names = TRUE,
-#                               recursive = TRUE)
-
 ########
 # MAIN #
 ########
