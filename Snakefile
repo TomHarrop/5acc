@@ -79,7 +79,7 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 rule target:
     input:
         'output/060_tpm/tpm.Rds',
-        'output/040_background-counts/all_counts.Rds'
+        'output/040_background-counts/dds_background.Rds'
 
 # 060 calculate TPM
 rule calculate_tpm:
