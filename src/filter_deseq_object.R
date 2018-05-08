@@ -37,7 +37,7 @@ dds <- readRDS(dds_file)
 
 # filter
 dds_filtered <- dds[detected_genes,]
-design(dds) <- ~ accession + stage + accession:stage
+design(dds_filtered) <- ~ accession + stage + accession:stage
 dds_filtered <- DESeq(dds_filtered,
                       test = "LRT",
                       reduced = ~ accession + stage,
