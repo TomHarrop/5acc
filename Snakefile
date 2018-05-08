@@ -78,10 +78,26 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        'output/060_tpm/tpm.Rds',
-        'output/040_background-counts/dds_background.Rds'
+        'output/060_tpm/tpm_with_calls.Rds'
 
 # 060 calculate TPM
+rule calculate_cutoffs:
+    input:
+        norm_counts = 'output/050_deseq/norm_counts.Rds',
+        star_logs = 'output/030_mapping/stats/star_logs.Rds',
+        bg_dds = 'output/040_background-counts/dds_background.Rds',
+        feature_lengths = 'output/010_data/feature_lengths.Rds',
+        tpm = 'output/060_tpm/tpm.Rds'
+    output:
+        tpm_with_calls = 'output/060_tpm/tpm_with_calls.Rds',
+        detected_genes = 'output/060_tpm/detected_genes.Rds'
+    threads:
+        1
+    log:
+        log = 'output/000_logs/060_tpm/calculate_cutoffs.log'
+    script:
+        'src/calculate_cutoffs.R'
+
 rule calculate_tpm:
     input:
         feature_lengths = 'output/010_data/feature_lengths.Rds',
@@ -122,10 +138,6 @@ rule generate_deseq_object:
 
 
 # 040 count background
-# rule calculate_cutoffs:
-#     pass
-
-
 rule combine_background_counts:
     input:
         count_files = expand(
