@@ -135,7 +135,8 @@ rule combine_background_counts:
             stage=all_stages,
             rep=all_reps)
     output:
-        counts = 'output/040_background-counts/all_counts.Rds'
+        counts = 'output/040_background-counts/all_counts.Rds',
+        dds = 'output/040_background-counts/dds_background.Rds'
     log:
         log = ('output/000_logs/040_background-counts/'
                'combine_background_counts.log')
