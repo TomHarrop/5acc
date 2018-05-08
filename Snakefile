@@ -78,7 +78,7 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        'output/060_tpm/tpm_with_calls.Rds'
+        'output/050_deseq/filtered_dds.Rds'
 
 # 060 calculate TPM
 rule calculate_cutoffs:
@@ -116,6 +116,20 @@ rule calculate_tpm:
 
 
 # 050 DEseq2 
+rule filter_deseq_object:
+    input:
+        dds = 'output/050_deseq/dds.Rds',
+        detected_genes = 'output/060_tpm/detected_genes.Rds'
+    output:
+        dds = 'output/050_deseq/filtered_dds.Rds'
+    threads:
+        50
+    log:
+        log = 'output/000_logs/050_deseq/filter_deseq_object.log'
+    script:
+        'src/filter_deseq_object.R'
+
+
 rule generate_deseq_object:
     input:
         read_count_list = expand(

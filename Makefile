@@ -2,6 +2,6 @@ dag: dag/dag.svg
 
 dag/dag.svg: Snakefile
 	snakemake --forceall --rulegraph \
-	output/060_tpm/tpm_with_calls.Rds \
+	output/050_deseq/filtered_dds.Rds \
 	| dot -Tsvg \
 	> dag/dag.svg

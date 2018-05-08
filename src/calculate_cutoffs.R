@@ -2,11 +2,6 @@
 library(data.table)
 library(DESeq2)
 
-#############
-# FUNCTIONS #
-#############
-
-
 ###########
 # GLOBALS #
 ###########
