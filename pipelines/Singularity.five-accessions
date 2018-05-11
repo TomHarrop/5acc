@@ -41,7 +41,7 @@ From: ubuntu:18.04
 
     Rscript -e "source('https://bioconductor.org/biocLite.R') ; \
         biocLite(type='source', ask=FALSE) ; \
-        biocLite(c('data.table', 'DESeq2', 'GenomicRanges', 'Mfuzz', 'RCurl', rtracklayer', 'tidyverse', 'valr'), type='source', ask=FALSE)"
+        biocLite(c('data.table', 'DESeq2', 'GenomicRanges', 'Mfuzz', 'RCurl', 'rtracklayer', 'tidyverse', 'valr'), type='source', ask=FALSE)"
 
     # install wgsim
     git clone https://github.com/lh3/wgsim.git
