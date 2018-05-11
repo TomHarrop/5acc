@@ -7,7 +7,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 `singularity`  
 `snakemake` ≥ 4.7.0  
 
-### Run the analysis:
+### Reproduce the analysis
 
 `snakemake --use-singularity --cores={threads} --resources mem_gb={ram_limit}`
 
@@ -15,7 +15,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 The software used in the analysis is listed below. A singularity container for this pipeline is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). `snakemake` will pull the container using the `--use-singularity` flag, and all analysis will run with software installed in the container.
 
-`bbmap` ≥ 38.00
+`bbmap` ≥ 38.00  
 `bedtools` ≥ 2.26.0   
 `cuffcompare` ≥ 2.2.1  
 `STAR` ≥ 2.5.3a  
