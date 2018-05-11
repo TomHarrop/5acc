@@ -11,6 +11,10 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 `snakemake --use-singularity --cores={threads} --resources mem_gb={ram_limit}`
 
+### Pipeline
+
+![](dag/dag.svg)
+
 ### Software environment
 
 The software used in the analysis is listed below. A [`singularity`](singularity.lbl.gov) container for this pipeline is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996).
@@ -50,8 +54,3 @@ The following files are not distributed with the workflow, and must be in a `dat
     + `data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa`
 - From ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir:
     + `data/genome/os/osa.gff3`
-
-### Pipeline
-
-![](dag/dag.svg)
-
