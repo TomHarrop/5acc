@@ -15,24 +15,20 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 The software used in the analysis is listed below. A singularity container for this pipeline is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). `snakemake` will pull the container using the `--use-singularity` flag, and all analysis will run with software installed in the container.
 
-`bbmap` ≥ 38.00  
-`bedtools` ≥ 2.26.0   
-`cuffcompare` ≥ 2.2.1  
-`STAR` ≥ 2.5.3a  
-`wgsim` ≥ 0.3.2  
-
-#### `python` packages
-
-`cutadapt` ≥ 1.16  
-`HTSeq` ≥ 0.9.1  
-
-#### `R` packages
-
-`data.table` ≥ 1.10.4-3  
-`DESeq2` ≥ 1.18.1  
-`GenomicRanges` ≥ 1.30.3  
-`rtracklayer` ≥ 1.38.3  
-`valr` ≥ 0.4.0  
+- `bbmap` 38.00
+- `bedtools` 2.26.0
+- `cuffcompare` 2.2.1
+- `STAR` 2.5.4b
+- `wgsim` 0.3.1-r13
+- `python` 3.6.5, with packages:
+    + `cutadapt` 1.16
+    + `HTSeq` 0.9.1
+- `R` 3.4.4, with packages
+    + `data.table` 1.11.2
+    + `DESeq2` 1.18.1
+    + `GenomicRanges` 1.30.3
+    + `rtracklayer`  1.30.3
+    + `valr` 0.4.0  
 
 ### Input data files
 
