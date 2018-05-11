@@ -4,18 +4,18 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Requirements
 
-`singularity` 
+`singularity`  
 `snakemake` ≥ 4.7.0  
 
-#### To run the analysis:
+### Run the analysis:
 
 `snakemake --use-singularity --cores={threads} --resources mem_gb={ram_limit}`
 
-#### Software environment
+### Software environment
 
-The software for the analysis is listed below. It is packaged in a singularity container at shub://TomHarrop/singularity-containers:five-accessions, which will be automatically pulled by the `snakemake` command above.
+The software used in the analysis is listed below. A singularity container for this pipeline is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). `snakemake` will pull the container using the `--use-singularity` flag, and all analysis will run with software installed in the container.
 
-`bbmap` script `repair.sh`  
+`bbmap` ≥ 38.00
 `bedtools` ≥ 2.26.0   
 `cuffcompare` ≥ 2.2.1  
 `STAR` ≥ 2.5.3a  
@@ -35,6 +35,8 @@ The software for the analysis is listed below. It is packaged in a singularity c
 `valr` ≥ 0.4.0  
 
 ### Input data files
+
+The following files are not distributed with the workflow, and must be in a `data` directory under the current working directory.
 
 - Raw reads:
     + `data/reads/{sample}_R1.fastq.gz`
