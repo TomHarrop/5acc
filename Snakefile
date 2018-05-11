@@ -95,6 +95,8 @@ rule calculate_cutoffs:
         1
     log:
         log = 'output/000_logs/060_tpm/calculate_cutoffs.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     script:
         'src/calculate_cutoffs.R'
 
@@ -111,6 +113,8 @@ rule calculate_tpm:
         log = 'output/000_logs/060_tpm/calculate_tpm.log'
     threads:
         1
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     script:
         'src/calculate_tpm.R'
 
@@ -126,6 +130,8 @@ rule filter_deseq_object:
         50
     log:
         log = 'output/000_logs/050_deseq/filter_deseq_object.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     script:
         'src/filter_deseq_object.R'
 
@@ -147,6 +153,8 @@ rule generate_deseq_object:
         log = 'output/000_logs/050_deseq/generate_deseq_object.log'
     threads:
         10
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     script:
         'src/generate_deseq_object.R'
 
@@ -168,6 +176,8 @@ rule combine_background_counts:
                'combine_background_counts.log')
     threads:
         1
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     script:
         'src/combine_background_counts.R'
 
@@ -184,6 +194,8 @@ rule count_background:
         'output/000_logs/040_background-counts/{species}_{stage}_{rep}.log'
     threads:
         1
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     shell:
         'htseq-count '
         '-t CDS '
@@ -218,6 +230,8 @@ rule parse_star_logs:
         1
     log:
         log = 'output/000_logs/030_mapping/parse_star_logs.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     script:
         'src/parse_star_logs.R'
 
@@ -247,6 +261,8 @@ rule second_mapping:
         prefix = 'output/030_mapping/star-pass2/{species}/{stage}_{rep}.'
     log:
         'output/000_logs/030_mapping/{species}-{stage}-{rep}_pass2.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     shell:
         'STAR '
         '--sjdbFileChrStartEnd {input.sjs} '
@@ -279,6 +295,8 @@ rule first_mapping:
         prefix = 'output/030_mapping/star-pass1/{species}/{stage}_{rep}.'
     log:
         'output/000_logs/030_mapping/{species}-{stage}-{rep}_pass1.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     shell:
         'STAR '
         '--runThreadN {threads} '
@@ -299,6 +317,8 @@ rule gzip:
         'output/021_trim-reads/{species}/{stage}_{rep}.r{n}.fastq.gz'
     threads:
         1
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     shell:
         'cat {input} | gzip -9 > {output}'
 
@@ -313,6 +333,8 @@ rule cutadapt:
         1
     log:
         'output/000_logs/021_trim-reads/{species}_{stage}_{rep}.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     shell:
         'cutadapt '
         '-a \'TruSeq_adaptor=AGATCGGAAGAGCACACGTCTGAACTCCAGTC\' '
@@ -337,6 +359,8 @@ rule repair:
         mem_gb = 50
     log:
         'output/000_logs/020_repair/{species}_{stage}_{rep}.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     shell:
         'repair.sh '
         'in={input.r1} '
@@ -368,6 +392,8 @@ rule shuffle_gtf:
         shuffled_gff = 'output/010_data/shuffle/shuffed.gff3'
     log:
         log = 'output/000_logs/010_prepare-data/shuffle_gtf.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     script:
         'src/shuffle_gtf.R'
 
@@ -381,6 +407,8 @@ rule calculate_feature_lengths:
         1
     log:
         log = 'output/000_logs/010_prepare-data/calculate_feature_lengths.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     script:
         'src/calculate_feature_lengths.R'
 
@@ -398,6 +426,8 @@ rule generate_genome:
         50
     log:
         'output/000_logs/010_prepare-data/generate_genome.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     shell:
         'STAR '
         '--runThreadN {threads} '
@@ -424,6 +454,8 @@ rule generate_gtf:
         1
     log:
         'output/000_logs/010_prepare-data/generate_gtf.log'
+    singularity:
+        'shub://TomHarrop/singularity-containers:five-accessions'
     shell:
         'cuffcompare '
         '-s {input.os_genome} '

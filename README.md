@@ -4,6 +4,17 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Requirements
 
+`singularity` 
+`snakemake` ≥ 4.7.0  
+
+#### To run the analysis:
+
+`snakemake --use-singularity --cores={threads} --resources mem_gb={ram_limit}`
+
+#### Software environment
+
+The software for the analysis is listed below. It is packaged in a singularity container at shub://TomHarrop/singularity-containers:five-accessions, which will be automatically pulled by the `snakemake` command above.
+
 `bbmap` script `repair.sh`  
 `bedtools` ≥ 2.26.0   
 `cuffcompare` ≥ 2.2.1  
@@ -14,7 +25,6 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 `cutadapt` ≥ 1.16  
 `HTSeq` ≥ 0.9.1  
-`snakemake` ≥ 4.7.0  
 
 #### `R` packages
 
@@ -45,6 +55,3 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ![](dag/dag.svg)
 
-### Run the analysis
-
-`snakemake --cores={threads} --resources mem_gb={ram_limit}`

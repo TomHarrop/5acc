@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 
 library(data.table)
+library(BiocGenerics)
+library(GenomicRanges)
 library(rtracklayer)
 
 ###########
@@ -27,14 +29,17 @@ os_gff_exons <- import.gff(os_gtf_file,
                   feature.type="exon")
 
 # merge overlapping exons per-gene
+message("1")
 grl <- GenomicRanges::reduce(split(os_gff_exons,
                                    elementMetadata(os_gff_exons)$gene_name))
-gtf_reduced <- unlist(os_gff_exons, use.names = FALSE)
+gtf_reduced <- BiocGenerics::unlist(os_gff_exons, use.names = FALSE)
 
 # add metadata
+message("2")
 elementMetadata(gtf_reduced)$widths <- width(gtf_reduced)
 
-# calculate feature lengths with dplyr
+# calculate feature lengths with data.table
+message("3")
 feature_lengths <- as.data.table(gtf_reduced)[
   , .(length = sum(width)), by = gene_name]
 
