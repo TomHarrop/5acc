@@ -4,8 +4,8 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Requirements
 
-`singularity`  
-`snakemake` ≥ 4.7.0  
+[`singularity`](https://singularity.lbl.gov)  
+[`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0
 
 ### Reproduce the analysis
 
@@ -13,7 +13,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Software environment
 
-The software used in the analysis is listed below. A singularity container for this pipeline is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). `snakemake` will pull the container using the `--use-singularity` flag, and all analysis will run with software installed in the container.
+The software used in the analysis is listed below. A [`singularity`](singularity.lbl.gov) container for this pipeline is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). [`snakemake`](https://snakemake.readthedocs.io) will pull the container using the `--use-singularity` flag, and all analysis will run with software installed in the container.
 
 - `bbmap` 38.00
 - `bedtools` 2.26.0
