@@ -15,6 +15,7 @@ From: ubuntu:18.04
         bedtools \
         build-essential \
         cufflinks \
+        default-jdk \
         git \
         language-pack-en \
         libcurl4-openssl-dev \
@@ -40,8 +41,16 @@ From: ubuntu:18.04
         r-base-core r-base-dev
 
     Rscript -e "source('https://bioconductor.org/biocLite.R') ; \
-        biocLite(type='source', ask=FALSE) ; \
-        biocLite(c('data.table', 'DESeq2', 'GenomicRanges', 'Mfuzz', 'RCurl', 'rtracklayer', 'tidyverse', 'valr'), type='source', ask=FALSE)"
+        biocLite(c('RCurl'), type='source', ask=FALSE)"
+    Rscript -e "source('https://bioconductor.org/biocLite.R') ; \
+        biocLite(c('data.table', \
+            'DESeq2', \
+            'GenomicRanges', \
+            'Mfuzz', \
+            'rtracklayer', \
+            'tidyverse', \
+            'valr'), \
+            type='source', ask=FALSE)"
 
     # install wgsim
     git clone https://github.com/lh3/wgsim.git
