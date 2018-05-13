@@ -31,6 +31,7 @@ From: ubuntu:18.04
     pip3 install \
         cutadapt \
         HTSeq \
+        psutil \
         snakemake
 
     # install R & packages
