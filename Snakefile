@@ -135,6 +135,8 @@ rule filter_deseq_object:
         50
     log:
         log = 'output/000_logs/050_deseq/filter_deseq_object.log'
+    benchmark:
+        'output/001_bench/050_deseq/filter_deseq_object.tsv'
     singularity:
         singularity_container
     script:
