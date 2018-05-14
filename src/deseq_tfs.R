@@ -38,7 +38,7 @@ lfcThreshold <- snakemake@params[[""]]
 
 cpus <- snakemake@threads[[1]]
 
-log <- snakemake@log[["log"]]
+log_file <- snakemake@log[["log"]]
 
 all_outdir <- snakemake@params[["all_outdir"]]
 sig_outdir <- snakemake@params[["sig_outdir"]]
