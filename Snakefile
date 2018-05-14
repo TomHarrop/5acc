@@ -84,13 +84,32 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 rule target:
     input:
         'output/050_deseq/filtered_dds.Rds',
-        'output/050_deseq/tfs/dds_tfs.Rds'
+        'output/070_clustering/tfs/hypergeom.csv'
 
 
 # 070 clusters
 rule mfuzz_tfs:
     input:
-
+        dds = 'output/050_deseq/tfs/dds_tfs.Rds',
+        tfdb = 'output/010_data/tfdb.Rds'
+    output:
+        cluster_plot = 'output/070_clustering/tfs/clusters.pdf',
+        hyper = 'output/070_clustering/tfs/hypergeom.csv',
+        clusters = 'output/070_clustering/tfs/clusters.csv'
+    params:
+        alpha = 0.1,
+        lfc_threshold = 0.5849625,  # log(1.5, 2)
+        seed = 1
+    threads:
+        10
+    log:
+        log = 'output/000_logs/070_clustering/mfuzz_tfs.log'
+    benchmark:
+        'output/001_bench/070_clustering/mfuzz_tfs.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/mfuzz_tfs.R'
 
 
 # 060 calculate TPM

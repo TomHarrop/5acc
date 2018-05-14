@@ -15,9 +15,6 @@ cpus <- snakemake@threads[[1]]
 
 filtered_dds_file <- snakemake@output[["dds"]]
 
-# dev
-# dds_file <- "output/050_deseq/dds.Rds"
-# detected_genes_file <- "output/060_tpm/detected_genes.Rds"
 
 ########
 # MAIN #

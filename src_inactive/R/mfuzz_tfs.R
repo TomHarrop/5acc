@@ -28,8 +28,9 @@ ExtractAccessionResults <- function(accession, dds, lfcThreshold, alpha) {
   my_dt[, .(gene_id = rn, log2FoldChange)]
 }
 
-MinUnclusteredAp2s <- function(es, m, c, memCutoff) {
+MinUnclusteredAp2s <- function(es, m, c, memCutoff, seed = seed) {
   # run the clustering
+  set.seed(seed)
   my_flclust <- mfuzz(es, c = c, m = m)
   my_acore <- acore(es, my_flclust, min.acore = memCutoff)
   # count the number of clustered genes
@@ -49,8 +50,9 @@ MinUnclusteredAp2s <- function(es, m, c, memCutoff) {
   
 }
 
-CountClusteredAp2s <- function(es, m, c, memCutoff){
+CountClusteredAp2s <- function(es, m, c, memCutoff, seed = seed){
   # run the clustering
+  set.seed(seed)
   my_flclust <- mfuzz(es, c = c, m = m)
   my_acore <- acore(es, my_flclust, min.acore = memCutoff)
   # return the stats
@@ -67,12 +69,12 @@ CountClusteredAp2s <- function(es, m, c, memCutoff){
 # GLOBALS #
 ###########
 
-dds_file <- "output/deseq2/wald_tests/tf_only/dds_tf_only.Rds"
-tfdb_file <- "data/tfdb/tfdb_os.Rds"
+dds_file <- "output/050_deseq/tfs/dds_tfs.Rds"
+tfdb_file <- "output/010_data/tfdb.Rds"
 alpha <- 0.1
 lfcThreshold <- log(1.5, 2)
 cpus <- 8
-seed <- 42
+seed <- 1
 outdir <- "output/deseq2/wald_tests/tf_only" # ! GROSS !
 
 
@@ -84,7 +86,7 @@ BiocParallel::register(BiocParallel::MulticoreParam(cpus))
 
 # read the tfdb
 tfdb <- readRDS(tfdb_file)
-ap2_genes <- tfdb[Family == "AP2-EREBP", unique(Protein.ID)]
+ap2_genes <- tfdb[Family == "AP2-EREBP", unique(`Protein ID`)]
 
 dds <- readRDS(dds_file)
 
@@ -122,24 +124,36 @@ vg_s <- standardise(vg)
 
 # optimise m/c
 trial_table <- data.table(
-  expand.grid(c(4:15),
+  expand.grid(c(6:8),
               seq(1.5, 2.5, 0.1)))[, .(c = Var1, m = Var2)]
-trial_results <- trial_table[, CountClusteredAp2s(vg_s, m, c, 0.5),
-                             by = .(m, c)]
+trial_results <- trial_table[
+  , CountClusteredAp2s(vg_s, m, c, 0.7, seed = seed), by = .(m, c)]
 
 trial_results[, prop_ap2 := ap2_genes / clustered_genes]
 
 pd <- trial_results[, .(
   total_clustered_genes = sum(clustered_genes),
   max_prop_ap2 = max(prop_ap2)), by = .(m, c)]
-ggplot(pd, aes(x = total_clustered_genes, y = max_prop_ap2)) +
+ggplot(pd, aes(x = total_clustered_genes,
+               y = max_prop_ap2)) +
   geom_smooth() +
   geom_point()
-pd[max_prop_ap2 > 0.16][which.max(total_clustered_genes)]
+pd[max_prop_ap2 > 0.2][which.max(total_clustered_genes)]
+ pd[c == 6]
+trial_results[m == 2.1 & c == 6]
+trial_results[m == 1.6 & c == 11]
+trial_results[m == 1.8 & c == 13]
+
+pd[m == 2.1 & c == 6]
+
+CountClusteredAp2s(vg_s, 2.0, 6, 0.7, 1)
+CountClusteredAp2s(vg_s, 2.0, 7, 0.7, 1)
+
 
 # run the clustering
 set.seed(seed)
 c1 <- mfuzz(vg_s, c = 6, m = 2.1)
+c1 <- mfuzz(vg_s, c = 7, m = 2.0) # !!!
 clusters <- acore(vg_s, c1, min.acore = 0.7)
 
 # reformat clustering results
@@ -165,7 +179,6 @@ pd[, c_lab := paste0("Cluster ", cluster, " (", n_genes, " genes)")]
 accession_order <- c(
   "rufipogon",
   "indica",
-  # "japonica",
   "barthii",
   "glaberrima")
 pd[, accession := factor(accession, levels = accession_order)]

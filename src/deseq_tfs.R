@@ -45,15 +45,6 @@ sig_outdir <- snakemake@params[["sig_outdir"]]
 
 dds_tfs_only <- snakemake@output[["dds"]]
 
-# dev
-# tfdb_file <- "output/010_data/tfdb.Rds"
-# det_genes_file <- "output/060_tpm/detected_genes.Rds"
-# dds_file <- "output/050_deseq/dds.Rds"
-# cpus <- 8
-# alpha <- 0.1
-# lfcThreshold <- log(1.5, 2)
-# outdir <- "output/deseq2/wald_tests/tf_only"
-
 ########
 # MAIN #
 ########
