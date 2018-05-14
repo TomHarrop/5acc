@@ -154,6 +154,8 @@ rule deseq_tfs:
         log = 'output/000_logs/050_deseq/deseq_tfs.log'
     benchmark:
         'output/001_bench/050_deseq/deseq_tfs.tsv'
+    singularity:
+        singularity_container
     script:
         'src/deseq_tfs.R'
 
