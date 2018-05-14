@@ -161,17 +161,13 @@ all_results_annotated <- lapply(all_results, AnnotateDESeqResultsTable)
 
 # write
 sapply(names(sig_results_annotated), function(x)
-  PrintAnnotatedDESeqResultsTable(annotated_results_list[[x]],
+  PrintAnnotatedDESeqResultsTable(sig_results_annotated[[x]],
                                   file_name = x,
                                   outdir = sig_outdir))
 sapply(names(all_results_annotated), function(x)
-  PrintAnnotatedDESeqResultsTable(annotated_results_list[[x]],
+  PrintAnnotatedDESeqResultsTable(all_results_annotated[[x]],
                                   file_name = x,
                                   outdir = all_outdir))
 
 # write log
 sessionInfo()
-
-
-
-
