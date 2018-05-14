@@ -21,7 +21,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 A `singularity` container for the analysis is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). The `--use-singularity` flag tells `snakemake` to pull the container and run the analysis with the software installed in the container.
 
-The software in the container includes: 
+The container includes: 
 
 - `bbmap` 38.00
 - `bedtools` 2.26.0
@@ -32,11 +32,14 @@ The software in the container includes:
     + `cutadapt` 1.16
     + `HTSeq` 0.9.1
 - `R` 3.4.4, with packages
+    + `Bioconductor` 3.6
     + `data.table` 1.11.2
     + `DESeq2` 1.18.1
     + `GenomicRanges` 1.30.3
     + `Mfuzz` 2.38.0
+    + `oryzr` 0.1.23
     + `rtracklayer`  1.30.3
+    + `tidyverse` metapackage 1.2.1
     + `valr` 0.4.0  
 
 ### Input data files
