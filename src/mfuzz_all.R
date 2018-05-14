@@ -48,9 +48,9 @@ cluster_plot_file <- snakemake@output[["cluster_plot"]]
 hyper_test_file <- snakemake@output[["hyper"]]
 cluster_file <- snakemake@output[["clusters"]]
 
-
-# dev 
-# dds_file <- "output/050_deseq/tfs/dds_tfs.Rds"
+# 
+# # dev 
+# dds_file <- "output/050_deseq/filtered_dds.Rds"
 # tfdb_file <- "output/010_data/tfdb.Rds"
 # alpha <- 0.1
 # lfcThreshold <- log(1.5, 2)
@@ -75,10 +75,19 @@ dds <- readRDS(dds_file)
 # list of AP2s
 ap2_genes <- tfdb[Family == "AP2-EREBP", unique(`Protein ID`)]
 
+# use Otho's padj filtering strategy
+design(dds) <- ~accession + stage + accession:stage
+dds <- DESeq(dds,
+             test = "LRT",
+             reduced = ~ accession + stage,
+             parallel = TRUE)
+filtered_dds <- dds[!is.na(results(dds)$padj)]
+
 # re-run DESeq2 by group
-dds$group <- as.factor(paste(dds$accession, dds$stage, sep = "_"))
-design(dds) <-  ~ group
-dds <- DESeq(dds, parallel = TRUE)
+filtered_dds$group <- as.factor(paste(filtered_dds$accession,
+                                      filtered_dds$stage, sep = "_"))
+design(filtered_dds) <-  ~ group
+filtered_dds <- DESeq(filtered_dds, parallel = TRUE)
 
 # extract results for DE between stages in each accession
 accessions <- c(
@@ -88,7 +97,7 @@ accessions <- c(
   "glaberrima" = "glaberrima")
 acc_results_list <- lapply(accessions,
                            ExtractAccessionResults,
-                           dds,
+                           filtered_dds,
                            lfcThreshold,
                            alpha)
 acc_results <- rbindlist(acc_results_list, idcol = "accession")
@@ -99,7 +108,7 @@ lfc_matrix <- as.matrix(
 
 # prepare mfuzz object
 pheno_data <- data.frame(row.names = colnames(lfc_matrix),
-                 stage = colnames(lfc_matrix))
+                         stage = colnames(lfc_matrix))
 vg <- ExpressionSet(assayData = lfc_matrix,
                     phenoData = new('AnnotatedDataFrame', data = pheno_data))
 
@@ -200,6 +209,7 @@ family_hyper[!is.na(p_hyper), p_adj := p.adjust(p_hyper, "fdr")]
 
 # sort the table
 setorder(family_hyper, cluster, p_adj, family, na.last = TRUE)
+family_hyper[family == "AP2-EREBP"]
 
 # save output
 ggsave(cluster_plot_file,
@@ -213,3 +223,4 @@ fwrite(annotated_clusters, cluster_file)
 
 # write log
 sessionInfo()
+

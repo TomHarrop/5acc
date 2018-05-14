@@ -84,8 +84,8 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 rule target:
     input:
         'output/050_deseq/filtered_dds.Rds',
-        'output/070_clustering/tfs/hypergeom.csv'
-
+        'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
+        'output/070_clustering/all/annotated_clusters_scaled_l2fc.csv'
 
 # 070 clusters
 rule mfuzz_tfs:
@@ -95,7 +95,8 @@ rule mfuzz_tfs:
     output:
         cluster_plot = 'output/070_clustering/tfs/clusters.pdf',
         hyper = 'output/070_clustering/tfs/hypergeom.csv',
-        clusters = 'output/070_clustering/tfs/clusters.csv'
+        clusters = ('output/070_clustering/tfs/'
+                    'annotated_clusters_scaled_l2fc.csv')
     params:
         alpha = 0.1,
         lfc_threshold = 0.5849625,  # log(1.5, 2)
@@ -111,6 +112,29 @@ rule mfuzz_tfs:
     script:
         'src/mfuzz_tfs.R'
 
+rule mfuzz_all:
+    input:
+        dds = 'output/050_deseq/filtered_dds.Rds',
+        tfdb = 'output/010_data/tfdb.Rds'
+    output:
+        cluster_plot = 'output/070_clustering/all/clusters.pdf',
+        hyper = 'output/070_clustering/all/hypergeom.csv',
+        clusters = ('output/070_clustering/all/'
+                    'annotated_clusters_scaled_l2fc.csv')
+    params:
+        alpha = 0.1,
+        lfc_threshold = 0.5849625,  # log(1.5, 2)
+        seed = 1
+    threads:
+        10
+    log:
+        log = 'output/000_logs/070_clustering/mfuzz_all.log'
+    benchmark:
+        'output/001_bench/070_clustering/mfuzz_all.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/mfuzz_all.R'
 
 # 060 calculate TPM
 rule calculate_cutoffs:
