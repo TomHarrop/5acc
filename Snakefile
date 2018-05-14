@@ -56,7 +56,7 @@ def FindInputReads(wildcards):
 
 singularity_container = ('shub://TomHarrop/'
                          'singularity-containers:five-accessions'
-                         '@9c559c478180460108f433c3bb0fa418')
+                         '@ae9d367dd147e8c013f143fc96ade097')
 
 
 os_genome = 'data/genome/os/Osativa_323_v7.0.fa'
@@ -100,6 +100,8 @@ rule calculate_cutoffs:
         1
     log:
         log = 'output/000_logs/060_tpm/calculate_cutoffs.log'
+    benchmark:
+        'output/001_bench/060_tpm/calculate_cutoffs.tsv'
     singularity:
         singularity_container
     script:
@@ -116,6 +118,8 @@ rule calculate_tpm:
         csv = 'output/060_tpm/tpm.csv'
     log:
         log = 'output/000_logs/060_tpm/calculate_tpm.log'
+    benchmark:
+        'output/001_bench/060_tpm/calculate_tpm.tsv'
     threads:
         1
     singularity:
@@ -124,7 +128,36 @@ rule calculate_tpm:
         'src/calculate_tpm.R'
 
 
-# 050 DEseq2 
+# 050 DEseq2
+all_tf_dea = ['stage',
+              'interaction_stage_continent',
+              'interaction_stage_accession_indica',
+              'interaction_stage_accession_glaberrima',
+              'domestication']
+rule deseq_tfs:
+    input:
+        tfdb = 'output/010_data/tfdb.Rds',
+        detected_genes = 'output/060_tpm/detected_genes.Rds',
+        dds = 'output/050_deseq/dds.Rds'
+    output:
+        expand('output/050_deseq/{set}/{dea}.tab',
+               set=['all', 'sig'],
+               dea=all_tf_dea)
+    params:
+        all_outdir = 'output/050_deseq/all',
+        sig_outdir = 'output/050_deseq/sig',
+        alpha = 0.1,
+        lfc_threshold = 0.5849625 # log(1.5, 2)
+    threads:
+        10
+    log:
+        log = 'output/000_logs/050_deseq/deseq_tfs.log'
+    benchmark:
+        'output/001_bench/050_deseq/deseq_tfs.tsv'
+    script:
+        'src/deseq_tfs.R'
+
+
 rule filter_deseq_object:
     input:
         dds = 'output/050_deseq/dds.Rds',
@@ -158,6 +191,8 @@ rule generate_deseq_object:
         norm_counts = 'output/050_deseq/norm_counts.Rds'
     log:
         log = 'output/000_logs/050_deseq/generate_deseq_object.log'
+    benchmark:
+        'output/001_bench/050_deseq/generate_deseq_object.tsv'
     threads:
         10
     singularity:
@@ -181,6 +216,9 @@ rule combine_background_counts:
     log:
         log = ('output/000_logs/040_background-counts/'
                'combine_background_counts.log')
+    benchmark:
+        ('output/001_bench/040_background-counts/'
+         'combine_background_counts.tsv')
     threads:
         1
     singularity:
@@ -199,6 +237,8 @@ rule count_background:
                   '{species}/{stage}_{rep}.htseq-count')
     log:
         'output/000_logs/040_background-counts/{species}_{stage}_{rep}.log'
+    benchmark:
+        'output/001_bench/040_background-counts/{species}_{stage}_{rep}.tsv'
     threads:
         1
     singularity:
@@ -237,6 +277,8 @@ rule parse_star_logs:
         1
     log:
         log = 'output/000_logs/030_mapping/parse_star_logs.log'
+    benchmark:
+        'output/001_bench/030_mapping/parse_star_logs.tsv'
     singularity:
         singularity_container
     script:
@@ -268,6 +310,8 @@ rule second_mapping:
         prefix = 'output/030_mapping/star-pass2/{species}/{stage}_{rep}.'
     log:
         'output/000_logs/030_mapping/{species}-{stage}-{rep}_pass2.log'
+    benchmark:
+        'output/001_bench/030_mapping/{species}-{stage}-{rep}_pass2.tsv'
     singularity:
         singularity_container
     shell:
@@ -302,6 +346,8 @@ rule first_mapping:
         prefix = 'output/030_mapping/star-pass1/{species}/{stage}_{rep}.'
     log:
         'output/000_logs/030_mapping/{species}-{stage}-{rep}_pass1.log'
+    benchmark:
+        'output/001_bench/030_mapping/{species}-{stage}-{rep}_pass1.tsv'
     singularity:
         singularity_container
     shell:
@@ -340,6 +386,8 @@ rule cutadapt:
         1
     log:
         'output/000_logs/021_trim-reads/{species}_{stage}_{rep}.log'
+    benchmark:
+        'output/001_bench/021_trim-reads/{species}_{stage}_{rep}.tsv'
     singularity:
         singularity_container
     shell:
@@ -366,6 +414,8 @@ rule repair:
         mem_gb = 50
     log:
         'output/000_logs/020_repair/{species}_{stage}_{rep}.log'
+    benchmark:
+        'output/001_bench/020_repair/{species}_{stage}_{rep}.tsv'
     singularity:
         singularity_container
     shell:
@@ -381,6 +431,22 @@ rule repair:
 
 
 # 010 prepare data
+rule format_tfdb:
+    input:
+        tfdb_file = 'data/genome/os/tfdb.tab'
+    output:
+        tfdb_file = 'output/010_data/tfdb.Rds'
+    threads:
+        1
+    log:
+        log = 'output/000_logs/010_prepare-data/format_tfdb.log'
+    benchmark:
+        'output/001_bench/010_prepare-data/format_tfdb.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/format_tfdb.R'
+
 rule shuffle_gtf:
     input:
         os_gff_file = 'data/genome/os/Osativa_323_v7.0.gene_exons.gff3',
@@ -399,6 +465,8 @@ rule shuffle_gtf:
         shuffled_gff = 'output/010_data/shuffle/shuffed.gff3'
     log:
         log = 'output/000_logs/010_prepare-data/shuffle_gtf.log'
+    benchmark:
+        'output/001_bench/010_prepare-data/shuffle_gtf.tsv'
     singularity:
         singularity_container
     script:
@@ -414,6 +482,8 @@ rule calculate_feature_lengths:
         1
     log:
         log = 'output/000_logs/010_prepare-data/calculate_feature_lengths.log'
+    benchmark:
+        'output/001_bench/010_prepare-data/calculate_feature_lengths.tsv'
     singularity:
         singularity_container
     script:
@@ -433,6 +503,8 @@ rule generate_genome:
         50
     log:
         'output/000_logs/010_prepare-data/generate_genome.log'
+    benchmark:
+        'output/001_bench/010_prepare-data/generate_genome.tsv'
     singularity:
         singularity_container
     shell:
@@ -461,6 +533,8 @@ rule generate_gtf:
         1
     log:
         'output/000_logs/010_prepare-data/generate_gtf.log'
+    log:
+        'output/001_bench/010_prepare-data/generate_gtf.tsv'
     singularity:
         singularity_container
     shell:

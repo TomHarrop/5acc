@@ -46,9 +46,11 @@ The following files are not distributed with the workflow, and must be in a `dat
     + `data/genome/os/Osativa_323_v7.0.gene_exons.gff3`
 - From http://rapdb.dna.affrc.go.jp/download/archive:
     + `data/genome/os/irgsp1_rRNA_tRNA.gff`
-- From ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir:
+- From [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
     + `data/genome/os/rice_osa1r7_rm.gff3`
-- From ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3:
+- From [ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3](ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3):
     + `data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa`
-- From ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir:
+- From [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
     + `data/genome/os/osa.gff3`
+- From http://plntfdb.bio.uni-potsdam.de/v3.0/export.php:
+    + `data/genome/os/tfdb.tab`
