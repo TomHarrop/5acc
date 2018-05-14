@@ -4,7 +4,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Requirements
 
-[`singularity`](https://singularity.lbl.gov)  
+[`singularity`](https://singularity.lbl.gov) ≥ 2.4.1   
 [`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0
 
 ### Reproduce the analysis
@@ -31,6 +31,7 @@ The software used in the analysis is listed below. A `singularity` container is 
     + `data.table` 1.11.2
     + `DESeq2` 1.18.1
     + `GenomicRanges` 1.30.3
+    + `Mfuzz` 2.38.0
     + `rtracklayer`  1.30.3
     + `valr` 0.4.0  
 

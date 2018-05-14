@@ -43,6 +43,8 @@ log_file <- snakemake@log[["log"]]
 all_outdir <- snakemake@params[["all_outdir"]]
 sig_outdir <- snakemake@params[["sig_outdir"]]
 
+dds_tfs_only <- snakemake@output[["dds"]]
+
 # dev
 # tfdb_file <- "output/010_data/tfdb.Rds"
 # det_genes_file <- "output/060_tpm/detected_genes.Rds"
@@ -168,6 +170,7 @@ sapply(names(all_results_annotated), function(x)
   PrintAnnotatedDESeqResultsTable(all_results_annotated[[x]],
                                   file_name = x,
                                   outdir = all_outdir))
+saveRDS(dds_exp_tfs, dds_tfs_only)
 
 # write log
 sessionInfo()

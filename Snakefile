@@ -83,7 +83,15 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        'output/050_deseq/filtered_dds.Rds'
+        'output/050_deseq/filtered_dds.Rds',
+        'output/050_deseq/tfs/dds_tfs.Rds'
+
+
+# 070 clusters
+rule mfuzz_tfs:
+    input:
+
+
 
 # 060 calculate TPM
 rule calculate_cutoffs:
@@ -140,12 +148,13 @@ rule deseq_tfs:
         detected_genes = 'output/060_tpm/detected_genes.Rds',
         dds = 'output/050_deseq/dds.Rds'
     output:
-        expand('output/050_deseq/{set}/{dea}.tab',
+        expand('output/050_deseq/tfs/{set}/{dea}.tab',
                set=['all', 'sig'],
-               dea=all_tf_dea)
+               dea=all_tf_dea),
+        dds = 'output/050_deseq/tfs/dds_tfs.Rds'
     params:
-        all_outdir = 'output/050_deseq/all',
-        sig_outdir = 'output/050_deseq/sig',
+        all_outdir = 'output/050_deseq/tfs/all',
+        sig_outdir = 'output/050_deseq/tfs/sig',
         alpha = 0.1,
         lfc_threshold = 0.5849625 # log(1.5, 2)
     threads:
