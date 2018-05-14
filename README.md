@@ -5,7 +5,8 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 ### Requirements
 
 [`singularity`](https://singularity.lbl.gov) ≥ 2.4.1   
-[`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0
+[`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0  
+python3 package `psutil`
 
 ### Reproduce the analysis
 
