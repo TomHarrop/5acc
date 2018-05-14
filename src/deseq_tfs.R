@@ -34,7 +34,7 @@ det_genes_file <- snakemake@input[["detected_genes"]]
 dds_file <- snakemake@input[["dds"]]
 
 alpha <- snakemake@params[["alpha"]]
-lfcThreshold <- snakemake@params[[""]]
+lfcThreshold <- snakemake@params[["lfc_threshold"]]
 
 cpus <- snakemake@threads[[1]]
 
