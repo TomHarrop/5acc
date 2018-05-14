@@ -5,8 +5,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 ### Requirements
 
 [`singularity`](https://singularity.lbl.gov) ≥ 2.4.1   
-[`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0  
-python3 package `psutil`
+[`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0, plus python3 package `psutil` for benchmarking
 
 ### Reproduce the analysis
 
@@ -18,7 +17,11 @@ python3 package `psutil`
 
 ### Software environment
 
-The software used in the analysis is listed below. A `singularity` container is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). The `--use-singularity` flag will tell `snakemake` to pull the container and run all analysis with the software installed in the container.
+[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/996)
+
+A `singularity` container for the analysis is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). The `--use-singularity` flag tells `snakemake` to pull the container and run the analysis with the software installed in the container.
+
+The software in the container includes: 
 
 - `bbmap` 38.00
 - `bedtools` 2.26.0
