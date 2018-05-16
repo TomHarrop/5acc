@@ -180,28 +180,30 @@ rule calculate_tpm:
 
 
 # 050 DEseq2
-all_tf_dea = ['stage',
-              'interaction_stage_continent',
-              'interaction_stage_accession_indica',
-              'interaction_stage_accession_glaberrima',
-              'domestication']
+all_de_files = ['domestication',
+                'stage_accession_japonica',
+                'stage_accession_indica',
+                'stage_accession_glaberrima',
+                'stage_between_species',
+                'stage_within_species',
+                'stage_continent_africa',
+                'stage_continent_asia',
+                'accession']
+
 rule deseq_tfs:
     input:
-        tfdb = 'output/010_data/tfdb.Rds',
-        detected_genes = 'output/060_tpm/detected_genes.Rds',
-        dds = 'output/050_deseq/dds.Rds'
-    output:
-        expand('output/050_deseq/tfs/{set}/{dea}.tab',
-               set=['all', 'sig'],
-               dea=all_tf_dea),
         dds = 'output/050_deseq/tfs/dds_tfs.Rds'
+    output:
+        expand('output/050_deseq/tfs/{cutoff}/{de_file}.csv',
+               cutoff=['all', 'sig'],
+               de_file=all_de_files)
     params:
         all_outdir = 'output/050_deseq/tfs/all',
         sig_outdir = 'output/050_deseq/tfs/sig',
         alpha = 0.1,
         lfc_threshold = 0.5849625 # log(1.5, 2)
     threads:
-        10
+        4
     log:
         log = 'output/000_logs/050_deseq/deseq_tfs.log'
     benchmark:
@@ -209,7 +211,48 @@ rule deseq_tfs:
     singularity:
         singularity_container
     script:
-        'src/deseq_tfs.R'
+        'src/deseq_wald.R'
+
+rule filter_tfs:
+    input:
+        tfdb = 'output/010_data/tfdb.Rds',
+        detected_genes = 'output/060_tpm/detected_genes.Rds',
+        dds = 'output/050_deseq/dds.Rds'
+    output:
+        dds = 'output/050_deseq/tfs/dds_tfs.Rds'
+    threads:
+        1
+    log:
+        log = 'output/000_logs/050_deseq/filter_tfs.log'
+    benchmark:
+        'output/001_bench/050_deseq/filter_tfs.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/filter_tfs.R'
+
+rule deseq_all:
+    input:
+        dds = 'output/050_deseq/filtered_dds.Rds'
+    output:
+        expand('output/050_deseq/wald_tests/{cutoff}/{de_file}.csv',
+               cutoff=['all', 'sig'],
+               de_file=all_de_files)
+    params:
+        all_outdir = 'output/050_deseq/wald_tests/all',
+        sig_outdir = 'output/050_deseq/wald_tests/sig',
+        alpha = 0.1,
+        lfc_threshold = 0.5849625 # log(1.5, 2)
+    threads:
+        4
+    log:
+        log = 'output/000_logs/050_deseq/deseq_all.log'
+    benchmark:
+        'output/001_bench/050_deseq/deseq_all.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/deseq_wald.R'
 
 
 rule filter_deseq_object:
