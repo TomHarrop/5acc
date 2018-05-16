@@ -83,9 +83,10 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        'output/050_deseq/filtered_dds.Rds',
         'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
-        'output/070_clustering/all/annotated_clusters_scaled_l2fc.csv'
+        'output/070_clustering/all/annotated_clusters_scaled_l2fc.csv',
+        'output/050_deseq/wald_tests/sig/domestication.csv',
+        'output/050_deseq/tfs/sig/domestication.csv'
 
 # 070 clusters
 rule mfuzz_tfs:
