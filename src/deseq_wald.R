@@ -220,7 +220,8 @@ all_wald_results <- list(
   "stage_within_species" = res_dds_stage_within_species,
   "stage_continent_africa" = res_dds_stage_continent_africa,
   "stage_continent_asia" = res_dds_stage_continent_asia,
-  "accession" = res_dds_accession)
+  "accession" = res_dds_accession,
+  "stage" = res_dds_accession_stage)
 
 # generate an annotation
 full_annotation <- oryzr::LocToGeneName(unique(rownames(dds)))
@@ -240,5 +241,3 @@ lapply(names(annotated_wald_results), function(x)
 
 # write log
 sessionInfo()
-
-

@@ -188,7 +188,8 @@ all_de_files = ['domestication',
                 'stage_within_species',
                 'stage_continent_africa',
                 'stage_continent_asia',
-                'accession']
+                'accession',
+                'stage']
 
 rule deseq_tfs:
     input:
@@ -203,11 +204,34 @@ rule deseq_tfs:
         alpha = 0.1,
         lfc_threshold = 0.5849625 # log(1.5, 2)
     threads:
-        4
+        10
     log:
         log = 'output/000_logs/050_deseq/deseq_tfs.log'
     benchmark:
         'output/001_bench/050_deseq/deseq_tfs.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/deseq_wald.R'
+
+rule deseq_all:
+    input:
+        dds = 'output/050_deseq/filtered_dds.Rds'
+    output:
+        expand('output/050_deseq/wald_tests/{cutoff}/{de_file}.csv',
+               cutoff=['all', 'sig'],
+               de_file=all_de_files)
+    params:
+        all_outdir = 'output/050_deseq/wald_tests/all',
+        sig_outdir = 'output/050_deseq/wald_tests/sig',
+        alpha = 0.1,
+        lfc_threshold = 0.5849625 # log(1.5, 2)
+    threads:
+        10
+    log:
+        log = 'output/000_logs/050_deseq/deseq_all.log'
+    benchmark:
+        'output/001_bench/050_deseq/deseq_all.tsv'
     singularity:
         singularity_container
     script:
@@ -230,30 +254,6 @@ rule filter_tfs:
         singularity_container
     script:
         'src/filter_tfs.R'
-
-rule deseq_all:
-    input:
-        dds = 'output/050_deseq/filtered_dds.Rds'
-    output:
-        expand('output/050_deseq/wald_tests/{cutoff}/{de_file}.csv',
-               cutoff=['all', 'sig'],
-               de_file=all_de_files)
-    params:
-        all_outdir = 'output/050_deseq/wald_tests/all',
-        sig_outdir = 'output/050_deseq/wald_tests/sig',
-        alpha = 0.1,
-        lfc_threshold = 0.5849625 # log(1.5, 2)
-    threads:
-        4
-    log:
-        log = 'output/000_logs/050_deseq/deseq_all.log'
-    benchmark:
-        'output/001_bench/050_deseq/deseq_all.tsv'
-    singularity:
-        singularity_container
-    script:
-        'src/deseq_wald.R'
-
 
 rule filter_deseq_object:
     input:
