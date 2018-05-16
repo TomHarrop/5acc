@@ -71,6 +71,17 @@ all_species = ['osj',
 all_reps = ['1', '2', '3']
 all_stages = ['PBM', 'SM']
 
+all_de_files = ['domestication',
+                'stage_accession_japonica',
+                'stage_accession_indica',
+                'stage_accession_glaberrima',
+                'stage_between_species',
+                'stage_within_species',
+                'stage_continent_africa',
+                'stage_continent_asia',
+                'accession',
+                'stage']
+
 #########
 # SETUP #
 #########
@@ -85,8 +96,8 @@ rule target:
     input:
         'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
         'output/070_clustering/all/annotated_clusters_scaled_l2fc.csv',
-        'output/050_deseq/wald_tests/sig/domestication.csv',
-        'output/050_deseq/tfs/sig/domestication.csv'
+        'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
+        'output/050_deseq/wald_tests/tfs/sig/domestication.csv'
 
 # 070 clusters
 rule mfuzz_tfs:
@@ -179,29 +190,17 @@ rule calculate_tpm:
     script:
         'src/calculate_tpm.R'
 
-
 # 050 DEseq2
-all_de_files = ['domestication',
-                'stage_accession_japonica',
-                'stage_accession_indica',
-                'stage_accession_glaberrima',
-                'stage_between_species',
-                'stage_within_species',
-                'stage_continent_africa',
-                'stage_continent_asia',
-                'accession',
-                'stage']
-
 rule deseq_tfs:
     input:
-        dds = 'output/050_deseq/tfs/dds_tfs.Rds'
+        dds = 'output/050_deseq/dds_tfs.Rds'
     output:
-        expand('output/050_deseq/tfs/{cutoff}/{de_file}.csv',
+        expand('output/050_deseq/wald_tests/tfs/{cutoff}/{de_file}.csv',
                cutoff=['all', 'sig'],
                de_file=all_de_files)
     params:
-        all_outdir = 'output/050_deseq/tfs/all',
-        sig_outdir = 'output/050_deseq/tfs/sig',
+        all_outdir = 'output/050_deseq/wald_tests/tfs/all',
+        sig_outdir = 'output/050_deseq/wald_tests/tfs/sig',
         alpha = 0.1,
         lfc_threshold = 0.5849625 # log(1.5, 2)
     threads:
@@ -215,24 +214,24 @@ rule deseq_tfs:
     script:
         'src/deseq_wald.R'
 
-rule deseq_all:
+rule deseq_expr:
     input:
         dds = 'output/050_deseq/filtered_dds.Rds'
     output:
-        expand('output/050_deseq/wald_tests/{cutoff}/{de_file}.csv',
+        expand('output/050_deseq/wald_tests/expr_genes/{cutoff}/{de_file}.csv',
                cutoff=['all', 'sig'],
                de_file=all_de_files)
     params:
-        all_outdir = 'output/050_deseq/wald_tests/all',
-        sig_outdir = 'output/050_deseq/wald_tests/sig',
+        all_outdir = 'output/050_deseq/wald_tests/expr_genes/all',
+        sig_outdir = 'output/050_deseq/wald_tests/expr_genes/sig',
         alpha = 0.1,
         lfc_threshold = 0.5849625 # log(1.5, 2)
     threads:
         10
     log:
-        log = 'output/000_logs/050_deseq/deseq_all.log'
+        log = 'output/000_logs/050_deseq/deseq_expr.log'
     benchmark:
-        'output/001_bench/050_deseq/deseq_all.tsv'
+        'output/001_bench/050_deseq/deseq_expr.tsv'
     singularity:
         singularity_container
     script:
@@ -244,7 +243,7 @@ rule filter_tfs:
         detected_genes = 'output/060_tpm/detected_genes.Rds',
         dds = 'output/050_deseq/dds.Rds'
     output:
-        dds = 'output/050_deseq/tfs/dds_tfs.Rds'
+        dds = 'output/050_deseq/dds_tfs.Rds'
     threads:
         1
     log:
