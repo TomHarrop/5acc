@@ -11,10 +11,6 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 `snakemake --use-singularity --cores={threads} --resources mem_gb={ram_limit}`
 
-### Pipeline
-
-![](dag/dag.svg)
-
 ### Software environment
 
 [![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/996)
@@ -41,6 +37,10 @@ The container includes:
     + `rtracklayer`  1.30.3
     + `tidyverse` metapackage 1.2.1
     + `valr` 0.4.0  
+
+### Pipeline
+
+![](dag/dag.svg)
 
 ### Input data files
 
