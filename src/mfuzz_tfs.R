@@ -25,7 +25,7 @@ ExtractAccessionResults <- function(accession, dds, lfcThreshold, alpha) {
                     lfcThreshold = lfcThreshold,
                     alpha = alpha)
   my_dt <- data.table(data.frame(my_res), keep.rownames = TRUE)
-  my_dt[, .(gene_id = rn, log2FoldChange)]
+  my_dt[, .(gene_id = rn, log2FoldChange, lfcSE, padj)]
 }
 
 
@@ -48,14 +48,13 @@ cluster_plot_file <- snakemake@output[["cluster_plot"]]
 hyper_test_file <- snakemake@output[["hyper"]]
 cluster_file <- snakemake@output[["clusters"]]
 
-
 # dev 
-# dds_file <- "output/050_deseq/tfs/dds_tfs.Rds"
-# tfdb_file <- "output/010_data/tfdb.Rds"
-# alpha <- 0.1
-# lfcThreshold <- log(1.5, 2)
-# cpus <- 8
-# seed <- 1
+ # dds_file <- "output/050_deseq/dds_tfs.Rds"
+ # tfdb_file <- "output/010_data/tfdb.Rds"
+ # alpha <- 0.1
+ # lfcThreshold <- log(1.5, 2)
+ # cpus <- 8
+ # seed <- 1
 
 ########
 # MAIN #
@@ -74,6 +73,16 @@ dds <- readRDS(dds_file)
 
 # list of AP2s
 ap2_genes <- tfdb[Family == "AP2-EREBP", unique(`Protein ID`)]
+
+# find a list of stage-dependent genes
+dds_stage <- copy(dds)
+design(dds_stage) <- ~ accession + stage
+dds_stage <- DESeq(dds_stage,
+                   parallel = TRUE,
+                   test = "LRT",
+                   reduced = ~ accession)
+genes_to_cluster <- unique(
+  rownames(subset(results(dds_stage, alpha = alpha), padj < alpha)))
 
 # re-run DESeq2 by group
 dds$group <- as.factor(paste(dds$accession, dds$stage, sep = "_"))
@@ -94,8 +103,8 @@ acc_results_list <- lapply(accessions,
 acc_results <- rbindlist(acc_results_list, idcol = "accession")
 lfc_matrix <- as.matrix(
   data.frame(
-    dcast(acc_results, gene_id ~ accession),
-    row.names = "gene_id"))
+    dcast(acc_results, gene_id ~ accession, value.var = "log2FoldChange"),
+    row.names = "gene_id"))[genes_to_cluster,]
 
 # prepare mfuzz object
 pheno_data <- data.frame(row.names = colnames(lfc_matrix),
@@ -109,7 +118,8 @@ vg_s <- standardise(vg)
 # run the clustering
 message(paste("Clustering with seed", seed))
 set.seed(seed)
-c1 <- mfuzz(vg_s, c = 7, m = 2.0)
+# c1 <- mfuzz(vg_s, c = 7, m = 2.0)
+c1 <- mfuzz(vg_s, c = 6, m = 2.1)
 clusters <- acore(vg_s, c1, min.acore = 0.7)
 
 # reformat clustering results
@@ -210,6 +220,7 @@ ggsave(cluster_plot_file,
        units = "in")
 fwrite(family_hyper, hyper_test_file)
 fwrite(annotated_clusters, cluster_file)
+
 
 # write log
 sessionInfo()
