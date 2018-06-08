@@ -38,7 +38,7 @@ The container includes:
     + `tidyverse` metapackage 1.2.1
     + `valr` 0.4.0  
 
-### Pipeline
+### Workflow
 
 ![](dag/dag.svg)
 
