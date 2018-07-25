@@ -647,9 +647,10 @@ rule generate_gtf:
         os_gff = os_gff,
     output:
         os_gtf = os_gtf,
-        cuffcomp_dir = temp('output/010_data/cuffcomp'),
         cuffcomp_gtf = temp('output/010_data/cuffcomp/'
                             'annot.cuffcomp.combined.gtf')
+    params:
+        cuffcomp_dir = 'output/010_data/cuffcomp'
     threads:
         1
     log:
@@ -663,7 +664,7 @@ rule generate_gtf:
         '-s {input.os_genome} '
         '-CG '
         '-r {input.os_gff} '
-        '-o {output.cuffcomp_dir}/annot.cuffcomp '
+        '-o {params.cuffcomp_dir}/annot.cuffcomp '
         '{input.os_gff} '
         '&> {log} ; '
         'sed \'/LOC_Os09g01000/d\' '
