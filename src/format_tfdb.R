@@ -33,8 +33,17 @@ os <- unique(unique_tfs[Species == 'Oryza sativa subsp. japonica', .(
   Family
 )])
 
+# manually add ALOG genes
+ALOG <- c('LOC_Os07g04670', 'LOC_Os02g07030', 'LOC_Os06g46030',
+          'LOC_Os02g41460', 'LOC_Os04g43580', 'LOC_Os10g33780',
+          'LOC_Os02g56610', 'LOC_Os01g61310', 'LOC_Os05g39500',
+          'LOC_Os05g28040')
+os_with_alog <- rbind(os, 
+                      data.table(`Protein ID` = ALOG,
+                                 Family = "ALOG"))
+
 # write output
-saveRDS(os, formatted_tfdb_file)
+saveRDS(os_with_alog, formatted_tfdb_file)
 
 # write log
 sessionInfo()
