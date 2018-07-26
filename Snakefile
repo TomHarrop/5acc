@@ -97,9 +97,28 @@ rule target:
         'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
         'output/070_clustering/all/annotated_clusters_scaled_l2fc.csv',
         'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
-        'output/050_deseq/wald_tests/tfs/sig/domestication.csv'
+        'output/050_deseq/wald_tests/tfs/sig/domestication.csv',
+        'output/080_phenotype/mtp_cluster_correlation.csv'
 
 # 080 correlations with phenotypic data
+rule correlate_clusters_to_mtp:
+    input:
+        mtp = 'output/080_phenotype/mtp.csv',
+        clusters = ('output/070_clustering/tfs/'
+                    'annotated_clusters_scaled_l2fc.csv')
+    output:
+        correlation = 'output/080_phenotype/mtp_cluster_correlation.csv'
+    threads:
+        1  
+    log:
+        log = 'output/000_logs/080_phenotype/correlate_clusters_to_mtp.log'
+    benchmark:
+        'output/001_bench/080_phenotype/correlate_clusters_to_mtp.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/correlate_clusters_to_mtp.R'
+
 rule tidy_phenotype_data:
     input:
         mtp = 'data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv',
@@ -117,7 +136,7 @@ rule tidy_phenotype_data:
         singularity_container
     script:
         'src/tidy_phenotype_data.R'
-        
+
 
 # 070 clusters
 rule mfuzz_tfs_stat:
