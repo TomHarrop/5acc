@@ -158,9 +158,9 @@ vg_s <- standardise(vg)
 # run the clustering
 message(paste("Clustering with seed", seed))
 set.seed(seed)
-c1 <- mfuzz(vg_s, c = 7, m = 1.6)
+#c1 <- mfuzz(vg_s, c = 7, m = 1.6)
 #c1 <- mfuzz(vg_s, c = 7, m = 2.3)
-# c1 <- mfuzz(vg_s, c = 6, m = 2.1) # THIS IS THE REAL ONE
+c1 <- mfuzz(vg_s, c = 6, m = 2.1) # THIS IS THE REAL ONE
 clusters <- acore(vg_s, c1, min.acore = 0.7)
 
 # reformat clustering results
