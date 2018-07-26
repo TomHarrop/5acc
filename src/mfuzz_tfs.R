@@ -49,12 +49,12 @@ hyper_test_file <- snakemake@output[["hyper"]]
 cluster_file <- snakemake@output[["clusters"]]
 
 # dev 
- # dds_file <- "output/050_deseq/dds_tfs.Rds"
- # tfdb_file <- "output/010_data/tfdb.Rds"
- # alpha <- 0.1
- # lfcThreshold <- log(1.5, 2)
- # cpus <- 8
- # seed <- 1
+# dds_file <- "output/050_deseq/dds_tfs.Rds"
+# tfdb_file <- "output/010_data/tfdb.Rds"
+# alpha <- 0.1
+# lfcThreshold <- log(1.5, 2)
+# cpus <- 8
+# seed <- 1
 
 ########
 # MAIN #
@@ -108,18 +108,59 @@ lfc_matrix <- as.matrix(
 
 # prepare mfuzz object
 pheno_data <- data.frame(row.names = colnames(lfc_matrix),
-                 stage = colnames(lfc_matrix))
+                         stage = colnames(lfc_matrix))
 vg <- ExpressionSet(assayData = lfc_matrix,
                     phenoData = new('AnnotatedDataFrame', data = pheno_data))
 
 # standardise
 vg_s <- standardise(vg)
 
+
+# optimise m/c
+# CountClusteredAp2s <- function(es, m, c, memCutoff){
+#   # run the clustering
+#   set.seed(seed)
+#   my_flclust <- mfuzz(es, c = c, m = m)
+#   my_acore <- acore(es, my_flclust, min.acore = memCutoff)
+#   
+#   my_all_in_cluster <- sapply(my_acore, nrow)
+#   my_n_in_cluster <- sapply(my_acore, function(x) 
+#     CountGenesOfInterest(unique(rownames(x)),
+#                          genes_of_interest = ap2_genes))
+#   
+#   my_all_in_bg <- nrow(es)
+#   my_n_in_bg <- CountGenesOfInterest(rownames(es), ap2_genes)
+#   # run phyper
+#   my_ph <- phyper(my_n_in_cluster - 1,
+#                   my_n_in_bg,
+#                   my_all_in_bg - my_n_in_bg,
+#                   my_all_in_cluster,
+#                   lower.tail = FALSE)
+#   list(p = min(my_ph),
+#     n = length(unique(unlist(sapply(my_acore, rownames)))),
+#     n_ap2 = my_n_in_cluster[[which.min(my_ph)]],
+#     all_in_cluster = my_all_in_cluster[[which.min(my_ph)]])
+# }
+# 
+# trial_table <- data.table(
+#   expand.grid(c(4:15),
+#               seq(1.5, 2.5, 0.1)))[
+#                 , .(c = Var1, m = Var2)]
+# trial_table[, c("p", "n", "ap2_in_cluster", "all_in_cluster") :=
+#               t(CountClusteredAp2s(vg_s, m, c, 0.7)), by = .(m, c)]
+# setorder(trial_table, p)
+# trial_table
+# trial_table[p < 0.05]
+# 
+# ggplot(trial_table, aes(x = c, y = m, colour = p)) +
+#   geom_point()
+
 # run the clustering
 message(paste("Clustering with seed", seed))
 set.seed(seed)
-# c1 <- mfuzz(vg_s, c = 7, m = 2.0)
-c1 <- mfuzz(vg_s, c = 6, m = 2.1)
+c1 <- mfuzz(vg_s, c = 7, m = 1.6)
+#c1 <- mfuzz(vg_s, c = 7, m = 2.3)
+# c1 <- mfuzz(vg_s, c = 6, m = 2.1) # THIS IS THE REAL ONE
 clusters <- acore(vg_s, c1, min.acore = 0.7)
 
 # reformat clustering results
@@ -199,7 +240,7 @@ family_hyper <- merge(family_counts,
                       by.y = "Family")
 
 # run a hypergeometric test only if more than one member was clustered
-family_hyper[n_in_cluster > 1, p_hyper := phyper(n_in_cluster - 1,
+family_hyper[n_in_cluster > 2, p_hyper := phyper(n_in_cluster - 1,
                                                  n_in_bg,
                                                  all_in_bg - n_in_bg,
                                                  all_in_cluster,

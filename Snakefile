@@ -99,6 +99,26 @@ rule target:
         'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
         'output/050_deseq/wald_tests/tfs/sig/domestication.csv'
 
+# 080 correlations with phenotypic data
+rule tidy_phenotype_data:
+    input:
+        mtp = 'data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv',
+        cali = 'data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt'
+    output:
+        mtp = 'output/080_phenotype/mtp.csv',
+        cali = 'output/080_phenotype/cali.csv'
+    threads:
+        1
+    log:
+        log = 'output/000_logs/080_phenotype/tidy_phenotype_data.log'
+    benchmark:
+        'output/001_bench/080_phenotype/tidy_phenotype_data.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/tidy_phenotype_data.R'
+        
+
 # 070 clusters
 rule mfuzz_tfs_stat:
     input:

@@ -49,6 +49,9 @@ The following files are not distributed with the workflow, and must be in a `dat
 - Raw reads:
     + `data/reads/{sample}_R1.fastq.gz`
     + `data/reads/{sample}_R2.fastq.gz`
+- Phenotyping data:
+    + `data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt`
+    + `data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv`
 - From Phytozome:
     + `data/genome/os/Osativa_323_v7.0.fa`
     + `data/genome/os/Osativa_323_v7.0.gene_exons.gff3`
