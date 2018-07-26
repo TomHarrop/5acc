@@ -82,7 +82,7 @@ correlations <- correlations_all[
 
 # save output
 saveRDS(pc, pca_file)
-fwrite(correlations, correlations_file)
+fwrite(correlations, correlation_file)
 
 # write log
 sessionInfo()
