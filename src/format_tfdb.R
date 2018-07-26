@@ -43,7 +43,7 @@ os_with_alog <- rbind(os,
                                  Family = "ALOG"))
 
 # write output
-saveRDS(os_with_alog, formatted_tfdb_file)
+saveRDS(os, formatted_tfdb_file)
 
 # write log
 sessionInfo()
