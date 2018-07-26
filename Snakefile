@@ -98,9 +98,29 @@ rule target:
         'output/070_clustering/all/annotated_clusters_scaled_l2fc.csv',
         'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
         'output/050_deseq/wald_tests/tfs/sig/domestication.csv',
-        'output/080_phenotype/mtp_cluster_correlation.csv'
+        'output/080_phenotype/cali_cluster_correlation.csv'
 
 # 080 correlations with phenotypic data
+rule correlate_clusters_to_cali:
+    input:
+        cali = 'output/080_phenotype/cali.csv',
+        clusters = ('output/070_clustering/tfs/'
+                    'annotated_clusters_scaled_l2fc.csv')
+    output:
+        correlation = 'output/080_phenotype/cali_cluster_correlation.csv'
+        pca = 'output/080_phenotype/cali_pca.Rds'
+    threads:
+        1  
+    log:
+        log = 'output/000_logs/080_phenotype/correlate_clusters_to_cali.log'
+    benchmark:
+        'output/001_bench/080_phenotype/correlate_clusters_to_cali.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/correlate_clusters_to_cali.R'
+
+
 rule correlate_clusters_to_mtp:
     input:
         mtp = 'output/080_phenotype/mtp.csv',

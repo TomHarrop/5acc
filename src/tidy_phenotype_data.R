@@ -22,6 +22,7 @@ tidy_cali_file <- snakemake@output[["cali"]]
 # dev
 # mtp_file <- "data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv"
 # cali_file <- "data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt"
+# tidy_cali_file <- "test/cali.csv"
 
 ########
 # MAIN #
@@ -33,10 +34,12 @@ pheno_cali <- fread(cali_file, dec = ",")
 pheno_mtp <- fread(mtp_file)
 
 # mung cali
-cali_species_names <-c(Ob = "barthii",
-                       Os = "sativa",
-                       Og = "glaberrima",
-                       Or = "rufipogon")
+cali_species_names <- c("Oryza rufipogon" = "rufipogon",
+                        "Oryza sativa" = "sativa", 
+                        "Oryza sativa indica" = "indica",
+                        "Oryza sativa japonica" = "japonica",
+                        "Ozyza Barthii" = "barthii",
+                        "Oryza glaberrima" = "glaberrima")
 cali_vars <- c("RL",
                "PbN",
                "PbL",
@@ -46,7 +49,7 @@ cali_vars <- c("RL",
                "SbIntL",
                "TbN",
                "SpN")
-pheno_cali[, Species := factor(plyr::revalue(Origin, cali_species_names),
+pheno_cali[, Species := factor(plyr::revalue(species, cali_species_names),
                                levels = cali_species_names)]
 
 # this can be used for prcomp directly (plot the loadings separately)
@@ -67,7 +70,7 @@ mtp_vars <- c(`Pb_nb (PbN)` = "pbn",
 
 names(mtp_accession_names) <- tolower(names(mtp_accession_names))
 pheno_mtp[, species_simple := plyr::revalue(tolower(`Accession Name`),
-                                           mtp_accession_names)]
+                                            mtp_accession_names)]
 
 setnames(pheno_mtp, names(mtp_vars), mtp_vars)
 
