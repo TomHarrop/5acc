@@ -107,7 +107,7 @@ rule correlate_clusters_to_cali:
         clusters = ('output/070_clustering/tfs/'
                     'annotated_clusters_scaled_l2fc.csv')
     output:
-        correlation = 'output/080_phenotype/cali_cluster_correlation.csv'
+        correlation = 'output/080_phenotype/cali_cluster_correlation.csv',
         pca = 'output/080_phenotype/cali_pca.Rds'
     threads:
         1  
