@@ -86,5 +86,3 @@ fwrite(correlations, correlation_file)
 
 # write log
 sessionInfo()
-
-
