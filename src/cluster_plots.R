@@ -8,6 +8,7 @@ tpm_file <- "output/060_tpm/tpm_with_calls.Rds"
 cluster_file <- "output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv"
 wald_file <- "output/050_deseq/wald_tests/tfs/all/stage_within_species.csv"
 hyperg <- "output/070_clustering/tfs/hypergeom.csv"
+correlation_file <- "output/080_phenotype/mtp_cluster_correlation.csv"
 
 #############
 # FUNCTIONS #
@@ -43,6 +44,7 @@ clusters <- fread(cluster_file)
 tpm <- readRDS(tpm_file)
 wald_results <- fread(wald_file)
 hyperg_results <- fread(hyperg)
+correlations <- fread(correlation_file)
 
 # average expression value per cluster, should be equivalent to cluster core
 clusters_long <- melt(clusters,
@@ -118,27 +120,31 @@ enrichment_plot <- ggplot(hyperg_to_plot, aes(x = family,
   ggtitle("TF enrichment") +
   scale_y_discrete(breaks = c(1:7), expand = c(0, 0)) +
   scale_x_discrete(expand = c(0, 0)) +
-  scale_fill_gradientn(colours = c(base_colour, set1[[4]]),
+  scale_fill_gradientn(colours = c(base_colour, set1[[3]]),
                        guide = guide_colourbar(title = "Enrichment")) +
   geom_raster() +
   geom_text(parse = TRUE)
 enrichment_plot
 
-
 # phenotype correlations
-dummy_plot <- ggplot(data.frame(x = 1, y = 1), aes(x,y)) +
+corr_vars <- c(pbn = "PBs", sbn = "SBs", spn = "Spikelets")
+correlations[, cluster := factor(cluster, levels = cluster_order)]
+correlations[, variable := factor(plyr::revalue(variable, corr_vars),
+                                  levels = corr_vars)]
+corr_plot <- ggplot(correlations, aes(x = variable,
+                                      y = cluster,
+                                      fill = pearson_correlation)) +
   theme_void(base_size = 8) +
-  theme(axis.text.x = element_text(angle = 30,
-                                   hjust = 1,
-                                   colour = NA,
-                                   size = 8),
-        plot.title = element_text(hjust = 0.5),
-        panel.background = element_rect(fill = alpha(set1[[3]], 0.2),
-                                        colour = "black")) +
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 30, hjust = 1, size = 8),
+        panel.background = element_rect(colour = "black")) +
+  ggtitle("Phenotype") +
   scale_y_discrete(breaks = c(1:7), expand = c(0, 0)) +
-  scale_x_continuous(labels = MakeFakeLabels, expand = c(0, 0)) +
-  ggtitle("Phenotype correlation")
-dummy_plot
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_fill_gradient2(low = set1[[4]], mid = base_colour, high = set1[[5]],
+                       guide = guide_colourbar(title = "Pearson\ncorrelation")) +
+  geom_raster()
+corr_plot
 
 # generate a tree
 
@@ -157,17 +163,18 @@ p
 
 
 layout_matrix <- matrix(
-  c(rep(1, 10),
-    rep(2, 28),
-    rep(5, 3),
-    rep(3, 28),
-    rep(5, 3),
-    rep(4, 28)),
+  c(rep(1, 6),
+    rep(2, 16),
+    rep(5, 1),
+    rep(3, 12),
+    rep(5, 1),
+    rep(4, 16),
+    rep(5, 1)),
   nrow = 1)
 grobs <- arrangeGrob(p,
                      gp,
+                     corr_plot,
                      enrichment_plot,
-                     dummy_plot,
                      layout_matrix = layout_matrix)
 
 
