@@ -15,12 +15,12 @@ pca <- readRDS(pca_file)
 pheno <- fread(pheno_file)
 
 # make plotting data
-spec_order <- c("rufipogon",
-                "indica",
-                "japonica",
-                "sativa",
-                "barthii",
-                "glaberrima")
+spec_order <- c("rufipogon" = "O. rufipogon",
+                "indica" = "O. sativa",
+                "japonica" = "O. sativa",
+                "sativa" = "O. sativa ",
+                "barthii" = "O. barthii",
+                "glaberrima" = "O. glaberrima")
 
 pca_pheno <- cbind(pheno, pca$x)
 pca_pd <- melt(pca_pheno,
@@ -56,7 +56,9 @@ pcp <- ggplot(pca_pd, aes(x = Species, y = value, colour = Species)) +
   theme_grey(base_size = 8) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   facet_wrap(~ component, nrow = 1) +
-  xlab(NULL) + ylab("Value") + ggtitle("PCA on Cali phenotyping") +
+  xlab(NULL) +
+  ylab("Value") +
+  ggtitle("PCA on Cali phenotyping", label = "(A)") +
   scale_color_manual(values = pd[c(1, rep(2, 3), 3, 4)],
                      guide = FALSE) +
   geom_point(position = position_jitter(width = 0.4),
@@ -75,6 +77,7 @@ lp <- ggplot(loadings_pd, aes(x = phenotype,
   theme_grey(base_size = 8) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
   xlab(NULL) + ylab("Loading") +
+  ggtitle(label = "(B)") +
   scale_color_brewer(palette = "Set1", guide = FALSE) +
   facet_wrap(~ component, nrow = 1) +
   geom_segment(y = 0,
