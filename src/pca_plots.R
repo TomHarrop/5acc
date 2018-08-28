@@ -1,8 +1,9 @@
-library(cowplot) # in MS repo!!!
+library(cowplot) # add to MS repo!!!
 library(data.table)
 library(ggplot2)
 library(grid)
 library(gridExtra)
+library(png)
 
 names_file <- "data/phenotyping/phenotype_name_key.csv"
 pca_file <- "output/080_phenotype/cali_pca.Rds"
@@ -16,6 +17,7 @@ pheno_file <- "output/080_phenotype/cali.csv"
 pca <- readRDS(pca_file)
 pheno <- fread(pheno_file)
 pheno_names <- fread(names_file)
+b_png <- readPNG("test/test_resized.png")
 
 # make plotting data
 spec_order <- c("rufipogon" = "O. rufipogon",
@@ -45,27 +47,26 @@ setnames(loadings_wide, "rn", "phenotype")
 
 # cluster loadings for plot order
 hc <- hclust(dist(pca$rotation, method = "minkowski"),
-       method = "ward.D2")
-pheno_order <- hc$labels[hc$order]
-pheno_names[full_name %in% pheno_order]
-
-########
-# STOP #
-########
+             method = "ward.D2")
+pheno_order <- rev(hc$labels[hc$order])
+setkey(pheno_names, full_name)
+names_order <- pheno_names[pheno_order, short_name]
 
 # generate loadings plot data
 loadings_pd <- melt(loadings_wide,
-     id.vars = "phenotype",
-     measure.vars = paste0("PC", 1:4),
-     variable.name = "component")
+                    id.vars = "phenotype",
+                    measure.vars = paste0("PC", 1:4),
+                    variable.name = "component")
 loadings_pd[, phenotype := factor(phenotype, levels = pheno_order)]
-loadings_pd[, plyr::mapvalues(phenotype, pheno_order, pheno_names[full_name %in% pheno_order, short_name])]
+loadings_pd[, phenotype := plyr::mapvalues(phenotype,
+                                           pheno_order,
+                                           names_order)]
 
 # plot pca
 pd <- RColorBrewer::brewer.pal(4, "Paired")
 
 pcp <- ggplot(pca_pd, aes(x = Species, y = value, colour = Species)) +
-  theme_minimal(base_size = 8) +
+  theme_minimal(base_size = 8, base_family = "Helvetica") +
   theme(axis.text.x = element_text(angle = 30, hjust = 1, vjust = 1, face = "italic"),
         panel.border = element_rect(fill = NA, colour = "black")) +
   facet_wrap(~ component, nrow = 1) +
@@ -84,11 +85,12 @@ pcp <- ggplot(pca_pd, aes(x = Species, y = value, colour = Species)) +
 pcp
 
 # plot loadings
-lp <- ggplot(loadings_pd, aes(x = phenotype,
-                        yend = value,
-                        colour = phenotype,
-                        xend = phenotype)) +
-  theme_minimal(base_size = 8) +
+lp <- ggplot(loadings_pd,
+             aes(x = phenotype,
+                 yend = value,
+                 colour = phenotype,
+                 xend = phenotype)) +
+  theme_minimal(base_size = 8, base_family = "Helvetica") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         panel.border = element_rect(fill = NA, colour = "black")) +
   xlab(NULL) + ylab("Loading") +
@@ -102,13 +104,33 @@ lp
 
 
 # cowplot
-cowplot <- plot_grid(pcp, lp,
+vp <- viewport(width = unit(1, "npc"), height = unit(0.95, "npc"))
+b_grob <- rasterGrob(b_png, interpolate = TRUE) 
+barthi_grob <- ggplot(data.frame(x = 0.5, y = 0, label = 'italic("O. barthii")'),
+       aes(x = x, y = y, label = label)) +
+  theme_void(base_size = 8, base_family = "Helvetica") +
+  theme(plot.margin = unit(c(0, 0, 2, 0), "mm")) +
+  xlim(c(0, 1)) + ylim(c(0, 1)) +
+  annotation_custom(b_grob) +
+  geom_text(parse = TRUE)
+
+lhs <- plot_grid(barthi_grob, barthi_grob, barthi_grob, barthi_grob,
+          labels = c("A", "B", "C", "D"),
           ncol = 1,
-          align = "hv",
-          axis = "tblr",
-          labels = c("A", "B"),
-          label_size = 12)
-ggsave("test/pc1-4_cowplot.pdf", cowplot, width = 114, height = 225, units = "mm")
+          label_size = 10,
+          label_fontfamily = "Helvetica")
+
+pca_plots <- plot_grid(pcp, lp,
+                     ncol = 1,
+                     align = "hv",
+                     axis = "tblr",
+                     labels = c("E", "F"),
+                     label_size = 10,
+                     label_fontfamily = "Helvetica")
+
+cowplot <- plot_grid(lhs, pca_plots, ncol = 2, rel_widths = c(1, 2))
+
+ggsave("test/pc1-4_cowplot.pdf", cowplot, width = 178, height = 225, units = "mm")
 
 
 # draw plots
