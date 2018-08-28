@@ -4,6 +4,7 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 
+names_file <- "data/phenotyping/phenotype_name_key.csv"
 pca_file <- "output/080_phenotype/cali_pca.Rds"
 pheno_file <- "output/080_phenotype/cali.csv"
 
@@ -14,6 +15,7 @@ pheno_file <- "output/080_phenotype/cali.csv"
 # read data
 pca <- readRDS(pca_file)
 pheno <- fread(pheno_file)
+pheno_names <- fread(names_file)
 
 # make plotting data
 spec_order <- c("rufipogon" = "O. rufipogon",
@@ -45,6 +47,11 @@ setnames(loadings_wide, "rn", "phenotype")
 hc <- hclust(dist(pca$rotation, method = "minkowski"),
        method = "ward.D2")
 pheno_order <- hc$labels[hc$order]
+pheno_names[full_name %in% pheno_order]
+
+########
+# STOP #
+########
 
 # generate loadings plot data
 loadings_pd <- melt(loadings_wide,
@@ -52,6 +59,7 @@ loadings_pd <- melt(loadings_wide,
      measure.vars = paste0("PC", 1:4),
      variable.name = "component")
 loadings_pd[, phenotype := factor(phenotype, levels = pheno_order)]
+loadings_pd[, plyr::mapvalues(phenotype, pheno_order, pheno_names[full_name %in% pheno_order, short_name])]
 
 # plot pca
 pd <- RColorBrewer::brewer.pal(4, "Paired")

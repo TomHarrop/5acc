@@ -12,7 +12,7 @@ library(data.table)
 ###########
 
 
-names_file <- snakemake@intput[["names"]]
+names_file <- snakemake@input[["names"]]
 
 mtp_file <- snakemake@input[["mtp"]]
 cali_file <- snakemake@input[["cali"]]
