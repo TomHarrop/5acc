@@ -19,7 +19,7 @@ pca_file <- snakemake@output[["pca"]]
 
 # dev
 # cali_file <- "test/cali.csv"
-# clusters_file <- "test/annotated_clusters_scaled_l2fc.csv"
+# clusters_file <- "output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv"
 
 ########
 # MAIN #
@@ -42,15 +42,15 @@ cores <- dcast(long_cores, accession ~ cluster)
 all_clusters <- long_cores[, as.character(unique(cluster))]
 
 # run PCA on the cali results
-cali_vars <- c("RL",
-               "PbN",
-               "PbL",
-               "PbIntL",
-               "SbN",
-               "SbL",
-               "SbIntL",
-               "TbN",
-               "SpN")
+cali_vars <- c("rachis_length",
+               "primary_branch_number",
+               "primary_branch_length",
+               "primary_branch_internode_length",
+               "secondary_branch_number",
+               "secondary_branch_length",
+               "secondary_branch_internode_length",
+               "tertiary_branch_number",
+               "spikelet_number")
 pca_data <- pheno_cali[, lapply(.SD, as.numeric), .SDcols = cali_vars]
 pc <- prcomp(pca_data, center = TRUE, scale = TRUE)
 

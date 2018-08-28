@@ -110,7 +110,7 @@ rule correlate_clusters_to_cali:
         correlation = 'output/080_phenotype/cali_cluster_correlation.csv',
         pca = 'output/080_phenotype/cali_pca.Rds'
     threads:
-        1  
+        1
     log:
         log = 'output/000_logs/080_phenotype/correlate_clusters_to_cali.log'
     benchmark:
@@ -129,7 +129,7 @@ rule correlate_clusters_to_mtp:
     output:
         correlation = 'output/080_phenotype/mtp_cluster_correlation.csv'
     threads:
-        1  
+        1
     log:
         log = 'output/000_logs/080_phenotype/correlate_clusters_to_mtp.log'
     benchmark:
@@ -141,6 +141,7 @@ rule correlate_clusters_to_mtp:
 
 rule tidy_phenotype_data:
     input:
+        names = 'data/phenotyping/phenotype_name_key.csv',
         mtp = 'data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv',
         cali = 'data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt'
     output:

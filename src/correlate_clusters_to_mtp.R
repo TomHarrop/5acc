@@ -42,13 +42,13 @@ all_clusters <- long_cores[, as.character(unique(cluster))]
 
 # can we do a PCA on this... no, not enough indivs
 pc <- pheno_mtp[, prcomp(
-  data.table(pbn, sbn, spn),
+  data.table(primary_branch_number, secondary_branch_number, spikelet_number),
   center = TRUE, scale = TRUE
 )]
 pc_results <- cbind(pheno_mtp, pc$x)
 
 # summarise the phenotype results
-pheno_vars <- c("pbn", "sbn", "spn")
+pheno_vars <- c("primary_branch_number", "secondary_branch_number", "spikelet_number")
 median_pt <- pheno_mtp[, lapply(.SD, median, na.rm = TRUE),
                        by = species_simple, .SDcols = pheno_vars]
 
@@ -60,18 +60,18 @@ pheno_cores <- merge(cores,
 
 # calculate correlations
 pbn_corr <- pheno_cores[, lapply(.SD, function(x)
-  cor(x, pbn, method = "pearson")),
+  cor(x, primary_branch_number, method = "pearson")),
   .SDcols = all_clusters]
 sbn_corr <- pheno_cores[, lapply(.SD, function(x)
-  cor(x, sbn, method = "pearson")),
+  cor(x, secondary_branch_number, method = "pearson")),
   .SDcols = all_clusters]
 spn_corr <- pheno_cores[, lapply(.SD, function(x)
-  cor(x, spn, method = "pearson")),
+  cor(x, spikelet_number, method = "pearson")),
   .SDcols = all_clusters]
 
-all_corr_wide <- rbindlist(list(pbn = pbn_corr,
-                                sbn = sbn_corr,
-                                spn = spn_corr),
+all_corr_wide <- rbindlist(list(primary_branch_number = pbn_corr,
+                                secondary_branch_number = sbn_corr,
+                                spikelet_number = spn_corr),
                            idcol = "variable")
 all_corr <- melt(all_corr_wide,
                  id.vars = "variable",
