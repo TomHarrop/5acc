@@ -20,7 +20,7 @@ dds <- DESeq(dds,
              reduced = ~ accession + stage,
              parallel = TRUE)
 good_ones <- !is.na(results(dds)$padj)
-sum(!good_ones) # Deseq removes 20559 genes for quality reasons (low counts?????)
+sum(!good_ones) # Deseq removes 3438 genes for quality reasons (low counts?????)
 
 # Do I have to take the rlog again after I clean out the bad ones?
 dds <- dds[good_ones, ]
