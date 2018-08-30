@@ -3,36 +3,29 @@ library(ggplot2)
 library(ggtree)
 library(grid)
 library(gridExtra)
+library(cowplot)
 
 tpm_file <- "output/060_tpm/tpm_with_calls.Rds"
 cluster_file <- "output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv"
 wald_file <- "output/050_deseq/wald_tests/tfs/all/stage_within_species.csv"
 hyperg <- "output/070_clustering/tfs/hypergeom.csv"
 correlation_file <- "output/080_phenotype/mtp_cluster_correlation.csv"
-
-#############
-# FUNCTIONS #
-#############
-
-MakeFakeLabels <- function(x){
-  rep(accession_order[[which.max(nchar(accession_order))]], length(x))
-}
-
-# what about ALOGs (not annotated on TFDB)
-ALOG <- c('LOC_Os07g04670', 'LOC_Os02g07030', 'LOC_Os06g46030',
-          'LOC_Os02g41460', 'LOC_Os04g43580', 'LOC_Os10g33780',
-          'LOC_Os02g56610', 'LOC_Os01g61310', 'LOC_Os05g39500',
-          'LOC_Os05g28040')
+pheno_key_file <- "data/phenotyping/phenotype_name_key.csv"
 
 ###########
 # GLOBALS #
 ###########
 
-accession_order <- c("rufipogon", "indica", "barthii",  "glaberrima")
+spec_order <- c("rufipogon" = expression(italic("O. rufipogon")),
+                "indica" = expression(italic("O. sativa") ~ "indica"),
+                "barthii" = expression(italic("O. barthii")),
+                "glaberrima" = expression(italic("O. glaberrima")))
 
 # plot colours
 base_colour = "#FFFFFF"
-rdbu <- RColorBrewer::brewer.pal(7, "RdBu")
+rdbu <- RColorBrewer::brewer.pal(5, "RdBu")
+prgn <- RColorBrewer::brewer.pal(5, "PRGn")
+ylgnbu <- RColorBrewer::brewer.pal(5, "YlGnBu")
 set1 <- RColorBrewer::brewer.pal(9, "Set1")
 
 ########
@@ -45,6 +38,21 @@ tpm <- readRDS(tpm_file)
 wald_results <- fread(wald_file)
 hyperg_results <- fread(hyperg)
 correlations <- fread(correlation_file)
+pheno_key <- fread(pheno_key_file)
+
+# set up a theme for the heatmaps
+theme_hm <- theme_minimal(base_size = 8, base_family = "Helvetica") +
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90,
+                                   hjust = 1,
+                                   size = 8),
+        axis.text.y = element_blank(),
+        axis.title = element_blank(),
+        panel.background = element_rect(colour = "black"),
+        plot.margin = unit(c(0, 2, 0, 0), "mm"),
+        legend.position = "top")
+
+
 
 # average expression value per cluster, should be equivalent to cluster core
 clusters_long <- melt(clusters,
@@ -72,20 +80,19 @@ phylo <- ape::as.phylo(hc)
 # generate a heatmap for cores
 cluster_order <- hc$order
 cluster_heatmap[, cluster := factor(cluster, levels = cluster_order)]
-cluster_heatmap[, accession := factor(accession, levels = accession_order)]
+cluster_heatmap[, accession := factor(plyr::revalue(accession, spec_order),
+                                      levels = spec_order)]
 
 gp <- ggplot(cluster_heatmap, aes(y = cluster, x = accession, fill = core_value)) +
-  theme_void(base_size = 8) +
-  theme(plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 30, hjust = 1, size = 8),
-        panel.background = element_rect(colour = "black")) +
-  ggtitle("Core expression") +
+  theme_hm +
   scale_y_discrete(breaks = c(1:7), expand = c(0, 0)) +
-  scale_x_discrete(expand = c(0, 0)) +
-  scale_fill_gradient2(low = set1[[2]],
-                       mid = base_colour, 
-                       high = set1[[1]],
-                       guide = guide_colourbar(title = expression("Scaled" ~ "L"[2] * "FC"))) +
+  scale_x_discrete(expand = c(0, 0),
+                   labels = function(x) parse(text = x)) +
+  scale_fill_gradientn(colours = rdbu,
+                       guide = guide_colourbar(
+                         title = "Core expression\n(scaled L₂FC)",
+                         title.position = "top",
+                         title.hjust = 0.5)) +
   geom_raster()
 gp
 
@@ -113,77 +120,68 @@ enrichment_plot <- ggplot(hyperg_to_plot, aes(x = family,
                                               y = cluster,
                                               fill = enrichment,
                                               label = label2)) +
-  theme_void(base_size = 8) +
-  theme(plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 30, hjust = 1, size = 8),
-        panel.background = element_rect(colour = "black")) +
-  ggtitle("TF enrichment") +
+  theme_hm +
   scale_y_discrete(breaks = c(1:7), expand = c(0, 0)) +
   scale_x_discrete(expand = c(0, 0)) +
-  scale_fill_gradientn(colours = c(base_colour, set1[[3]]),
-                       guide = guide_colourbar(title = "Enrichment")) +
+  scale_fill_gradientn(colours = ylgnbu,
+                       na.value = base_colour,
+                       guide = guide_colourbar(title = "TF enrichment",
+                                               title.position = "top",
+                                               title.hjust = 0.5)) +
   geom_raster() +
   geom_text(parse = TRUE)
 enrichment_plot
 
 # phenotype correlations
-corr_vars <- c(pbn = "PBs", sbn = "SBs", spn = "Spikelets")
+corr_vars <- c("primary_branch_number", "secondary_branch_number", "spikelet_number")
 correlations[, cluster := factor(cluster, levels = cluster_order)]
-correlations[, variable := factor(plyr::revalue(variable, corr_vars),
-                                  levels = corr_vars)]
-corr_plot <- ggplot(correlations, aes(x = variable,
-                                      y = cluster,
-                                      fill = pearson_correlation)) +
-  theme_void(base_size = 8) +
-  theme(plot.title = element_text(hjust = 0.5),
-        axis.text.x = element_text(angle = 30, hjust = 1, size = 8),
-        panel.background = element_rect(colour = "black")) +
-  ggtitle("Phenotype") +
+correlations[, variable := factor(variable, levels = corr_vars)]
+correlations_pd <- merge(correlations,
+                         pheno_key,
+                         by.x = "variable",
+                         by.y = "full_name",
+                         all.x = TRUE,
+                         all.y = FALSE)
+
+corr_plot <- ggplot(correlations_pd, aes(x = short_name,
+                                         y = cluster,
+                                         fill = pearson_correlation)) +
+  theme_hm +
   scale_y_discrete(breaks = c(1:7), expand = c(0, 0)) +
   scale_x_discrete(expand = c(0, 0)) +
-  scale_fill_gradient2(low = set1[[4]], mid = base_colour, high = set1[[5]],
-                       guide = guide_colourbar(title = "Pearson\ncorrelation")) +
+  scale_fill_gradientn(colours = rev(prgn),
+                       guide = guide_colourbar(title = "Pearson correlation",
+                                               title.position = "top",
+                                               title.hjust = 0.5)) +
   geom_raster()
 corr_plot
 
 # generate a tree
 
 p <- ggtree(phylo) +
-  theme_void(base_size = 8) +
-  theme(axis.text.x = element_text(angle = 30,
-                                   hjust = 1,
-                                   colour = NA,
-                                   size = 8),
-        plot.title = element_text(hjust = 0.5)) +
+  theme_minimal(base_size = 8, base_family = "Helvetica") +
+  theme(panel.background = element_blank(),
+        panel.grid = element_blank(),
+        axis.title.x = element_blank(),
+        axis.text = element_blank(),
+        plot.margin = unit(c(0, 0, 0, 2), "mm")) +
+  ylab("Cluster") +
   scale_y_discrete(breaks = c(1:7)) +
-  scale_x_continuous(labels = MakeFakeLabels, expand = c(0, 0.5)) +
-  ggtitle("Cluster") +
+  scale_x_continuous(expand = c(0, 0.5)) +
   geom_tiplab()
 p
 
-
-layout_matrix <- matrix(
-  c(rep(1, 6),
-    rep(2, 16),
-    rep(5, 1),
-    rep(3, 12),
-    rep(5, 1),
-    rep(4, 16),
-    rep(5, 1)),
-  nrow = 1)
-grobs <- arrangeGrob(p,
+# cowplot it together
+cowplot <- plot_grid(p,
                      gp,
                      corr_plot,
                      enrichment_plot,
-                     layout_matrix = layout_matrix)
+                     nrow = 1,
+                     align = "h",
+                     axis = "tb",
+                     rel_widths = c(1.75, 4, 3, 7))
 
-
-cairo_pdf("test/cluster_heatmaps.pdf",
-          width = convertUnit(unit(180, "mm"), "in", valueOnly = TRUE),
-          height = convertUnit(unit(90, "mm"), "in", valueOnly = TRUE))
-grid.newpage()
-grid.draw(grobs)
-dev.off()
+ggsave("test/Figure_7.pdf", device = cairo_pdf, cowplot, width = 178, height = 100, units = "mm")
 
 
 ############################
@@ -229,6 +227,3 @@ QuickClusterPlot <- function(cluster_number) {
 }
 
 sapply(clusters[, unique(cluster)], QuickClusterPlot)
-
-
-
