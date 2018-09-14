@@ -20,7 +20,7 @@ dat <- dat %>%
 
 # Plot every mutant - Flipped -------------------------------------------------
 
-pdf("../fig/fig-08-mutant-TEST-flipped.pdf",
+pdf("../fig/fig-07-mutant-TEST-flipped.pdf",
     height = 4,
     width = 12)
 dat %>%
@@ -56,7 +56,7 @@ dev.off()
 
 # Plot every mutant - standard --------------------------------------------
 
-pdf("../fig/fig-08-mutant-TEST.pdf",
+pdf("../fig/fig-07-mutant-TEST.pdf",
     height = 12,
     width = 5)
 dat %>%
@@ -125,13 +125,13 @@ dat %>%
   labs(x = "Genotype",
        y = "Counts [n]",
        caption = str_wrap("Mutants of four AP2-EREBP genes have panicle
-                          phenotypes. When compared to the wild Type
-                          Erf48 produces slightly more primary
+                          phenotypes. When compared to the wild type,
+                          erf48 produces slightly more primary
                           branches.
                           Instead, plt8 produces less primary branches and 
                           slightly less spikelets. The mutants of the two 
-                          homologs erf142 (smos1) both produce less primary
-                          and secondary branches, and less spikelets (and
+                          homologs smos1 (erf142) and smos2 both produce less primary
+                          and secondary branches and less spikelets (and
                           overall smaller panicles - not shown).",
                           width = 80),
        colour = "")
@@ -202,7 +202,7 @@ arrange_plots <- function(name) {
             heights = c(1, 9))
 }
 
-pdf(file = "../fig/fig-08-mutants_with_stats.pdf",
+pdf(file = "../fig/fig-07-mutants_with_stats.pdf",
     width = 12,
     height = 14)
 map(names(p), arrange_plots)
