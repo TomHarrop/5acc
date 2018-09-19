@@ -250,7 +250,7 @@ rule deseq_tfs:
     script:
         'src/deseq_wald.R'
 
-rule deseq_expr:
+rule deseq_all:
     input:
         dds = 'output/050_deseq/filtered_dds.Rds'
     output:
