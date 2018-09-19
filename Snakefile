@@ -102,7 +102,7 @@ rule target:
         'output/080_phenotype/mtp_cluster_correlation.csv'
 
 # 080 correlations with phenotypic data
-rule correlate_clusters_to_cali:
+rule cali_pca:
     input:
         cali = 'output/080_phenotype/cali.csv',
         clusters = ('output/070_clustering/tfs/'
