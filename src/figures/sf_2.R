@@ -35,7 +35,19 @@ pheno <- melt(pheno_wide,
 pheno[, species_label := factor(plyr::revalue(Species, spec_order),
                                 levels = spec_order)]
 
-pheno_pd <- merge(pheno, pheno_names, by.x = "variable", by.y = "full_name", all.x = TRUE, all.y = FALSE)
+pheno_pd <- merge(pheno,
+                  pheno_names,
+                  by.x = "variable",
+                  by.y = "full_name",
+                  all.x = TRUE,
+                  all.y = FALSE)
+panel_order <- c("Rachis length",
+                 "Primary branch number",
+                 "Primary branch length", 
+                 "Secondary branch number",
+                 "Secondary branch length",
+                 "Spikelet number")
+pheno_pd[, text_name := factor(text_name, levels = panel_order)]
 
 # draw plot
 paired <- RColorBrewer::brewer.pal(4, "Paired")
@@ -56,5 +68,10 @@ gp <- ggplot(pheno_pd, aes(x = species_label, y = value, colour = species_label)
              alpha = 0.8,
              shape = 16)
 
-ggsave("test/SF1.pdf", device = cairo_pdf, gp, width = 87, height = 130, units = "mm")
+ggsave("test/SF2.pdf",
+       device = cairo_pdf,
+       gp,
+       width = 87,
+       height = 130,
+       units = "mm")
 

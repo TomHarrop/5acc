@@ -1,3 +1,7 @@
+#!/usr/bin/env Rscript
+
+# Figure 4: Clusters and correlation with phenotypes
+
 library(data.table)
 library(ggplot2)
 library(ggtree)
@@ -181,7 +185,7 @@ cowplot <- plot_grid(p,
                      axis = "tb",
                      rel_widths = c(1.75, 4, 3, 7))
 
-ggsave("test/Figure_7.pdf", device = cairo_pdf, cowplot, width = 178, height = 100, units = "mm")
+ggsave("test/Figure_4.pdf", device = cairo_pdf, cowplot, width = 178, height = 100, units = "mm")
 
 
 ############################
