@@ -1,0 +1,68 @@
+## five_accessions
+
+Analysis for https://github.com/TomHarrop/ird-5acc-paper
+
+### Requirements
+
+[`singularity`](https://singularity.lbl.gov) ≥ 2.4.1   
+[`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0, plus python3 package `psutil` for benchmarking
+
+### Reproduce the analysis
+
+`snakemake --use-singularity --cores={threads} --resources mem_gb={ram_limit}`
+
+### Software environment
+
+[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/996)
+
+A `singularity` container for the analysis is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://www.singularity-hub.org/collections/996). The `--use-singularity` flag tells `snakemake` to pull the container and run the analysis with the software installed in the container.
+
+The container includes: 
+
+- `bbmap` 38.00
+- `bedtools` 2.26.0
+- `cuffcompare` 2.2.1
+- `STAR` 2.5.4b
+- `wgsim` 0.3.1-r13
+- `python` 3.6.5, with packages:
+    + `cutadapt` 1.16
+    + `HTSeq` 0.9.1
+- `R` 3.4.4, with packages
+    + `Bioconductor` 3.6
+    + `data.table` 1.11.2
+    + `DESeq2` 1.18.1
+    + `GenomicRanges` 1.30.3
+    + `Mfuzz` 2.38.0
+    + `oryzr` 0.1.23
+    + `rtracklayer`  1.30.3
+    + `tidyverse` metapackage 1.2.1
+    + `valr` 0.4.0  
+
+### Workflow
+
+![](dag/dag.svg)
+
+### Input data files
+
+The following files are not distributed with the workflow, and must be in a `data` directory under the current working directory.
+
+- Raw reads:
+    + `data/reads/{sample}_R1.fastq.gz`
+    + `data/reads/{sample}_R2.fastq.gz`
+- Phenotyping data:
+    + `data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt`
+    + `data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv`
+    + `data/phenotyping/phenotype_name_key.csv`
+- From Phytozome:
+    + `data/genome/os/Osativa_323_v7.0.fa`
+    + `data/genome/os/Osativa_323_v7.0.gene_exons.gff3`
+- From http://rapdb.dna.affrc.go.jp/download/archive:
+    + `data/genome/os/irgsp1_rRNA_tRNA.gff`
+- From [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
+    + `data/genome/os/rice_osa1r7_rm.gff3`
+- From [ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3](ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3):
+    + `data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa`
+- From [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
+    + `data/genome/os/osa.gff3`
+- From http://plntfdb.bio.uni-potsdam.de/v3.0/export.php:
+    + `data/genome/os/tfdb.tab`

@@ -1,7 +1,0 @@
-Script,src/sh/firstMapping.sh
-branch,master
-hash,53f9b67cb1d7261fc77583ab618b33b69a3384a3
-date,2016-02-04
-STAR version,STAR_2.5.0c
-STAR index,output/star-index
-cutadapt folder,output/og/cutadapt
