@@ -95,7 +95,6 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 rule target:
     input:
         'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
-        'output/070_clustering/all/annotated_clusters_scaled_l2fc.csv',
         'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
         'output/050_deseq/wald_tests/tfs/sig/domestication.csv',
         'output/080_phenotype/cali_pca.Rds',
@@ -161,30 +160,6 @@ rule tidy_phenotype_data:
 
 
 # 070 clusters
-rule mfuzz_tfs_stat:
-    input:
-        dds = 'output/050_deseq/dds_tfs.Rds',
-        tfdb = 'output/010_data/tfdb.Rds'
-    output:
-        cluster_plot = 'output/070_clustering/tfs_stat/clusters.pdf',
-        hyper = 'output/070_clustering/tfs_stat/hypergeom.csv',
-        clusters = ('output/070_clustering/tfs_stat/'
-                    'annotated_clusters_scaled_zstat.csv')
-    params:
-        alpha = 0.1,
-        lfc_threshold = 0.5849625,  # log(1.5, 2)
-        seed = 1
-    threads:
-        10
-    log:
-        log = 'output/000_logs/070_clustering/mfuzz_stat_tfs.log'
-    benchmark:
-        'output/001_bench/070_clustering/mfuzz_stat_tfs.tsv'
-    singularity:
-        singularity_container
-    script:
-        'src/mfuzz_stat_tfs.R'
-
 rule mfuzz_tfs:
     input:
         dds = 'output/050_deseq/dds_tfs.Rds',
@@ -208,30 +183,6 @@ rule mfuzz_tfs:
         singularity_container
     script:
         'src/mfuzz_tfs.R'
-
-rule mfuzz_all:
-    input:
-        dds = 'output/050_deseq/filtered_dds.Rds',
-        tfdb = 'output/010_data/tfdb.Rds'
-    output:
-        cluster_plot = 'output/070_clustering/all/clusters.pdf',
-        hyper = 'output/070_clustering/all/hypergeom.csv',
-        clusters = ('output/070_clustering/all/'
-                    'annotated_clusters_scaled_l2fc.csv')
-    params:
-        alpha = 0.1,
-        lfc_threshold = 0.5849625,  # log(1.5, 2)
-        seed = 1
-    threads:
-        10
-    log:
-        log = 'output/000_logs/070_clustering/mfuzz_all.log'
-    benchmark:
-        'output/001_bench/070_clustering/mfuzz_all.tsv'
-    singularity:
-        singularity_container
-    script:
-        'src/mfuzz_all.R'
 
 # 060 calculate TPM
 rule calculate_cutoffs:
