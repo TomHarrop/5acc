@@ -4,18 +4,42 @@ library(ggpubr)
 library(gridExtra)
 library(ggbeeswarm)
 
-dat <- read_excel(path = "../data-raw/Mutant_AP2_PhenotypingData.xlsx")
-gene_names <- c(LOC_Os07g03250 = "plt8",
-                WT = "WT",
-                LOC_Os05g32270 = "erf142",
-                LOC_Os06g03710 = "smo2 ???",
-                LOC_Os08g31580 = "erf48")
+dat <- read_excel(path = "../data-raw/supp-table-PanicleTraitsPhenotypingAP2Mutant.xlsx")
 
 
-dat <- dat %>% 
-  mutate_at(vars(RL:SpN), as.numeric) %>% 
-  mutate(mutant_gene = gene_names[`Target Gene`]) %>%
-  gather(RL:SpN, key = "measure", value = "value")
+dat <- dat %>%
+  select(Id,
+         `Accession Name`,
+         `Pb_nb (PbN)`,
+         `Sb_nb (SbN)`,
+         `Sp_nb (SpN)`) %>%
+  mutate_at(vars(`Pb_nb (PbN)`,
+                 `Sb_nb (SbN)`),
+            as.numeric)  %>%
+  mutate(ID = str_split_fixed(Id, pattern = "_", n = 2)[, 1],
+         locus_id = case_when(ID == "CRL5" ~ "LOC_Os07g03250",
+                              ID == "SMOS1" ~ "LOC_Os05g32270",
+                              TRUE ~ ""),
+         is_wt = case_when(ID == "WT" ~ "WT",
+                                  TRUE ~ "mutant"),
+         ID = paste(ID, locus_id)) %>%
+  gather(`Pb_nb (PbN)`:`Sp_nb (SpN)`,
+         key = "measure",
+         value = "value")
+
+
+# dat <- read_excel(path = "../data-raw/Mutant_AP2_PhenotypingData.xlsx")
+
+# gene_names <- c(LOC_Os07g03250 = "plt8",
+#                 WT = "WT",
+#                 LOC_Os05g32270 = "erf142",
+#                 LOC_Os06g03710 = "smo2 ???",
+#                 LOC_Os08g31580 = "erf48")
+
+# dat <- dat %>% 
+#   mutate_at(vars(RL:SpN), as.numeric) %>% 
+#   mutate(mutant_gene = gene_names[`Target Gene`]) %>%
+#   gather(RL:SpN, key = "measure", value = "value")
 
 
 # Plot every mutant - Flipped -------------------------------------------------
@@ -24,46 +48,10 @@ pdf("../fig/fig-07-mutant-TEST-flipped.pdf",
     height = 4,
     width = 12)
 dat %>%
-  filter(Accession != "Kitake",
-         measure != "TbN") %>%
-  mutate(is_wt = case_when(`Target Gene` == "WT" ~ "WT",
-                           TRUE ~ "mutant")) %>%
-ggplot(aes(x = ID,
-           y = value, 
-           colour = is_wt)) +
-  geom_boxplot(varwidth = T,
-               colour = "black",
-               outlier.alpha = 0) +
-  # geom_jitter(height = 0,
-  #             alpha = .2) +
-  geom_quasirandom(alpha = .7
-                   # colour = "blue"
-                   ) +
-  facet_grid(Accession ~ measure,
-             scales = "free",
-             space = "free_y") +
-  coord_flip() +
-  theme_bw() +
-  # theme(axis.text.x = element_text(hjust = 1,
-  #                                  vjust = .5)) +
-  scale_color_viridis_d(begin = .2, end = .8) +
-  labs(x = "Value",
-       y = "Accession_mutant",
-       caption = "")
-  # ylim(0, NA)
-dev.off()
-
-
-# Plot every mutant - standard --------------------------------------------
-
-pdf("../fig/fig-07-mutant-TEST.pdf",
-    height = 12,
-    width = 5)
-dat %>%
-  filter(Accession != "Kitake",
-         measure != "TbN") %>%
-  mutate(is_wt = case_when(`Target Gene` == "WT" ~ "WT",
-                           TRUE ~ "mutant")) %>%
+  # filter(Accession != "Kitake",
+  #        measure != "TbN") %>%
+  # mutate(is_wt = case_when(`Target Gene` == "WT" ~ "WT",
+  #                          TRUE ~ "mutant")) %>%
   ggplot(aes(x = ID,
              y = value, 
              colour = is_wt)) +
@@ -75,7 +63,67 @@ dat %>%
   geom_quasirandom(alpha = .7
                    # colour = "blue"
   ) +
-  facet_grid(measure ~ Accession,
+  facet_grid(`Accession Name` ~ measure,
+             scales = "free",
+             space = "free_y") +
+  coord_flip() +
+  theme_bw() +
+  # theme(axis.text.x = element_text(hjust = 1,
+  #                                  vjust = .5)) +
+  scale_color_viridis_d(begin = .2, end = .8) +
+  labs(x = "Value",
+       y = "Accession_mutant",
+       caption = "")
+# ylim(0, NA)
+
+# ggplot(aes(x = ID,
+#            y = value, 
+#            colour = is_wt)) +
+#   geom_boxplot(varwidth = T,
+#                colour = "black",
+#                outlier.alpha = 0) +
+#   # geom_jitter(height = 0,
+#   #             alpha = .2) +
+#   geom_quasirandom(alpha = .7
+#                    # colour = "blue"
+#                    ) +
+#   facet_grid(Accession ~ measure,
+#              scales = "free",
+#              space = "free_y") +
+#   coord_flip() +
+#   theme_bw() +
+#   # theme(axis.text.x = element_text(hjust = 1,
+#   #                                  vjust = .5)) +
+#   scale_color_viridis_d(begin = .2, end = .8) +
+#   labs(x = "Value",
+#        y = "Accession_mutant",
+#        caption = "")
+#   # ylim(0, NA)
+dev.off()
+
+
+# Plot every mutant - standard --------------------------------------------
+
+pdf("../fig/fig-07-mutant-TEST.pdf",
+    height = 12,
+    width = 5)
+dat %>%
+  # filter(Accession != "Kitake",
+  #        measure != "TbN") %>%
+  # mutate(is_wt = case_when(`Target Gene` == "WT" ~ "WT",
+  #                          TRUE ~ "mutant")) %>%
+  ggplot(aes(x = ID,
+             y = value, 
+             colour = is_wt)) +
+  geom_boxplot(varwidth = T,
+               colour = "black",
+               outlier.alpha = 0) +
+  # geom_jitter(height = 0,
+  #             alpha = .2) +
+  geom_quasirandom(alpha = .7
+                   # colour = "blue"
+  ) +
+  facet_grid(measure ~ `Accession Name`,
              scales = "free",
              space = "free_x") +
   theme_bw() +
@@ -87,6 +135,35 @@ dat %>%
        x = "Accession_mutant",
        caption = "")
 # ylim(0, NA)
+
+
+# dat %>%
+#   filter(Accession != "Kitake",
+#          measure != "TbN") %>%
+#   mutate(is_wt = case_when(`Target Gene` == "WT" ~ "WT",
+#                            TRUE ~ "mutant")) %>%
+#   ggplot(aes(x = ID,
+#              y = value, 
+#              colour = is_wt)) +
+#   geom_boxplot(varwidth = T,
+#                colour = "black",
+#                outlier.alpha = 0) +
+#   # geom_jitter(height = 0,
+#   #             alpha = .2) +
+#   geom_quasirandom(alpha = .7
+#                    # colour = "blue"
+#   ) +
+#   facet_grid(measure ~ Accession,
+#              scales = "free",
+#              space = "free_x") +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 270,
+#                                    hjust = 0,
+#                                    vjust = .5)) +
+#   scale_color_viridis_d(begin = .2, end = .8) +
+#   labs(y = "Value",
+#        x = "Accession_mutant",
+#        caption = "")
 dev.off()
 
 # Plot every mutant - selected --------------------------------------------
