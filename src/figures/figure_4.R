@@ -20,14 +20,14 @@ pheno_key_file <- "data/phenotyping/phenotype_name_key.csv"
 # GLOBALS #
 ###########
 
-spec_order <- c("rufipogon" = expression(italic("O. rufipogon")),
-                "indica" = expression(italic("O. sativa") ~ "indica"),
-                "barthii" = expression(italic("O. barthii")),
-                "glaberrima" = expression(italic("O. glaberrima")))
+spec_order <- c("rufipogon" = "O. rufipogon",
+                "indica" = "O. sativa indica",
+                "barthii" = "O. barthii",
+                "glaberrima" = "O. glaberrima")
 
 # plot colours
 base_colour = "#FFFFFF"
-rdbu <- RColorBrewer::brewer.pal(5, "RdBu")
+rdbu <- rev(RColorBrewer::brewer.pal(5, "RdBu"))
 prgn <- RColorBrewer::brewer.pal(5, "PRGn")
 ylgnbu <- RColorBrewer::brewer.pal(5, "YlGnBu")
 set1 <- RColorBrewer::brewer.pal(9, "Set1")
@@ -61,7 +61,7 @@ theme_hm <- theme_minimal(base_size = 8, base_family = "Helvetica") +
 # average expression value per cluster, should be equivalent to cluster core
 clusters_long <- melt(clusters,
                       id.vars = c("MsuID", "cluster"),
-                      measure.vars = accession_order,
+                      measure.vars = names(spec_order),
                       variable.name = "accession",
                       value.name = "scaled_expression_value")
 
@@ -89,12 +89,12 @@ cluster_heatmap[, accession := factor(plyr::revalue(accession, spec_order),
 
 gp <- ggplot(cluster_heatmap, aes(y = cluster, x = accession, fill = core_value)) +
   theme_hm +
+  theme(axis.text.x = element_text(face = "italic")) +
   scale_y_discrete(breaks = c(1:7), expand = c(0, 0)) +
-  scale_x_discrete(expand = c(0, 0),
-                   labels = function(x) parse(text = x)) +
+  scale_x_discrete(expand = c(0, 0)) +
   scale_fill_gradientn(colours = rdbu,
                        guide = guide_colourbar(
-                         title = "Core expression\n(scaled L₂FC)",
+                         title = expression("Core" ~ L[2] * "FC (scaled)"),
                          title.position = "top",
                          title.hjust = 0.5)) +
   geom_raster()
@@ -153,7 +153,7 @@ corr_plot <- ggplot(correlations_pd, aes(x = short_name,
   theme_hm +
   scale_y_discrete(breaks = c(1:7), expand = c(0, 0)) +
   scale_x_discrete(expand = c(0, 0)) +
-  scale_fill_gradientn(colours = rev(prgn),
+  scale_fill_gradientn(colours = rdbu,
                        guide = guide_colourbar(title = "Pearson correlation",
                                                title.position = "top",
                                                title.hjust = 0.5)) +
@@ -179,13 +179,18 @@ p
 cowplot <- plot_grid(p,
                      gp,
                      corr_plot,
-                     enrichment_plot,
+                     #enrichment_plot,
                      nrow = 1,
                      align = "h",
                      axis = "tb",
-                     rel_widths = c(1.75, 4, 3, 7))
+                     rel_widths = c(1, 4, 3))
 
-ggsave("test/Figure_4.pdf", device = cairo_pdf, cowplot, width = 178, height = 100, units = "mm")
+ggsave("test/Figure_4.pdf",
+       device = cairo_pdf,
+       cowplot,
+       width = 178,
+       height = 100,
+       units = "mm")
 
 
 ############################
@@ -197,6 +202,36 @@ wald_results[, accession := gsub(".*group ([[:alpha:]]+).*", "\\1", wald_test)]
 acc_results <- wald_results[, .(accession, gene_id, log2FoldChange, lfcSE, symbols)]
 acc_results[!symbols == "", label := paste(gene_id, symbols, sep = " | ")]
 acc_results[symbols == "", label := gene_id]
+
+# plot cluster 5 only
+plot_genes <- clusters[cluster == 5, unique(MsuID)]
+my_fills <- RColorBrewer::brewer.pal(4, "Paired")
+pd2 <- acc_results[gene_id %in% plot_genes & accession %in% names(spec_order)]
+pd2[, accession := factor(plyr::revalue(accession, spec_order),
+                          levels = spec_order)]
+gp <- ggplot(pd2, aes(x = accession,
+                      y = log2FoldChange,
+                      ymin = log2FoldChange - lfcSE,
+                      ymax = log2FoldChange + lfcSE,
+                      fill = accession)) +
+  theme_grey(base_size = 6) +
+  theme(axis.text.x =  element_text(face = "italic"),
+        strip.text = element_text(face = "italic")) +
+  xlab(NULL) +
+  ylab(expression(L[2] * "FC ± SE (BM vs. SM)")) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  scale_fill_manual(values = my_fills, guide = FALSE) +  
+  facet_wrap(~ label, scales = "free_y", nrow = 4) +
+  geom_col(position = "dodge", alpha = 0.5) +
+  geom_errorbar(width = 0.1) 
+gp
+
+ggsave("test/Figure_S7.pdf",
+       gp,
+       device = cairo_pdf,
+       width = 178,
+       height = 225*2/3,
+       units = "mm")
 
 # generate plot data
 QuickClusterPlot <- function(cluster_number) {
