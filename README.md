@@ -4,8 +4,10 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Requirements
 
-[`singularity`](https://singularity.lbl.gov) ≥ 2.4.1   
-[`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0, plus python3 package `psutil` for benchmarking
+All software is containerised, so the only requirements are:
+
+- [`singularity`](https://singularity.lbl.gov) ≥ 2.4.1   
+- [`snakemake`](https://snakemake.readthedocs.io) ≥ 4.7.0, plus python3 package `psutil` for benchmarking
 
 ### Reproduce the analysis
 
@@ -15,7 +17,7 @@ Analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 [![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/996)
 
-A `singularity` container for the analysis is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://singularity-hub.org/containers/2779). The `--use-singularity` flag tells `snakemake` to pull the container and run the analysis with the software installed in the container.
+The `singularity` container for the analysis is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://singularity-hub.org/containers/2779). The `--use-singularity` flag tells `snakemake` to pull the container and run the analysis with the software installed in the container.
 
 The container includes: 
 
