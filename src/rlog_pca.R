@@ -1,3 +1,8 @@
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
 # this script:
 # - Selects genes that do pass DESeq2 quality cutoff
 # - rlog transform them
@@ -10,10 +15,11 @@
 
 library(tidyverse)
 library(DESeq2)
+BiocParallel::register(BiocParallel::MulticoreParam(snakemake@threads[[1]]))
 
 # Load deseqdataset and calculate rlog ------------------------------------
 
-dds <- readRDS("../data-raw/dds.Rds")
+dds <- readRDS(snakemake@input[["dds"]])
 design(dds) <- ~ accession + stage + accession:stage
 dds <- DESeq(dds,
              test = "LRT",
@@ -51,7 +57,10 @@ pcro <- as.data.frame(pcro); pcro$locus_id <- rownames(pcro)
 
 # save everything ---------------------------------------------------------
 
-save(rld, pc, pcx, pcro, file = "../data/rlog-pca.Rdata")
+saveRDS(rld, snakemake@output[["rld"]])
+saveRDS(pc, snakemake@output[["pc"]])
+saveRDS(pcx, snakemake@output[["pcx"]])
+saveRDS(pcro, snakemake@output[["pcro"]])
 
-
+sessionInfo()
 

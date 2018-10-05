@@ -98,7 +98,8 @@ rule target:
         'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
         'output/050_deseq/wald_tests/tfs/sig/domestication.csv',
         'output/080_phenotype/cali_pca.Rds',
-        'output/080_phenotype/mtp_cluster_correlation.csv'
+        'output/080_phenotype/mtp_cluster_correlation.csv',
+        'output/050_deseq/rlog_pca/pc.Rds'
 
 # 080 correlations with phenotypic data
 rule cali_pca:
@@ -227,6 +228,25 @@ rule calculate_tpm:
         'src/calculate_tpm.R'
 
 # 050 DEseq2
+rule rlog_pca:
+    input:
+        dds = 'output/050_deseq/dds.Rds'
+    output:
+        rld = 'output/050_deseq/rlog_pca/rld.Rds',
+        pc = 'output/050_deseq/rlog_pca/pc.Rds',
+        pcx = 'output/050_deseq/rlog_pca/pcx.Rds',
+        pcro = 'output/050_deseq/rlog_pca/pcro.Rds' 
+    threads:
+        20
+    log:
+        'output/000_logs/050_deseq/rlog_pca.log'
+    benchmark:
+        'output/001_bench/050_deseq/rlog_pca.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/rlog_pca.R'
+
 rule deseq_tfs:
     input:
         dds = 'output/050_deseq/dds_tfs.Rds'
