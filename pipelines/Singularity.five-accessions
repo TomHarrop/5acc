@@ -12,6 +12,7 @@ From: ubuntu:18.04
     apt-get update \
         && apt-get upgrade -y \
         && apt-get install -y \
+        bcftools \
         bedtools \
         build-essential \
         cufflinks \
@@ -24,6 +25,7 @@ From: ubuntu:18.04
         python3 \
         python3-pip \
         rna-star \
+        samtools \
         software-properties-common \
         wget
 
