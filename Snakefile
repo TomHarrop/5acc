@@ -56,7 +56,7 @@ def FindInputReads(wildcards):
 
 singularity_container = ('shub://TomHarrop/'
                          'singularity-containers:five-accessions'
-                         '@ae9d367dd147e8c013f143fc96ade097')
+                         '@ab79f5e150a441f2436984f9490a12af6862a0f7')
 
 
 os_genome = 'data/genome/os/Osativa_323_v7.0.fa'
@@ -436,6 +436,60 @@ rule parse_star_logs:
         singularity_container
     script:
         'src/parse_star_logs.R'
+
+rule sorted_bamfiles:
+    input:
+        expand(
+            ('output/030_mapping/sorted_bamfiles/'
+             '{species}_{stage}_{rep}.bam.bai'),
+            species=all_species,
+            stage=all_stages,
+            rep=all_reps)
+
+rule index_bamfiles:
+    input:
+        'output/030_mapping/sorted_bamfiles/{species}_{stage}_{rep}.bam'
+    output:
+        'output/030_mapping/sorted_bamfiles/{species}_{stage}_{rep}.bam.bai'
+    threads:
+        1
+    log:
+        'output/000_logs/030_mapping/{species}-{stage}-{rep}_index.log'
+    benchmark:
+        'output/001_bench/030_mapping/{species}-{stage}-{rep}_index.tsv'
+    priority:
+        10
+    singularity:
+        singularity_container
+    shell:
+        'samtools index {input} '
+        '&> {log}'
+
+rule sort_bamfiles:
+    input:
+        'output/030_mapping/star-pass2/{species}/{stage}_{rep}.Aligned.out.bam'
+    output:
+        'output/030_mapping/sorted_bamfiles/{species}_{stage}_{rep}.bam',
+    threads:
+        8
+    resources:
+        mem_gb = 40
+    params:
+        mpt = lambda wildcards, threads, resources: resources.mem_gb//threads
+    log:
+        'output/000_logs/030_mapping/{species}-{stage}-{rep}_sort.log'
+    benchmark:
+        'output/001_bench/030_mapping/{species}-{stage}-{rep}_sort.tsv'
+    singularity:
+        singularity_container
+    shell:
+        'samtools sort '
+        '-m {params.mpt}G '
+        '-@ {threads} '
+        '-O BAM '
+        '-o {output} '
+        '{input} '
+        '&> {log}'
 
 
 rule second_mapping:
