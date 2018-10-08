@@ -1,6 +1,6 @@
 ## five_accessions
 
-Analysis for https://github.com/TomHarrop/ird-5acc-paper
+RNAseq analysis for https://github.com/TomHarrop/ird-5acc-paper
 
 ### Requirements
 
@@ -22,12 +22,14 @@ The `singularity` container for the analysis is hosted at [shub://TomHarrop/sing
 The container includes: 
 
 - `bbmap` 38.00
+- `bcftools` 1.7
 - `bedtools` 2.26.0
 - `cuffcompare` 2.2.1
+- `samtools` 1.7
 - `STAR` 2.5.4b
 - `wgsim` 0.3.1-r13
 - `python` 3.6.5, with packages
-    + `cutadapt` 1.16
+    + `cutadapt` 1.18
     + `HTSeq` 0.9.1
 - `R` 3.4.4, with packages
     + `Bioconductor` 3.6

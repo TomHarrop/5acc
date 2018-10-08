@@ -8,5 +8,6 @@ dag/dag.svg: Snakefile
 	output/080_phenotype/cali_pca.Rds \
     output/080_phenotype/mtp_cluster_correlation.csv \
     output/050_deseq/rlog_pca/pc.Rds \
+    output/090_goi-variants/variants_filtered.vcf \
 	| dot -Tsvg \
 	> dag/dag.svg

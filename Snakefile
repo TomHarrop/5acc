@@ -99,7 +99,127 @@ rule target:
         'output/050_deseq/wald_tests/tfs/sig/domestication.csv',
         'output/080_phenotype/cali_pca.Rds',
         'output/080_phenotype/mtp_cluster_correlation.csv',
-        'output/050_deseq/rlog_pca/pc.Rds'
+        'output/050_deseq/rlog_pca/pc.Rds',
+        'output/090_goi-variants/variants_filtered.vcf'
+
+# 090 call variants on aligned reads
+rule call_variants:
+    input:
+        'output/090_goi-variants/variants_raw.vcf'
+    output:
+        'output/090_goi-variants/variants_filtered.vcf'
+    threads:
+        1
+    log:
+        'output/000_logs/090_goi-variants/call_variants.log'
+    benchmark:
+        'output/001_bench/090_goi-variants/call_variants.tsv'
+    singularity:
+        singularity_container
+    shell:
+        'bash -c \"'
+        'bcftools view {input} '
+        ' | '
+        'vcfutils.pl varFilter - '
+        '> {output} \"'
+        '&> {log}'
+
+rule mpileup:
+    input:
+        genome = os_genome,
+        regions = 'output/090_goi-variants/goi_regions.bed',
+        bam = expand(('output/090_goi-variants/subset_bamfiles/'
+                      '{species}_{stage}_{rep}.bam'),
+                     species=all_species,
+                     stage=all_stages,
+                     rep=all_reps)
+    output:
+        'output/090_goi-variants/variants_raw.vcf'
+    threads:
+        1
+    log:
+        'output/000_logs/090_goi-variants/mpileup.log'
+    benchmark:
+        'output/001_bench/090_goi-variants/mpileup.tsv'
+    singularity:
+        singularity_container
+    shell:
+        'bash -c \"'
+        'samtools mpileup '
+        '-u '
+        '-t DP '
+        '-f {input.genome} '
+        '-l {input.regions} '
+        '{input.bam} '
+        ' | '
+        'bcftools call '
+        '-O b '
+        '-vm '
+        '- '
+        ' > {output} '
+        '\" '
+        '&> {log}'
+
+rule subset_targets:
+    input:
+        expand('output/090_goi-variants/subset_bamfiles/{species}_{stage}_{rep}.bam',
+               species=all_species,
+               stage=all_stages,
+               rep=all_reps)
+
+rule subset_bamfiles:
+    input:
+        genome = os_genome,
+        regions = 'output/090_goi-variants/goi_regions.bed',
+        bam = ('output/030_mapping/sorted_bamfiles/'
+               '{species}_{stage}_{rep}.bam'),
+        bai = ('output/030_mapping/sorted_bamfiles/'
+               '{species}_{stage}_{rep}.bam.bai')
+    output:
+        'output/090_goi-variants/subset_bamfiles/{species}_{stage}_{rep}.bam'
+    threads:
+        1
+    log:
+        ('output/000_logs/090_goi-variants/'
+         'subset_bamfiles_{species}_{stage}_{rep}.log')
+    benchmark:
+        ('output/001_bench/090_goi-variants/'
+         'subset_bamfiles_{species}_{stage}_{rep}.tsv')
+    singularity:
+        singularity_container
+    shell:
+        'bash -c \"'
+        'samtools view '
+        '-b '
+        '-o {output} '
+        '-f 3 '
+        '-F 264 '
+        '-L {input.regions} '
+        '-T {input.genome} '
+        '{input.bam} '
+        '; '
+        'samtools index {output} '
+        '\" '
+        '&> {log} '
+
+
+rule extract_goi_regions:
+    input:
+        gff = os_gff
+    output:
+        bed = 'output/090_goi-variants/goi_regions.bed'
+    params:
+        goi = ['LOC_Os01g04800']
+    threads:
+        1
+    log:
+        'output/000_logs/090_goi-variants/extract_goi_regions.log'
+    benchmark:
+        'output/001_bench/090_goi-variants/extract_goi_regions.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/extract_goi_regions.R'
 
 # 080 correlations with phenotypic data
 rule cali_pca:
@@ -436,15 +556,6 @@ rule parse_star_logs:
         singularity_container
     script:
         'src/parse_star_logs.R'
-
-rule sorted_bamfiles:
-    input:
-        expand(
-            ('output/030_mapping/sorted_bamfiles/'
-             '{species}_{stage}_{rep}.bam.bai'),
-            species=all_species,
-            stage=all_stages,
-            rep=all_reps)
 
 rule index_bamfiles:
     input:
