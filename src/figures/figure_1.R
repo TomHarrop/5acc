@@ -193,7 +193,7 @@ og_plot <- PlotPng(og_png, "O. glaberrima")
 
 # layout figure 1
 top <- plot_grid(or_plot, os_plot, ob_plot, og_plot,
-                 labels = c("A", "B", "C", "D"),
+                 labels = c("A", NA, NA, NA),
                  align = "hv",
                  axis = "tblr",
                  ncol = 4,
@@ -204,7 +204,7 @@ bottom <- plot_grid(pcp1, lp1,
                     ncol = 2,
                     align = "hv",
                     axis = "tblr",
-                    labels = c("E", "F"),
+                    labels = c("B", "C"),
                     label_size = 10,
                     label_fontfamily = "Helvetica",
                     rel_widths = c(3, 1))

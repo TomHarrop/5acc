@@ -17,7 +17,7 @@ bed_file <- snakemake@output[["bed"]]
 
 # dev
 # gff_file <- "data/genome/os/Osativa_323_v7.0.gene_exons.gff3"
-# goi_list <- list("LOC_Os01g04800")
+# goi_list <- list("LOC_Os01g04800", "LOC_Os10g33780")
 # bed_file <- "test/goi.bed"
 
 ########
