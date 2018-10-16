@@ -9,8 +9,7 @@ load("../data/phenotypes.Rdata")
 pheno_cali %>%
   group_by(Bar_Code) %>%
   summarise(plants = max(Plant_nb),
-            panicles = max(Panicle_nb)) %>%
-  View()
+            panicles = max(Panicle_nb))
 
 # PCA ---------------------------------------------------------------------
 
@@ -71,7 +70,7 @@ pdf(file = "../fig/suppl-fig-phenotype-all-varieties.pdf",
     width = 11,
     height = 5.7,
     paper = "a4r")
-p2
+p2 %>% print()
 dev.off()
 
 
