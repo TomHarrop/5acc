@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+library(data.table)
+
 # Table S8: clustered-genes
 
 cluster_file <- "output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv"
