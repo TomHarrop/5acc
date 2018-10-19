@@ -227,7 +227,7 @@ cowplot2 <- plot_grid(pcp_all,
                       nrow = 2,
                       align = "hv",
                       axis = "tlbr")
-ggsave("test/SF1.pdf",
+ggsave("test/Figure_S3.pdf",
        cowplot2,
        width = 178,
        height = 225/2,
