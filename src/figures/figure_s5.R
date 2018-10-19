@@ -68,7 +68,7 @@ gp <- ggplot(pheno_pd, aes(x = species_label, y = value, colour = species_label)
              alpha = 0.8,
              shape = 16)
 
-ggsave("test/SF2.pdf",
+ggsave("test/Figure_S5.pdf",
        device = cairo_pdf,
        gp,
        width = 87,
