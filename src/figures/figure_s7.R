@@ -39,16 +39,18 @@ gp <- ggplot(dist_dt, aes(x = l1, y = l2, fill = Distance)) +
   theme_minimal(base_size = 8, base_family = "Helvetica") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         axis.ticks.length = unit(0, "mm")) +
+  coord_fixed() +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
   xlab(NULL) + ylab(NULL) +
   scale_fill_viridis_c() +
   geom_raster()
+gp
 
 ggsave("test/Figure_S7.pdf",
        device = cairo_pdf,
        gp,
        width = 178,
-       height = 100,
+       height = 178,
        units = "mm")
 
