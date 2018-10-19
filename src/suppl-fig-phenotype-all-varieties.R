@@ -49,17 +49,18 @@ p2 <-
   scale_fill_manual(values = c("white", "red")) +
   # coord_flip() +
   labs(title = paste0("Loadings of PC1 for all varieties of rice ",
-                        "that were phenotyped for this article"), 
+                        "that we phenotyped"), 
        x = "Rice Variety",
        y = "Loading on PC1",
        fill = "In RNA-seq", 
-       caption = str_wrap("PC1 splits wild and domesticated varieties.
-                          The varieties included in the RNAseq are displayed 
+       caption = str_wrap("Principal component analysis (PCA) of panicle phenotyping.
+                          PC1 splits wild and domesticated varieties.
+                          The varieties included in the RNAseq experiment are displayed 
                           in red. Those varieties tend to average the characterstic
-                          of their species of origin. All but Nipponbare, which was
-                          included because as reference. 
-                          For each variety, we have measured 3 panicles 
-                          from each of 1 to 3 plants.")) +
+                          of their species of origin (all but Nipponbare, which was
+                          included because as reference). 
+                          For each variety, we have measured from 3 to 9 panicles
+                          (3 panicles from each of 1 to 3 plants).")) +
   theme_bw() +
   theme(axis.text.x = element_text(hjust = 0,
                                    vjust = .5,
