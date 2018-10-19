@@ -226,12 +226,14 @@ gp <- ggplot(pd2, aes(x = accession,
   geom_errorbar(width = 0.1) 
 gp
 
-ggsave("test/Figure_S7.pdf",
+ggsave("test/Figure_S9.pdf",
        gp,
        device = cairo_pdf,
        width = 178,
        height = 225*2/3,
        units = "mm")
+
+quit("no")
 
 # generate plot data
 QuickClusterPlot <- function(cluster_number) {
