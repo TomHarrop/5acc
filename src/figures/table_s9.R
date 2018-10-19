@@ -12,7 +12,7 @@ all_results <- rbindlist(list(Asia = fread(as_de_file),
                          idcol = "Continent")
 all_results[, c("design", "wald_test", "RapID", "names", "OgroObjective", "OgroRef") := NULL]
 all_results[, mpv := mean(padj), by = gene_id]
-
 setorder(all_results, mpv, Continent, na.last = TRUE)
+all_results[, mpv := NULL]
 
 fwrite(all_results, "test/Table_S9.csv")
