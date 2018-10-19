@@ -45,4 +45,4 @@ setcolorder(mapping_stats,
 setorder(mapping_stats, Species, Stage, Replicate)
 
 # write output
-fwrite(mapping_stats, "test/Table S5.csv")
+fwrite(mapping_stats, "test/Table_S5.csv")
