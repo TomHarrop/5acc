@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+# Table S5: mapping stats
+
 library(data.table)
 
 star_logs <- fread("output/030_mapping/stats/star_logs.csv")
@@ -35,5 +37,5 @@ setcolorder(mapping_stats,
             c("Species", "Stage", "Replicate", names(cols_to_keep)[-1]))
 setorder(mapping_stats, Species, Stage, Replicate)
 
-fwrite(mapping_stats, "test/Table S1.csv")
+fwrite(mapping_stats, "test/Table S5.csv")
 
