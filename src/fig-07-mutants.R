@@ -29,7 +29,10 @@ dat <- dat %>%
                              measure == "Sp_nb (SpN)" ~ "Spikelets",
                              TRUE ~ measure),
          `Accession Name` = case_when(`Accession Name` == "Niponbarre" ~ "Nipponbare",
-                                      TRUE ~ `Accession Name`))
+                                      TRUE ~ `Accession Name`)) %>%
+  ## Mutant first in X axis
+  arrange(desc(ID)) %>%
+  mutate(ID = as_factor(ID))
 
 
 # Plot every mutant - standard --------------------------------------------
@@ -51,28 +54,31 @@ p <-
   theme(axis.text.x = element_text(angle = 270,
                                    hjust = 0,
                                    vjust = .5), 
-        legend.position = "top") +
+        legend.position = "top",
+        legend.background = element_rect(size=0.2,
+                                         linetype="solid",
+                                         colour = "grey80")) +
   scale_color_viridis_d(begin = .2,
                         end = .8) +
   guides(colour = guide_legend(title = NULL,
                               label.position = "right",
                               nrow=1,
                               override.aes = list(alpha = 1))) +
-  labs(title = "Phenotype of AP2 Mutants",
+  labs(# title = "Phenotype of AP2 Mutants",
+       # caption = str_wrap("Mutants of two AP2/EREBP-like genes,
+       #                    CRL5 and SMOS1, have defects in panicle architecture.
+       #                    The crl5 mutant produces fewer primary branches.
+       #                    The smos1 mutant produces fewer primary branches,
+       #                    secondary branches and spikelets.
+       #                    These two mutants are in different O. sativa genetic background:
+       #                    crl5 is in Kinmaze background and smos1 is in Nipponbare background.
+       #                    They are both compared with their own background WT variety.",
+       #                    width = 50),
        y = "Count (n)",
-       x = "",
-       caption = str_wrap("Mutants of two AP2/EREBP-like genes,
-                          CRL5 and SMOS1, have defects in panicle architecture.
-                          The crl5 mutant produces fewer primary branches.
-                          The smos1 mutant produces fewer primary branches,
-                          secondary branches and spikelets.
-                          These two mutants are in different O. sativa genetic background:
-                          crl5 is in Kinmaze background and smos1 is in Nipponbare background.
-                          They are both compared with their own background WT variety.",
-                          width = 50))
+       x = "")
 
 pdf("../fig/fig- panicle-mutants.pdf",
-    height = 8.5,
+    height = 7.8,
     width = 3.4)
 p %>% print()
 dev.off()
