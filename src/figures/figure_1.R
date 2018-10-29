@@ -127,10 +127,10 @@ pcp1 <- ggplot(pca_pd[component == "PC1"],
   geom_point(position = position_jitter(width = 0.4),
              size = 1,
              alpha = 0.8,
-             shape = 16) +
-  geom_boxplot(colour = alpha("black", 0.5),
-               fill = NA,
-               outlier.colour = NA)
+             shape = 16)
+  # + geom_boxplot(colour = alpha("black", 0.5),
+  #              fill = NA,
+  #              outlier.colour = NA)
 pcp_all <- ggplot(pca_pd[pv > 10],
                aes(x = Species, y = value, colour = Species)) +
   theme_minimal(base_size = 8, base_family = "Helvetica") +

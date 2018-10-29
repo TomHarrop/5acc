@@ -15,6 +15,7 @@ wald_file <- "output/050_deseq/wald_tests/tfs/all/stage_within_species.csv"
 hyperg <- "output/070_clustering/tfs/hypergeom.csv"
 correlation_file <- "output/080_phenotype/mtp_cluster_correlation.csv"
 pheno_key_file <- "data/phenotyping/phenotype_name_key.csv"
+cali_corr_file <- "output/080_phenotype/cali_cluster_correlation.csv"
 
 ###########
 # GLOBALS #
@@ -30,6 +31,7 @@ base_colour = "#FFFFFF"
 rdbu <- rev(RColorBrewer::brewer.pal(5, "RdBu"))
 prgn <- RColorBrewer::brewer.pal(5, "PRGn")
 ylgnbu <- RColorBrewer::brewer.pal(5, "YlGnBu")
+Purples <- RColorBrewer::brewer.pal(5, "Purples")
 set1 <- RColorBrewer::brewer.pal(9, "Set1")
 
 ########
@@ -43,6 +45,7 @@ wald_results <- fread(wald_file)
 hyperg_results <- fread(hyperg)
 correlations <- fread(correlation_file)
 pheno_key <- fread(pheno_key_file)
+cali_corr <- fread(cali_corr_file)
 
 # set up a theme for the heatmaps
 theme_hm <- theme_minimal(base_size = 8, base_family = "Helvetica") +
@@ -55,8 +58,6 @@ theme_hm <- theme_minimal(base_size = 8, base_family = "Helvetica") +
         panel.background = element_rect(colour = "black"),
         plot.margin = unit(c(0, 2, 0, 0), "mm"),
         legend.position = "top")
-
-
 
 # average expression value per cluster, should be equivalent to cluster core
 clusters_long <- melt(clusters,
@@ -89,15 +90,18 @@ cluster_heatmap[, accession := factor(plyr::revalue(accession, spec_order),
 
 gp <- ggplot(cluster_heatmap, aes(y = cluster, x = accession, fill = core_value)) +
   theme_hm +
-  theme(axis.text.x = element_text(face = "italic")) +
+  theme(axis.text.x = element_text(face = "italic"),
+        legend.position = "right",
+        legend.key.size = unit(0.8, "lines")) +
   scale_y_discrete(breaks = c(1:7), expand = c(0, 0)) +
   scale_x_discrete(expand = c(0, 0)) +
   scale_fill_gradientn(colours = rdbu,
-                       guide = guide_colourbar(
-                         title = expression("Core" ~ L[2] * "FC (scaled)"),
-                         title.position = "top",
-                         title.hjust = 0.5)) +
-  geom_raster()
+                       guide = guide_colourbar(title = NULL)) +
+                         #title = expression("L"[2] * "FC"),
+                         #title.position = "top",
+                         #title.hjust = 0.5)) +
+  geom_raster() +
+  ggtitle(expression("L"[2]*"FC"))
 gp
 
 # generate a heatmap for the hypergeom
@@ -160,8 +164,99 @@ corr_plot <- ggplot(correlations_pd, aes(x = short_name,
   geom_raster()
 corr_plot
 
-# generate a tree
+# horizontal bar plot
+corr_plot <- ggplot(correlations_pd[short_name == "SpN"],
+                    aes(y = pearson_correlation, x = cluster, fill = pearson_correlation)) +
+  theme_hm +
+  theme(panel.grid = element_blank(),
+        panel.background = element_blank(),
+        axis.line.x = element_line(),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 1)) +
+  coord_flip() +
+  scale_x_discrete(breaks = c(1:7), expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_viridis_c(guide = guide_colourbar(title = "Correlation with SpN",
+                                               title.position = "top",
+                                               title.hjust = 0.5)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 0) +
+  ylim(c(-1, 1))
 
+corr_plot2 <- ggplot(correlations_pd[short_name == "SBN"],
+                     aes(y = pearson_correlation, x = cluster, fill = pearson_correlation)) +
+  theme_hm +
+  theme(panel.grid = element_blank(),
+        panel.background = element_blank(),
+        axis.line.x = element_line(),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 1)) +
+  coord_flip() +
+  scale_x_discrete(breaks = c(1:7), expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_viridis_c(guide = guide_colourbar(title = "Correlation with SBN",
+                                               title.position = "top",
+                                               title.hjust = 0.5)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 0) +
+  ylim(c(-1, 1))
+
+corr_plot3 <- ggplot(correlations_pd[short_name == "PBN"],
+                     aes(y = pearson_correlation, x = cluster, fill = pearson_correlation)) +
+  theme_hm +
+  theme(panel.grid = element_blank(),
+        panel.background = element_blank(),
+        axis.line.x = element_line(),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 1)) +
+  coord_flip() +
+  scale_x_discrete(breaks = c(1:7), expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_viridis_c(guide = guide_colourbar(title = "Correlation with PBN",
+                                               title.position = "top",
+                                               title.hjust = 0.5)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 0) +
+  ylim(c(-1, 1))
+
+cali_corr[, cluster := factor(cluster, levels = cluster_order)]
+corr_plot4 <- ggplot(cali_corr[PC == "PC1"],
+                     aes(y = pearson_correlation, x = cluster, fill = pearson_correlation)) +
+  theme_hm +
+  theme(panel.grid = element_blank(),
+        panel.background = element_blank(),
+        axis.line.x = element_line(),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 1)) +
+  coord_flip() +
+  scale_x_discrete(breaks = c(1:7), expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  # scale_fill_viridis_c(guide = guide_colourbar(title = "Correlation with PC1",
+  #                                              title.position = "top",
+  #                                              title.hjust = 0.5)) +
+  scale_fill_viridis_c(guide = FALSE) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 0) +
+  ylim(c(-1, 1)) +
+  ggtitle("Correlation with PC1")
+corr_plot4
+
+# number of genes
+gene_no <- ggplot(clusters[, length(unique(MsuID)), by = cluster],
+                  aes(y = V1, x = cluster, fill = V1)) +
+  theme_hm +
+  theme(panel.grid = element_blank(),
+        panel.background = element_blank(),
+        axis.line.x = element_line(),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, vjust = 1)) +
+  coord_flip() +
+  scale_x_discrete(breaks = c(1:7), expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_gradientn(colours = Purples,
+                       guide = guide_colourbar(title = "Genes",
+                                               title.position = "top",
+                                               title.hjust = 0.5)) +
+  geom_bar(stat = "identity") +
+  geom_hline(yintercept = 0)
+gene_no
+
+# generate a tree
 p <- ggtree(phylo) +
   theme_minimal(base_size = 8, base_family = "Helvetica") +
   theme(panel.background = element_blank(),
@@ -192,6 +287,73 @@ ggsave("test/Figure_4.pdf",
        height = 100,
        units = "mm")
 
+
+cowplot <- plot_grid(p,
+                     gp,
+                     corr_plot,
+                     gene_no,
+                     #enrichment_plot,
+                     nrow = 1,
+                     align = "h",
+                     axis = "tb",
+                     rel_widths = c(1, 4, 1.5, 1.5))
+
+ggsave("test/Figure_4_spn.pdf",
+       device = cairo_pdf,
+       cowplot,
+       width = 178,
+       height = 100,
+       units = "mm")
+
+cowplot <- plot_grid(p,
+                     gp,
+                     corr_plot3,
+                     corr_plot2,
+                     corr_plot,
+                     #enrichment_plot,
+                     nrow = 1,
+                     align = "h",
+                     axis = "tb",
+                     rel_widths = c(1, 3, 2, 2, 2))
+ggsave("test/Figure_4_all.pdf",
+       device = cairo_pdf,
+       cowplot,
+       width = 178,
+       height = 100,
+       units = "mm")
+
+cowplot <- plot_grid(p,
+                     gp,
+                     corr_plot,
+                     #enrichment_plot,
+                     nrow = 1,
+                     align = "h",
+                     axis = "tb",
+                     rel_widths = c(1, 4, 3))
+ggsave("test/Figure_4_spn_only.pdf",
+       device = cairo_pdf,
+       cowplot,
+       width = 178,
+       height = 100,
+       units = "mm")
+
+
+
+
+cowplot <- plot_grid(p,
+                     gp,
+                     corr_plot4,
+                     #enrichment_plot,
+                     nrow = 1,
+                     align = "h",
+                     axis = "tb",
+                     rel_widths = c(1, 4, 3))
+ggsave("test/Figure_4_pc1.pdf",
+       device = cairo_pdf,
+       cowplot,
+       width = 178,
+       height = 100,
+       units = "mm")
 
 ############################
 # PLOT INDIVIDUAL CLUSTERS #
