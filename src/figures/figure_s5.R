@@ -16,11 +16,11 @@ setnames(pheno_wide,
          pheno_names[mtp_name != "", mtp_name],
          pheno_names[mtp_name != "", full_name])
 
-spec_order <- c("Oryza rufipogon" = expression(italic("O. rufipogon")),
-                "Oryza sativa indica" = expression(italic("O. sativa") ~ "indica"),
-                "Oryza sativa japonica temp" = expression(italic("O. sativa") ~ "japonica"),
-                "Ozyza Barthii" = expression(italic("O. barthii")),
-                "Oryza glaberrima" = expression(italic("O. glaberrima")))
+spec_order <- c("Oryza rufipogon" = "O. rufipogon",
+                "Oryza sativa indica" = "O. sativa indica",
+                "Oryza sativa japonica temp" = "O. sativa japonica",
+                "Ozyza Barthii" = "O. barthii",
+                "Oryza glaberrima" = "O. glaberrima")
 
 
 pheno <- melt(pheno_wide,
@@ -47,7 +47,16 @@ panel_order <- c("Rachis length",
                  "Secondary branch number",
                  "Secondary branch length",
                  "Spikelet number")
-pheno_pd[, text_name := factor(text_name, levels = panel_order)]
+panel_names <- c("Rachis length (cm)",
+                 "Primary branch number",
+                 "Primary branch length (cm)", 
+                 "Secondary branch number",
+                 "Secondary branch length (cm)",
+                 "Spikelet number")
+pheno_pd[, text_name := factor(plyr::mapvalues(text_name,
+                                               panel_order,
+                                               panel_names),
+                               levels = panel_names)]
 
 # draw plot
 paired <- RColorBrewer::brewer.pal(4, "Paired")
@@ -56,9 +65,9 @@ gp <- ggplot(pheno_pd, aes(x = species_label, y = value, colour = species_label)
   theme(panel.background = element_rect(colour = "black"),
         axis.text.x = element_text(angle = 90,
                                    hjust = 1,
-                                   vjust = 0.5),
+                                   vjust = 0.5,
+                                   face = "italic"),
         strip.placement = "outside") +
-  scale_x_discrete(labels = function(x) parse(text = x)) +
   scale_color_manual(values = paired[c(1, 2, 2, 3, 4)],
                      guide = FALSE) +
   xlab(NULL) + ylab(NULL ) +
