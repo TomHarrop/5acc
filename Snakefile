@@ -239,7 +239,7 @@ rule cali_pca:
     singularity:
         singularity_container
     script:
-        'src/correlate_clusters_to_cali.R'
+        'src/cali_pca.R'
 
 
 rule correlate_clusters_to_mtp:

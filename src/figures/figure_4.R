@@ -52,11 +52,12 @@ theme_hm <- theme_minimal(base_size = 8, base_family = "Helvetica") +
   theme(plot.title = element_text(hjust = 0.5),
         axis.text.x = element_text(angle = 90,
                                    hjust = 1,
+                                   vjust = 0.5,
                                    size = 8),
         axis.text.y = element_blank(),
         axis.title = element_blank(),
         panel.background = element_rect(colour = "black"),
-        plot.margin = unit(c(0, 2, 0, 0), "mm"),
+        plot.margin = unit(c(1, 2, 1, 0), "mm"),
         legend.position = "top")
 
 # average expression value per cluster, should be equivalent to cluster core
@@ -165,7 +166,7 @@ corr_plot <- ggplot(correlations_pd, aes(x = short_name,
 corr_plot
 
 # horizontal bar plot
-corr_plot <- ggplot(correlations_pd[short_name == "SpN"],
+spn_corr <- ggplot(correlations_pd[short_name == "SpN"],
                     aes(y = pearson_correlation, x = cluster, fill = pearson_correlation)) +
   theme_hm +
   theme(panel.grid = element_blank(),
@@ -175,14 +176,14 @@ corr_plot <- ggplot(correlations_pd[short_name == "SpN"],
   coord_flip() +
   scale_x_discrete(breaks = c(1:7), expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  scale_fill_viridis_c(guide = guide_colourbar(title = "Correlation with SpN",
-                                               title.position = "top",
-                                               title.hjust = 0.5)) +
+  scale_fill_viridis_c(guide = FALSE) +
   geom_bar(stat = "identity") +
   geom_hline(yintercept = 0) +
-  ylim(c(-1, 1))
+  ylim(c(-1, 1)) +
+  ggtitle("SpN")
+spn_corr
 
-corr_plot2 <- ggplot(correlations_pd[short_name == "SBN"],
+sbn_corr <- ggplot(correlations_pd[short_name == "SBN"],
                      aes(y = pearson_correlation, x = cluster, fill = pearson_correlation)) +
   theme_hm +
   theme(panel.grid = element_blank(),
@@ -192,14 +193,16 @@ corr_plot2 <- ggplot(correlations_pd[short_name == "SBN"],
   coord_flip() +
   scale_x_discrete(breaks = c(1:7), expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  scale_fill_viridis_c(guide = guide_colourbar(title = "Correlation with SBN",
-                                               title.position = "top",
-                                               title.hjust = 0.5)) +
+  scale_fill_viridis_c(guide = FALSE) +
   geom_bar(stat = "identity") +
   geom_hline(yintercept = 0) +
-  ylim(c(-1, 1))
+  ylim(c(-1, 1)) +
+  ggtitle("SBN")
 
-corr_plot3 <- ggplot(correlations_pd[short_name == "PBN"],
+
+
+
+pbn_corr <- ggplot(correlations_pd[short_name == "PBN"],
                      aes(y = pearson_correlation, x = cluster, fill = pearson_correlation)) +
   theme_hm +
   theme(panel.grid = element_blank(),
@@ -217,7 +220,7 @@ corr_plot3 <- ggplot(correlations_pd[short_name == "PBN"],
   ylim(c(-1, 1))
 
 cali_corr[, cluster := factor(cluster, levels = cluster_order)]
-corr_plot4 <- ggplot(cali_corr[PC == "PC1"],
+pc1_corr <- ggplot(cali_corr[PC == "PC1"],
                      aes(y = pearson_correlation, x = cluster, fill = pearson_correlation)) +
   theme_hm +
   theme(panel.grid = element_blank(),
@@ -227,15 +230,12 @@ corr_plot4 <- ggplot(cali_corr[PC == "PC1"],
   coord_flip() +
   scale_x_discrete(breaks = c(1:7), expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  # scale_fill_viridis_c(guide = guide_colourbar(title = "Correlation with PC1",
-  #                                              title.position = "top",
-  #                                              title.hjust = 0.5)) +
   scale_fill_viridis_c(guide = FALSE) +
   geom_bar(stat = "identity") +
   geom_hline(yintercept = 0) +
   ylim(c(-1, 1)) +
-  ggtitle("Correlation with PC1")
-corr_plot4
+  ggtitle("PC1")
+pc1_corr
 
 # number of genes
 gene_no <- ggplot(clusters[, length(unique(MsuID)), by = cluster],
@@ -307,9 +307,9 @@ ggsave("test/Figure_4_spn.pdf",
 
 cowplot <- plot_grid(p,
                      gp,
-                     corr_plot3,
-                     corr_plot2,
-                     corr_plot,
+                     spn_corr,
+                     sbn_corr,
+                     pbn_corr,
                      #enrichment_plot,
                      nrow = 1,
                      align = "h",
@@ -337,22 +337,24 @@ ggsave("test/Figure_4_spn_only.pdf",
        height = 100,
        units = "mm")
 
-
-
-
 cowplot <- plot_grid(p,
                      gp,
-                     corr_plot4,
-                     #enrichment_plot,
+                     pc1_corr,
+                     spn_corr,
+                     sbn_corr,
                      nrow = 1,
                      align = "h",
                      axis = "tb",
-                     rel_widths = c(1, 4, 3))
-ggsave("test/Figure_4_pc1.pdf",
+                     rel_widths = c(1.1, 4, 2, 2, 2),
+                     labels = c("A", "", "B", "", ""),
+                     label_size = 10,
+                     label_fontfamily = "Helvetica",
+                     label_x = c(0, -0.1, -0.1, 0, 0))
+ggsave("test/Figure_4_pc1_spn.pdf",
        device = cairo_pdf,
        cowplot,
        width = 178,
-       height = 100,
+       height = 75,
        units = "mm")
 
 ############################

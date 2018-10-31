@@ -18,7 +18,7 @@ correlation_file <- snakemake@output[["correlation"]]
 pca_file <- snakemake@output[["pca"]]
 
 # dev
-# cali_file <- "test/cali.csv"
+# cali_file <- "output/080_phenotype/cali.csv"
 # clusters_file <- "output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv"
 
 ########
@@ -57,16 +57,20 @@ pc <- prcomp(pca_data, center = TRUE, scale = TRUE)
 # bind the PC results and get the mean pc by species
 pheno_pc <- cbind(pheno_cali, data.table(pc$x))
 pheno_pc_means <- pheno_pc[, lapply(.SD, mean),
-                           by = Species,
+                           by = .(Species, Name),
                            .SDcols = colnames(pc$x)]
+
+# get the sequenced accessions
+seq_acc_names <- c("B88", "Tog5681", "W1654", "IR64")
 
 # merge the cluster results
 cluster_pc <- merge(cores,
-                    pheno_pc_means,
+                    pheno_pc_means[Name %in% seq_acc_names],
                     by.x = "accession",
                     by.y = "Species",
                     all.x = TRUE,
                     all.y = FALSE)
+cluster_pc[, Name := NULL]
 
 # run the correlations
 correlations_wide <- cor(data.frame(cluster_pc,

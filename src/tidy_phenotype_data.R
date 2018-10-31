@@ -60,10 +60,11 @@ pheno_cali[, Species := factor(plyr::revalue(species, cali_species_names),
 
 # this can be used for prcomp directly (plot the loadings separately)
 tidy_cali <- pheno_cali[, c(
-  "Species", "Sowing_nb", "Repet_nb", "Plant_nb", "Panicle_nb",
+  "Species", "Sowing_nb", "Repet_nb", "Plant_nb", "Panicle_nb", "Name",
   cali_vars
 ), with = FALSE]
 setnames(tidy_cali, cali_vars, cali_names)
+tidy_cali[grep("W1654", Name), Name := "W1654"] # fix the double naming of W1654
 
 # mung mtp
 mtp_accession_names <- c(B88 = "barthii",
