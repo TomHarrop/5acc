@@ -65,7 +65,7 @@ og_png <- readPNG(og_pan_file)
 # calculate percent variance for facet labels
 pct_var <- 100 * (pca$sdev^2 / sum(pca$sdev^2))
 pv_dt <- data.table(component = paste0("PC", 1:9),
-           pv = pct_var[1:9])
+                    pv = pct_var[1:9])
 pv_dt[, facet_label := paste0(component, " (", round(pv, 1), "%)")]
 
 # make plotting data
@@ -78,13 +78,13 @@ spec_order <- c("rufipogon" = "O. rufipogon",
 
 pca_pheno <- cbind(pheno, pca$x)
 pca_pd_long <- melt(pca_pheno,
-               id.vars = c("Species",
-                           "Sowing_nb",
-                           "Repet_nb",
-                           "Plant_nb",
-                           "Panicle_nb"),
-               measure.vars = paste0("PC", 1:9),
-               variable.name = "component")
+                    id.vars = c("Species",
+                                "Sowing_nb",
+                                "Repet_nb",
+                                "Plant_nb",
+                                "Panicle_nb"),
+                    measure.vars = paste0("PC", 1:9),
+                    variable.name = "component")
 
 pca_pd <- merge(pca_pd_long, pv_dt)
 pca_pd[, Species := factor(plyr::revalue(Species, spec_order),
@@ -115,7 +115,7 @@ loadings_pd[, phenotype := plyr::mapvalues(phenotype,
 pd <- RColorBrewer::brewer.pal(4, "Paired")
 
 pcp1 <- ggplot(pca_pd[component == "PC1"],
-              aes(x = Species, y = value, colour = Species)) +
+               aes(x = Species, y = value, colour = Species)) +
   theme_minimal(base_size = 8, base_family = "Helvetica") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, face = "italic"),
         panel.border = element_rect(fill = NA, colour = "black")) +
@@ -128,11 +128,11 @@ pcp1 <- ggplot(pca_pd[component == "PC1"],
              size = 1,
              alpha = 0.8,
              shape = 16)
-  # + geom_boxplot(colour = alpha("black", 0.5),
-  #              fill = NA,
-  #              outlier.colour = NA)
+# + geom_boxplot(colour = alpha("black", 0.5),
+#              fill = NA,
+#              outlier.colour = NA)
 pcp_all <- ggplot(pca_pd[pv > 10],
-               aes(x = Species, y = value, colour = Species)) +
+                  aes(x = Species, y = value, colour = Species)) +
   theme_minimal(base_size = 8, base_family = "Helvetica") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, face = "italic"),
         panel.border = element_rect(fill = NA, colour = "black")) +
@@ -153,20 +153,6 @@ pcp_all
 
 # plot loadings
 lp1 <- ggplot(loadings_pd[component == "PC1"],
-             aes(x = phenotype,
-                 yend = value,
-                 colour = phenotype,
-                 xend = phenotype)) +
-  theme_minimal(base_size = 8, base_family = "Helvetica") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-        panel.border = element_rect(fill = NA, colour = "black")) +
-  xlab(NULL) + ylab("Loading") +
-  scale_color_brewer(palette = "Set1", guide = FALSE) +
-  facet_wrap(~ component, nrow = 1) +
-  geom_segment(y = 0,
-               size = 1,
-               arrow = arrow(angle = 15, length = unit(0.1, "in")))
-lp_all <- ggplot(loadings_pd[component %in% pca_pd[pv > 10, unique(component)]],
               aes(x = phenotype,
                   yend = value,
                   colour = phenotype,
@@ -180,9 +166,93 @@ lp_all <- ggplot(loadings_pd[component %in% pca_pd[pv > 10, unique(component)]],
   geom_segment(y = 0,
                size = 1,
                arrow = arrow(angle = 15, length = unit(0.1, "in")))
+lp_all <- ggplot(loadings_pd[component %in% pca_pd[pv > 10, unique(component)]],
+                 aes(x = phenotype,
+                     yend = value,
+                     colour = phenotype,
+                     xend = phenotype)) +
+  theme_minimal(base_size = 8, base_family = "Helvetica") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        panel.border = element_rect(fill = NA, colour = "black")) +
+  xlab(NULL) + ylab("Loading") +
+  scale_color_brewer(palette = "Set1", guide = FALSE) +
+  facet_wrap(~ component, nrow = 1) +
+  geom_segment(y = 0,
+               size = 1,
+               arrow = arrow(angle = 15, length = unit(0.1, "in")))
 
 lp1
 lp_all
+
+# correlation plot
+CorrelateColumns <- function(x_col, y_col, pheno_data = pheno) {
+  my_pd <- pheno_data[, c(x_col, y_col, "Species"), with = FALSE]
+  print(my_pd)
+  setnames(my_pd, c(x_col, y_col), c("x", "y"))
+  my_pd[, c("x_col", "y_col") := .(x_col, y_col)]
+  return(my_pd)
+}
+
+pt_to_plot <- c("spikelet_number",
+                "secondary_branch_number",
+                "primary_branch_number")
+all_combos <- lapply(pt_to_plot, function(x)
+  lapply(pt_to_plot, function(y)
+    if (x != y) {CorrelateColumns(x, y)}))
+corr_pd <- rbindlist(lapply(all_combos, rbindlist))
+corr_pd[, cor := cor(x, y), by = .(Species, x_col, y_col)]
+corr_pd[, Species := factor(plyr::revalue(Species, spec_order),
+                            levels = unique(spec_order))]
+
+PlotCorrelation <- function(x_name,
+                            y_name,
+                            correlation_pd = corr_pd,
+                            names = pheno_names) {
+  my_pd <- correlation_pd[x_col == x_name
+                          & y_col == y_name]
+  my_pd[, lab := NA]
+  my_models <- my_pd[, .(mod = list(lm(y ~ x))), by = Species]
+  my_labs <- my_pd[, .(cor = cor[[1]],
+                       x = max(x)),
+                   by = Species]
+  my_labs <- merge(my_labs, my_models)
+  my_labs[, y := predict(mod[[1]], data.frame(x = x)), by = Species]
+  my_labs[, lab := paste("italic(r) ==", round(cor, 2))]
+  ggplot(my_pd, aes(x = x, y = y, label = lab, colour = Species)) +
+    theme_minimal(base_size = 8, base_family = "Helvetica") +
+    theme(strip.text = element_text(face= "italic")) +
+    facet_wrap(~Species, nrow = 1) +
+    xlab(names[full_name == x_name, short_name]) +
+    ylab(names[full_name == y_name, short_name]) +
+    # scale_fill_gradient(
+    #   low = "#c6dbef",
+    #   high = "#08519c",
+    #   limits=c(0, 80),
+    #   guide = FALSE) + 
+    # geom_hex(bins = 20) +
+    geom_point(alpha = 0.5,
+               size = 1,
+               shape = 16) +
+    scale_color_manual(values = pd[c(1, 2, 3, 4)],
+                       guide = FALSE) +
+    geom_smooth(method = "lm",
+                se = FALSE,
+                size = 0.5,
+                colour = alpha("black", 0.5)) +
+    geom_text(data = my_labs,
+              parse = TRUE,
+              hjust = 1.1,
+              vjust = 0,
+              size = 2,
+              colour = "black")
+}
+pbn_spn <- PlotCorrelation("primary_branch_number", "spikelet_number")
+pbn_spn
+sbn_spn <- PlotCorrelation("secondary_branch_number", "spikelet_number") +
+  guides(fill = guide_colourbar(title = "Count")) +
+  theme(legend.key.size = unit(0.8, "lines")) +
+  scale_y_continuous(expand = expand_scale(mult = 0.1))
+sbn_pbn <- PlotCorrelation("secondary_branch_number", "primary_branch_number")
 
 # plot pngs
 ob_plot <- PlotPng(ob_png, "O. barthii")
@@ -200,7 +270,7 @@ top <- plot_grid(or_plot, os_plot, ob_plot, og_plot,
                  label_size = 10,
                  label_fontfamily = "Helvetica")
 
-bottom <- plot_grid(pcp1, lp1,
+middle <- plot_grid(pcp1, lp1,
                     ncol = 2,
                     align = "hv",
                     axis = "tblr",
@@ -209,16 +279,26 @@ bottom <- plot_grid(pcp1, lp1,
                     label_fontfamily = "Helvetica",
                     rel_widths = c(3, 1))
 
-cowplot <- plot_grid(top, bottom, align = "v",
+bottom <- plot_grid(pbn_spn, sbn_spn, sbn_pbn,
+                    ncol = 1,
+                    align = "hv",
+                    axis = "tblr",
+                    labels = c("D"),
+                    label_size = 10,
+                    label_fontfamily = "Helvetica")
+
+cowplot <- plot_grid(top,
+                     middle,
+                     bottom,
+                     align = "v",
                      axis = "l",
-                     
-          ncol = 1, 
-          rel_heights = c(1, 1))
+                     ncol = 1, 
+                     rel_heights = c(2, 2, 4))
 
 ggsave("test/Figure_1.pdf",
        cowplot,
        width = 178,
-       height = 225/2,
+       height = 225,
        units = "mm")
 
 # layout SF1
