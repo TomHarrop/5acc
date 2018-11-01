@@ -220,7 +220,8 @@ PlotCorrelation <- function(x_name,
   my_labs[, lab := paste("italic(r) ==", round(cor, 2))]
   ggplot(my_pd, aes(x = x, y = y, label = lab, colour = Species)) +
     theme_minimal(base_size = 8, base_family = "Helvetica") +
-    theme(strip.text = element_text(face= "italic")) +
+    theme(strip.text = element_text(face= "italic"),
+          panel.border = element_rect(fill = NA, colour = "black")) +
     facet_wrap(~Species, nrow = 1) +
     xlab(names[full_name == x_name, short_name]) +
     ylab(names[full_name == y_name, short_name]) +
