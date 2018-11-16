@@ -35,10 +35,10 @@ p2 <-
          in_rnaseq = case_when(Name %in%
                                  pheno_mnp$species ~ "yes",
                                TRUE ~ "no"),
-         Origin = case_when(Origin == "Ob" ~ "O. barthii \n African - Wild",
-                            Origin == "Og" ~ "O. glaberrima \n African - Domesticated",
-                            Origin == "Or" ~ "O. rufipogon \n Asian - Wild",
-                            Origin == "Os" ~ "O. sativa \n Asian - Domesticated")) %>%
+         Origin = case_when(Origin == "Ob" ~ "O. barthii",
+                            Origin == "Og" ~ "O. glaberrima",
+                            Origin == "Or" ~ "O. rufipogon",
+                            Origin == "Os" ~ "O. sativa")) %>%
   ggplot(aes(x = reorder(Name, PC1), 
              y = PC1,
              fill = in_rnaseq)) +
@@ -64,7 +64,8 @@ p2 <-
   theme_bw() +
   theme(axis.text.x = element_text(hjust = 0,
                                    vjust = .5,
-                                   angle = 270)) 
+                                   angle = 270),
+        strip.text = element_text(face = "italic")) 
 
 # a4 = 8.27 × 11.69 inches
 pdf(file = "../fig/suppl-fig-phenotype-all-varieties.pdf",
