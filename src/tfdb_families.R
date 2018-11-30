@@ -11,7 +11,7 @@ library(data.table)
 
 raw_tfdb_file <- snakemake@input[["tfdb"]]
 raw_families_file <- snakemake@input[["families"]]
-output_file <- snakemake@input[["tfdb_with_families"]]
+output_file <- snakemake@output[["tfdb_with_families"]]
 
 # dev
 # raw_tfdb_file <- "data/genome/os/tfdb.tab"
