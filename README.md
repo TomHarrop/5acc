@@ -70,3 +70,5 @@ The following files are not distributed with the workflow, and must be in a `dat
     + `data/genome/os/osa.gff3`
 - From http://plntfdb.bio.uni-potsdam.de/v3.0/export.php:
     + `data/genome/os/tfdb.tab`
+- From http://planttfdb.cbi.pku.edu.cn/download/TF_list:
+    + `data/genome/os/Osj_TF_list`
