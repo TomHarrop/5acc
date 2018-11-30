@@ -751,7 +751,7 @@ rule repair:
 # 010 prepare data
 rule tfdb_families:
     input:
-        tfdb = 'data/genome/os/tfdb.tab'
+        tfdb = 'data/genome/os/tfdb.tab',
         families = 'data/genome/os/Osj_TF_list'
     output:
         tfdb_with_families = 'output/010_data/tfdb_families.Rds'
