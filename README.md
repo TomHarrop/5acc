@@ -72,3 +72,5 @@ The following files are not distributed with the workflow, and must be in a `dat
     + `data/genome/os/tfdb.tab`
 - From http://planttfdb.cbi.pku.edu.cn/download/TF_list:
     + `data/genome/os/Osj_TF_list`
+- Table 1 from Arora *et al.* 2007 ([10.1186/1471-2164-8-242](https://doi.org/10.1186/1471-2164-8-242)):
+    + data/genome/os/arora.csv
