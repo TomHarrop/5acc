@@ -10,10 +10,9 @@ gm_mean <- function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
 }
 
-vst_file <- "output/050_deseq/vst.Rds"
 tfdb_file <- "output/010_data/tfdb.Rds"
-# test with domestication genes
-dom_genes_file <- "output/050_deseq/wald_tests/tfs/sig/domestication.csv"
+families_file <- "output/010_data/tfdb_families.Rds"
+vst_file <- "output/050_deseq/vst.Rds"
 pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
 
 spec_order <- c("or" = "O. rufipogon",
@@ -28,9 +27,12 @@ spec_order <- c("or" = "O. rufipogon",
 
 # data
 vst <- readRDS(vst_file)
-dom_genes <- fread(dom_genes_file)
 pcro <- data.table(readRDS(pcro_file))
 tfdb <- readRDS(tfdb_file)
+families <- readRDS(families_file)
+
+# remove underscores from MADS gene families
+families[grepl("_", Class), Class := gsub("_.*$", "", Class)]
 
 # list of genes
 ap2_genes <- tfdb[Family == "AP2-EREBP", unique(`Protein ID`)]
@@ -68,8 +70,8 @@ v_lim <- c(-v_max,
 
 # for now this relies on the objects in the environment
 PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
-  # plot_genes <- plot_ap2
-  # plot_title <- "AP2"
+   #  plot_genes <- plot_mads
+   # plot_title <- "AP2"
   
   # cut by posn on PC5
   pd <- mean_vst[gene_id %in% plot_genes]
@@ -121,14 +123,17 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
     geom_raster()
   
   # family panel, dummy for now
-  pd[, family := sample(letters[1:2])[[1]], by = gene_id]
+  pd[, family := families[`Protein ID` == gene_id, Class[[1]]], by = gene_id]
+  pd[, family := factor(family, levels = unique(family))]
+  pd[is.na(family), family := "Other"] 
   famplot <- ggplot(pd, aes(y = label, x = "Type", fill = family)) +
     theme_minimal(base_size = 8, base_family = "Helvetica") +
     theme(strip.text.y = element_blank(),
           axis.text = element_blank(),
           axis.text.x = element_blank(),
           legend.key.size = unit(0.8, "lines"),
-          legend.justification = "left") +
+          legend.justification = "left",
+          panel.grid = element_blank()) +
     xlab(NULL) + ylab(NULL) +
     scale_x_discrete(expand = c(0, 0)) +
     scale_y_discrete(expand = c(0, 0)) +
@@ -156,7 +161,8 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
   famplot_legend <- gtable_filter(famplotg, "guide-box")
   hmg_legend <- gtable_filter(hmg, "guide-box")
   
-  famplot_legend$widths <- hmg_legend$widths
+  # unify the legend widths
+  hmg_legend$widths <- famplot_legend$widths
   
   both_legends <- gtable_matrix(name = "legends",
                                 grobs = matrix(list(hmg_legend, famplot_legend),
