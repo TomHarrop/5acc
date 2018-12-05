@@ -140,7 +140,8 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
     
     # family panel, dummy for now
     pd[, family := families[`Protein ID` == gene_id, Class[[1]]], by = gene_id]
-    pd[, family := factor(family, levels = unique(family))]
+    pd[, family := factor(family,
+                          levels = sort(unique(as.character(family))))]
     pd[is.na(family), family := "Other"] 
     famplot <- ggplot(pd, aes(y = label, x = "Type", fill = family)) +
         theme_minimal(base_size = 8, base_family = "Helvetica") +
@@ -213,12 +214,10 @@ cowplot <- plot_grid(ap2_gt,
                      labels = "C",
                      label_size = 10,
                      label_fontfamily = "Helvetica")
+
 ggsave("test/Figure_3C.pdf",
        device = cairo_pdf,
        cowplot,
        width = 178,
        height = 150,
        units = "mm")
-
-
-
