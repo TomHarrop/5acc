@@ -15,6 +15,8 @@ families_file <- "output/010_data/tfdb_families.Rds"
 vst_file <- "output/050_deseq/vst.Rds"
 pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
 arora_file <- "data/genome/os/arora.csv"
+arora_subclades_file <- "data/genome/os/arora_subclades.csv"
+
 
 spec_order <- c("or" = "O. rufipogon",
                 "osi" = "O. sativa indica",
@@ -32,12 +34,22 @@ pcro <- data.table(readRDS(pcro_file))
 tfdb <- readRDS(tfdb_file)
 families <- readRDS(families_file)
 arora <- fread(arora_file)
+arora_subclades <- fread(arora_subclades_file)
 
 # use Arora classes for MADS genes
 families[Family == "MADS",
          Class := arora[TIGR == `Protein ID`, unique(type)],
          by = `Protein ID`]
 families[Family == "MADS" & grepl("_", Class), Class := NA]
+
+# add subclades where possible
+arora_subclades[, arora_subclade := sub("-like", "", arora_subclade)]
+arora_subclade_genes <- arora_subclades[!is.na(arora_subclade),
+                                        unique(gene_id)]
+families[`Protein ID` %in% arora_subclade_genes,
+         Class := arora_subclades[gene_id == `Protein ID`,
+                              unique(arora_subclade)],
+         by = `Protein ID`]
 
 # list of genes
 ap2_genes <- tfdb[Family == "AP2-EREBP", unique(`Protein ID`)]
@@ -74,8 +86,8 @@ v_lim <- c(-v_max,
 
 # for now this relies on the objects in the environment
 PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
-    # plot_genes <- plot_mads
-    # plot_title <- "AP2"
+    #plot_genes <- plot_mads
+    #plot_title <- "AP2"
     
     # cut by posn on PC5
     pd <- mean_vst[gene_id %in% plot_genes]
@@ -141,7 +153,7 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
         xlab(NULL) + ylab(NULL) +
         scale_x_discrete(expand = c(0, 0)) +
         scale_y_discrete(expand = c(0, 0)) +
-        scale_fill_brewer(palette = "Set1",
+        scale_fill_brewer(palette = "Set3",
                           guide = guide_legend(title = "Type")) +
         facet_grid(cut_row ~ "Type", scales = "free_y", space = "free_y") +
         geom_raster()
@@ -168,17 +180,26 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
     # unify the legend widths
     hmg_legend$widths <- famplot_legend$widths
     
+    # combine the legends
     both_legends <- gtable_matrix(name = "legends",
                                   grobs = matrix(list(hmg_legend, famplot_legend),
                                                  ncol = 1),
                                   widths = hmg_legend$widths,
                                   heights = unit(c(1, 1), "null"))
-    both_legends2 <- gtable_add_rows(both_legends, unit(0.5, "null"), 1)
-    both_legends3 <- gtable_add_rows(both_legends2, unit(2, "null"), -1)
-    both_legends4 <- gtable_add_rows(both_legends3, unit(2, "null"), 0)
     
+    # add room between legends
+    both_legends$heights <- unit(c(0.3, 0.3), "npc") # specify heights
+    both_legends2 <- gtable_add_row_space(both_legends, unit(0.05, "npc")) # between
+    both_legends3 <- gtable_add_rows(both_legends2, unit(0.15, "npc"), 0) # top
+    both_legends4 <- gtable_add_rows(both_legends3, unit(0.2, "npc"), -1) # bottom
+    
+    # put the legend in the main plot
     hmg5 <- gtable_remove_grobs(hmg4, "guide-box")
-    hmg6 <- gtable_add_grob(hmg5, both_legends4, 8, 14, 10, 14)
+    hmg6 <- gtable_add_grob(hmg5, both_legends4, 8, 14, 10, 14,
+                            name = "both_legends")
+    
+    # add width for the legends
+    hmg6$widths[[14]] <- famplot_legend$widths
     
     return(hmg6)
 }
@@ -198,4 +219,6 @@ ggsave("test/Figure_3C.pdf",
        width = 178,
        height = 150,
        units = "mm")
+
+
 
