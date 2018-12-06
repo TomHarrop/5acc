@@ -18,9 +18,13 @@ dat <- dat %>%
          locus_id = case_when(ID == "CRL5" ~ "LOC_Os07g03250",
                               ID == "SMOS1" ~ "LOC_Os05g32270",
                               TRUE ~ ""),
+         ID = case_when(ID == "CRL5" ~ tolower(ID),
+                        ID == "SMOS1" ~ tolower(ID),
+                        TRUE ~ ID),
          is_wt = case_when(ID == "WT" ~ "WT",
-                                  TRUE ~ "mutant"),
-         ID = paste(tolower(ID), locus_id, sep = "\n")) %>%
+                                  TRUE ~ "mutant")
+         # ID = paste(tolower(ID), locus_id, sep = "\n"),
+         ) %>%
   gather(`Pb_nb (PbN)`:`Sp_nb (SpN)`,
          key = "measure",
          value = "value") %>%
@@ -53,17 +57,19 @@ p <-
   theme_bw() +
   theme(axis.text.x = element_text(angle = 270,
                                    hjust = 0,
-                                   vjust = .5), 
+                                   vjust = .5,
+                                   face = "italic"), 
         legend.position = "top",
         legend.background = element_rect(size=0.2,
                                          linetype="solid",
                                          colour = "grey80")) +
   scale_color_viridis_d(begin = .2,
-                        end = .8) +
-  guides(colour = guide_legend(title = NULL,
-                              label.position = "right",
-                              nrow=1,
-                              override.aes = list(alpha = 1))) +
+                        end = .8,
+                        guide = FALSE) +
+  # guides(colour = guide_legend(title = NULL,
+  #                             label.position = "right",
+  #                             nrow=1,
+  #                             override.aes = list(alpha = 1))) +
   labs(# title = "Phenotype of AP2 Mutants",
        # caption = str_wrap("Mutants of two AP2/EREBP-like genes,
        #                    CRL5 and SMOS1, have defects in panicle architecture.
@@ -78,7 +84,7 @@ p <-
        x = "")
 
 pdf("../fig/fig- panicle-mutants.pdf",
-    height = 7.8,
+    height = 7,
     width = 3.4)
 p %>% print()
 dev.off()
