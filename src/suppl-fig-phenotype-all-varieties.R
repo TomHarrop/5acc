@@ -50,7 +50,7 @@ p2 <-
   # coord_flip() +
   labs(title = paste0("Loadings of PC1 for all varieties of rice ",
                         "that we phenotyped"), 
-       x = "Rice Variety",
+       x = "Rice Accession",
        y = "Loading on PC1",
        fill = "In RNA-seq", 
        caption = str_wrap("Principal component analysis (PCA) of panicle phenotyping.
