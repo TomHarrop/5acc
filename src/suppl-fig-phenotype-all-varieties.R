@@ -52,15 +52,13 @@ p2 <-
                         "that we phenotyped"), 
        x = "Rice Accession",
        y = "Loading on PC1",
-       fill = "In RNA-seq", 
-       caption = str_wrap("Principal component analysis (PCA) of panicle phenotyping.
-                          PC1 splits wild and domesticated varieties.
-                          The varieties included in the RNAseq experiment are displayed 
-                          in red. Those varieties tend to average the characterstic
-                          of their species of origin (all but Nipponbare, which was
-                          included because as reference). 
-                          For each variety, we have measured from 3 to 9 panicles
-                          (3 panicles from each of 1 to 3 plants).")) +
+       fill = "In RNAseq", 
+       caption = str_wrap("The accessions used for RNAseq are consistent
+                          with species-wide patterns of panicle architecture.
+                          The y-axis shows the projection of each panicle on
+                          principal component 1 (PC1), which separates wild and
+                          domesticated accessions (Figure 1). Scores on PC1 for
+                          the accessions chosen for RNAseq are shown in red.")) +
   theme_bw() +
   theme(axis.text.x = element_text(hjust = 0,
                                    vjust = .5,
