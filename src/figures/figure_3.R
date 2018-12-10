@@ -7,7 +7,7 @@ library(gridExtra)
 library(gtable)
 
 gm_mean <- function(x, na.rm=TRUE){
-    exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
+  exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
 }
 
 tfdb_file <- "output/010_data/tfdb.Rds"
@@ -36,6 +36,10 @@ families <- readRDS(families_file)
 arora <- fread(arora_file)
 arora_subclades <- fread(arora_subclades_file)
 
+# protect the class column, if it's not a MADS gene
+families[!is.na(Class) & Family != "MADS",
+         Class := paste0('"', Class, '"')]
+
 # use Arora classes for MADS genes
 families[Family == "MADS",
          Class := arora[TIGR == `Protein ID`, unique(type)],
@@ -43,12 +47,18 @@ families[Family == "MADS",
 families[Family == "MADS" & grepl("_", Class), Class := NA]
 
 # add subclades where possible
-arora_subclades[, arora_subclade := sub("-like", "", arora_subclade)]
+arora_subclades[!is.na(arora_subclade) & !grepl("-like", arora_subclade),
+                arora_subclade := paste0('italic("', arora_subclade, '")')]
+arora_subclades[!is.na(arora_subclade),
+                arora_subclade := gsub("([[:alnum:]]+)-like",
+                                       'italic("\\1")*"-like"',
+                                       arora_subclade)]
+#arora_subclades[, arora_subclade := sub("-like", "", arora_subclade)]
 arora_subclade_genes <- arora_subclades[!is.na(arora_subclade),
                                         unique(gene_id)]
 families[`Protein ID` %in% arora_subclade_genes,
          Class := arora_subclades[gene_id == `Protein ID`,
-                              unique(arora_subclade)],
+                                  unique(arora_subclade)],
          by = `Protein ID`]
 
 # list of genes
@@ -65,6 +75,11 @@ vst_dt <- melt(vst_wide,
 vst_dt[, c("species", "stage", "rep") := tstrsplit(library, "_")]
 mean_vst <- vst_dt[, .(mean_vst = gm_mean(vst)),
                    by = .(gene_id, species, stage)]
+
+# map stage
+stage_order <- c(PBM = "IM", SM = "DM")
+mean_vst[, stage := factor(plyr::revalue(stage, stage_order),
+                  levels = stage_order)]
 
 # scale & centre transformed counts
 mean_vst[, scaled_vst := scale(mean_vst), by = gene_id]
@@ -86,134 +101,141 @@ v_lim <- c(-v_max,
 
 # for now this relies on the objects in the environment
 PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
-    #plot_genes <- plot_mads
-    #plot_title <- "AP2"
-    
-    # cut by posn on PC5
-    pd <- mean_vst[gene_id %in% plot_genes]
-    pd <- merge(pd,
-                pcro[, .(locus_id, PC5)],
-                by.x = "gene_id", by.y = "locus_id")
-    pd[, cut_row := PC5 < 0]
-    
-    # label genes
-    pd[, symbol := oryzr::LocToGeneName(gene_id)$symbols[[1]], by = gene_id]
-    pd[, label := ifelse(is.na(symbol),
-                         gene_id,
-                         paste(symbol, gene_id, sep = "\n")),
-       by = gene_id]
-    
-    # order genes
-    hc_m <- as.matrix(data.frame(
-        dcast(pd,
-              label ~ species + stage,
-              value.var = "mean_vst"),
-        row.names = "label"))
-    hc <- hclust(dist(hc_m, method = "minkowski"))
-    gene_order <- hc$labels[hc$order]
-    pd[, label := factor(label, levels = gene_order)]
-    
-    # order species
-    pd[, species := factor(plyr::revalue(species, spec_order),
-                           levels = spec_order)]
-    
-    # ggplot heatmap
-    hm <- ggplot(pd, aes(y = label, x = species, fill = scaled_vst)) +
-        theme_minimal(base_size = 8, base_family = "Helvetica") +
-        theme(strip.text.y = element_blank(),
-              axis.text = element_text(face = "italic"),
-              axis.text.y = element_text(size = 4),
-              axis.text.x = element_text(angle = 90,
-                                         hjust = 1,
-                                         vjust = 0.5),
-              plot.title = element_text(hjust = 0.5),
-              legend.key.size = unit(0.8, "lines"),
-              legend.justification = "left") +
-        xlab(NULL) + ylab(NULL) + ggtitle(plot_title) +
-        scale_x_discrete(expand = c(0, 0)) +
-        scale_y_discrete(expand = c(0, 0)) +
-        scale_fill_viridis_c(
-            #limits = v_lim,
-            guide = guide_colourbar(title = "Scaled\nreads")) +
-        facet_grid(cut_row ~ stage, scales = "free_y", space = "free_y") +
-        geom_raster()
-    
-    # family panel, dummy for now
-    pd[, family := families[`Protein ID` == gene_id, Class[[1]]], by = gene_id]
-    pd[, family := factor(family,
-                          levels = sort(unique(as.character(family))))]
-    pd[is.na(family), family := "Other"] 
-    famplot <- ggplot(pd, aes(y = label, x = "Type", fill = family)) +
-        theme_minimal(base_size = 8, base_family = "Helvetica") +
-        theme(strip.text.y = element_blank(),
-              axis.text = element_blank(),
-              axis.text.x = element_blank(),
-              legend.key.size = unit(0.8, "lines"),
-              legend.justification = "left",
-              panel.grid = element_blank()) +
-        xlab(NULL) + ylab(NULL) +
-        scale_x_discrete(expand = c(0, 0)) +
-        scale_y_discrete(expand = c(0, 0)) +
-        scale_fill_brewer(palette = "Set3",
-                          guide = guide_legend(title = "Type")) +
-        facet_grid(cut_row ~ "Type", scales = "free_y", space = "free_y") +
-        geom_raster()
-    
-    # combine the plots
-    hmg <- ggplotGrob(hm)
-    famplotg <- ggplotGrob(famplot)
-    
-    # get the famplot bits
-    famplot_panel <- gtable_filter(famplotg, "panel")
-    famplot_strip <- gtable_filter(famplotg, "strip-t-1")
-    
-    # make room
-    hmg2 <- gtable_add_cols(hmg, unit(c(1/5, 4), c("null", "pt")),4)
-    
-    # insert it into the table
-    hmg3 <- gtable_add_grob(hmg2, famplot_panel, 8, 5, 10, 5 )
-    hmg4 <- gtable_add_grob(hmg3, famplot_strip, 7, 5, 7, 5)
-    
-    # get the legends
-    famplot_legend <- gtable_filter(famplotg, "guide-box")
-    hmg_legend <- gtable_filter(hmg, "guide-box")
-    
-    # unify the legend widths
-    hmg_legend$widths <- famplot_legend$widths
-    
-    # combine the legends
-    both_legends <- gtable_matrix(name = "legends",
-                                  grobs = matrix(list(hmg_legend, famplot_legend),
-                                                 ncol = 1),
-                                  widths = hmg_legend$widths,
-                                  heights = unit(c(1, 1), "null"))
-    
-    # add room between legends
-    both_legends$heights <- unit(c(0.3, 0.3), "npc") # specify heights
-    both_legends2 <- gtable_add_row_space(both_legends, unit(0.05, "npc")) # between
-    both_legends3 <- gtable_add_rows(both_legends2, unit(0.15, "npc"), 0) # top
-    both_legends4 <- gtable_add_rows(both_legends3, unit(0.2, "npc"), -1) # bottom
-    
-    # put the legend in the main plot
-    hmg5 <- gtable_remove_grobs(hmg4, "guide-box")
-    hmg6 <- gtable_add_grob(hmg5, both_legends4, 8, 14, 10, 14,
-                            name = "both_legends")
-    
-    # add width for the legends
-    hmg6$widths[[14]] <- famplot_legend$widths
-    
-    return(hmg6)
+  #plot_genes <- plot_mads
+  #plot_title <- "AP2"
+  
+  # cut by posn on PC5
+  pd <- mean_vst[gene_id %in% plot_genes]
+  pd <- merge(pd,
+              pcro[, .(locus_id, PC5)],
+              by.x = "gene_id", by.y = "locus_id")
+  pd[, cut_row := PC5 < 0]
+  
+  # label genes
+  pd[, symbol := oryzr::LocToGeneName(gene_id)$symbols[[1]], by = gene_id]
+  pd[, label := ifelse(is.na(symbol),
+                       gene_id,
+                       paste(symbol, gene_id, sep = "\n")),
+     by = gene_id]
+  
+  # order genes
+  hc_m <- as.matrix(data.frame(
+    dcast(pd,
+          label ~ species + stage,
+          value.var = "mean_vst"),
+    row.names = "label"))
+  hc <- hclust(dist(hc_m, method = "minkowski"))
+  gene_order <- hc$labels[hc$order]
+  pd[, label := factor(label, levels = gene_order)]
+  
+  # order species
+  pd[, species := factor(plyr::revalue(species, spec_order),
+                         levels = spec_order)]
+  
+  # ggplot heatmap
+  hm <- ggplot(pd, aes(y = label, x = species, fill = scaled_vst)) +
+    theme_minimal(base_size = 8, base_family = "Helvetica") +
+    theme(strip.text.y = element_blank(),
+          axis.text = element_text(face = "italic"),
+          axis.text.y = element_text(size = 4),
+          axis.text.x = element_text(angle = 90,
+                                     hjust = 1,
+                                     vjust = 0.5),
+          plot.title = element_text(hjust = 0.5),
+          legend.key.size = unit(0.8, "lines"),
+          legend.justification = "left") +
+    xlab(NULL) + ylab(NULL) + ggtitle(plot_title) +
+    scale_x_discrete(expand = c(0, 0)) +
+    scale_y_discrete(expand = c(0, 0)) +
+    scale_fill_viridis_c(
+      #limits = v_lim,
+      guide = guide_colourbar(title = "Scaled\nreads")) +
+    facet_grid(cut_row ~ stage, scales = "free_y", space = "free_y") +
+    geom_raster()
+  
+  # family panel, dummy for now
+  pd[, family := families[`Protein ID` == gene_id, Class[[1]]], by = gene_id]
+  pd[, family := factor(family,
+                        levels = sort(unique(as.character(family))))]
+  pd[is.na(family), family := '"Other"'] 
+  famplot <- ggplot(pd, aes(y = label, x = "Clade", fill = family)) +
+    theme_minimal(base_size = 8, base_family = "Helvetica") +
+    theme(strip.text.y = element_blank(),
+          #strip.text.x = element_text(size = 0),
+          axis.text = element_blank(),
+          axis.text.x = element_blank(),
+          legend.key.size = unit(0.8, "lines"),
+          # legend.justification = "left",
+          panel.grid = element_blank()) +
+    xlab(NULL) + ylab(NULL) +
+    scale_x_discrete(expand = c(0, 0)) +
+    scale_y_discrete(expand = c(0, 0)) +
+    scale_fill_brewer(palette = "Paired",
+                      guide = guide_legend(title = "Clade",
+                                           label.hjust = 0,
+                                           label.vjust = 0.5),
+                      labels = function(l) parse(text = l)) +
+    facet_grid(cut_row ~ "Clade", scales = "free_y", space = "free_y") +
+    geom_raster()
+  
+  # combine the plots
+  hmg <- ggplotGrob(hm)
+  famplotg <- ggplotGrob(famplot)
+  
+  # get the famplot bits
+  famplot_panel <- gtable_filter(famplotg, "panel")
+  famplot_strip <- gtable_filter(famplotg, "strip-t-1")
+  
+  # make room
+  hmg2 <- gtable_add_cols(hmg, unit(c(1.5/5, 4), c("null", "pt")),4)
+  
+  # insert it into the table
+  hmg3 <- gtable_add_grob(hmg2, famplot_panel, 8, 5, 10, 5 )
+  hmg4 <- gtable_add_grob(hmg3, famplot_strip, 7, 5, 7, 5)
+  
+  # get the legends
+  famplot_legend <- gtable_filter(famplotg, "guide-box")
+  hmg_legend <- gtable_filter(hmg, "guide-box")
+  
+  # unify the legend widths
+  hmg_legend$widths <- famplot_legend$widths
+  
+  # combine the legends
+  both_legends <- gtable_matrix(name = "legends",
+                                grobs = matrix(list(hmg_legend, famplot_legend),
+                                               ncol = 1),
+                                widths = hmg_legend$widths,
+                                heights = unit(c(1, 1), "null"))
+  
+  # add room between legends
+  both_legends$heights <- unit(c(0.3, 0.3), "npc") # specify heights
+  both_legends2 <- gtable_add_row_space(both_legends, unit(0.05, "npc")) # between
+  both_legends3 <- gtable_add_rows(both_legends2, unit(0.15, "npc"), 0) # top
+  both_legends4 <- gtable_add_rows(both_legends3, unit(0.2, "npc"), -1) # bottom
+  
+  # put the legend in the main plot
+  hmg5 <- gtable_remove_grobs(hmg4, "guide-box")
+  hmg6 <- gtable_add_grob(hmg5, both_legends4, 8, 14, 10, 14,
+                          name = "both_legends")
+  
+  # add width for the legends
+  hmg6$widths[[14]] <- famplot_legend$widths
+  
+  return(hmg6)
 }
 
-ap2_gt <- PlotHeatmapWithFamily(plot_ap2, expression(italic("AP2/EREBP")*"-like"))
-mads_gt <- PlotHeatmapWithFamily(plot_mads, expression(italic("MADS")))
+ap2_gt <- PlotHeatmapWithFamily(plot_ap2,
+                                expression(italic("AP2/EREBP")*"-like"))
+mads_gt <- PlotHeatmapWithFamily(plot_mads,
+                                 "MADS-box")
 
 cowplot <- plot_grid(ap2_gt,
                      mads_gt,
                      ncol = 2,
                      labels = "C",
                      label_size = 10,
-                     label_fontfamily = "Helvetica")
+                     label_fontfamily = "Helvetica",
+                     rel_widths = c(0.9, 1))
 
 ggsave("test/Figure_3C.pdf",
        device = cairo_pdf,
