@@ -56,6 +56,7 @@ pcx[, accession := factor(plyr::revalue(accession, long_spec_order),
 pcx[, stage := factor(plyr::revalue(stage, stage_order),
                           levels = stage_order)]
 pcx[, rep := factor(as.numeric(gsub("[^[:digit:]]+", "", ID)))]
+pc5_cols <- RColorBrewer::brewer.pal(4, "Paired")
 
 pc5 <- ggplot(pcx, aes(x = accession, y = PC5, group = ID, fill = accession)) +
   theme_minimal(base_size = 8, base_family = "Helvetica") +
@@ -67,7 +68,8 @@ pc5 <- ggplot(pcx, aes(x = accession, y = PC5, group = ID, fill = accession)) +
   xlab(NULL) +
   ylab("Score on PC5") +
   facet_wrap(~ stage, nrow = 1) +
-  scale_fill_viridis_d(guide = FALSE) +
+  scale_fill_manual(values = pc5_cols[c(1, 2, 2, 3, 4)],
+                    guide = FALSE) +
   geom_col(position = position_dodge(width = 0.8),
            width = 0.7)
 
