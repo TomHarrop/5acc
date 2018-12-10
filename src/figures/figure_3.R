@@ -14,6 +14,7 @@ tfdb_file <- "output/010_data/tfdb.Rds"
 families_file <- "output/010_data/tfdb_families.Rds"
 vst_file <- "output/050_deseq/vst.Rds"
 pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
+pcx_file <- "output/050_deseq/rlog_pca/pcx.Rds"
 arora_file <- "data/genome/os/arora.csv"
 arora_subclades_file <- "data/genome/os/arora_subclades.csv"
 
@@ -24,6 +25,15 @@ spec_order <- c("or" = "O. rufipogon",
                 "ob" = "O. barthii",
                 "og" = "O. glaberrima")
 
+long_spec_order <- c("rufipogon" = "O. rufipogon",
+                     "indica" = "O. sativa indica",
+                     "japonica" = "O. sativa japonica",
+                     "barthii" = "O. barthii",
+                     "glaberrima" = "O. glaberrima")
+
+stage_order <- c(PBM = "IM", SM = "DM")
+
+
 ########
 # MAIN #
 ########
@@ -31,11 +41,40 @@ spec_order <- c("or" = "O. rufipogon",
 # data
 vst <- readRDS(vst_file)
 pcro <- data.table(readRDS(pcro_file))
+pcx <- data.table(readRDS(pcx_file))
 tfdb <- readRDS(tfdb_file)
 families <- readRDS(families_file)
 arora <- fread(arora_file)
 arora_subclades <- fread(arora_subclades_file)
 
+#############
+# PC5 panel #
+#############
+
+pcx[, accession := factor(plyr::revalue(accession, long_spec_order),
+             levels = long_spec_order)]
+pcx[, stage := factor(plyr::revalue(stage, stage_order),
+                          levels = stage_order)]
+pcx[, rep := factor(as.numeric(gsub("[^[:digit:]]+", "", ID)))]
+
+pc5 <- ggplot(pcx, aes(x = accession, y = PC5, group = ID, fill = accession)) +
+  theme_minimal(base_size = 8, base_family = "Helvetica") +
+  theme(axis.text.x = element_text(angle = 90,
+                                   hjust = 1,
+                                   vjust = 0.5,
+                                   face = "italic"),
+        panel.background = element_rect(colour = "black")) +
+  xlab(NULL) +
+  ylab("Score on PC5") +
+  facet_wrap(~ stage, nrow = 1) +
+  scale_fill_viridis_d(guide = FALSE) +
+  geom_col(position = position_dodge(width = 0.8),
+           width = 0.7)
+
+#################
+# Heatmap panel #  
+#################
+  
 # protect the class column, if it's not a MADS gene
 families[!is.na(Class) & Family != "MADS",
          Class := paste0('"', Class, '"')]
@@ -77,9 +116,8 @@ mean_vst <- vst_dt[, .(mean_vst = gm_mean(vst)),
                    by = .(gene_id, species, stage)]
 
 # map stage
-stage_order <- c(PBM = "IM", SM = "DM")
 mean_vst[, stage := factor(plyr::revalue(stage, stage_order),
-                  levels = stage_order)]
+                           levels = stage_order)]
 
 # scale & centre transformed counts
 mean_vst[, scaled_vst := scale(mean_vst), by = gene_id]
@@ -229,17 +267,34 @@ ap2_gt <- PlotHeatmapWithFamily(plot_ap2,
 mads_gt <- PlotHeatmapWithFamily(plot_mads,
                                  "MADS-box")
 
-cowplot <- plot_grid(ap2_gt,
+###########
+# COMBINE #
+###########
+
+heatmap_panel <- plot_grid(ap2_gt,
                      mads_gt,
                      ncol = 2,
-                     labels = "C",
-                     label_size = 10,
-                     label_fontfamily = "Helvetica",
+                     #labels = "B",
+                     # label_size = 10,
+                     # label_fontfamily = "Helvetica",
                      rel_widths = c(0.9, 1))
 
-ggsave("test/Figure_3C.pdf",
+cowplot <- plot_grid(pc5,
+                     ggplot(),
+                     heatmap_panel,
+                     labels = c("A", "", "C"),
+                     label_size = 10,
+                     label_fontfamily = "Helvetica",
+                     ncol = 1,
+                     nrow = 3,
+                     rel_heights = c(1.8, 0.2, 5),
+                     align = "v",
+                     axis = "lr")
+
+ggsave("test/Figure_3.pdf",
        device = cairo_pdf,
        cowplot,
        width = 178,
-       height = 150,
+       #height = 150,
+       height = 210,
        units = "mm")
