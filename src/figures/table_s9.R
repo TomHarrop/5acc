@@ -10,7 +10,14 @@ af_de_file <- "output/050_deseq/wald_tests/tfs/all/stage_accession_indica.csv"
 all_results <- rbindlist(list(Asia = fread(as_de_file),
                               Africa = fread(af_de_file)),
                          idcol = "Continent")
-all_results[, c("design", "wald_test", "RapID", "names", "OgroObjective", "OgroRef") := NULL]
+all_results[, c("design",
+                "wald_test",
+                "baseMean",
+                "stat",
+                "RapID",
+                "names",
+                "OgroObjective",
+                "OgroRef") := NULL]
 all_results[, mpv := mean(padj), by = gene_id]
 setorder(all_results, mpv, Continent, na.last = TRUE)
 all_results[, mpv := NULL]

@@ -18,8 +18,8 @@ species_order <- c("or" = "Oryza rufipogon",
                    "ob" = "Oryza barthii",
                    "og" = "Oryza glaberrima")
 
-stage_order <- c("PBM" = "BM",
-                 "SM" = "SM")
+stage_order <- c("PBM" = "IM",
+                 "SM" = "DM")
 
 # select columns
 mapping_stats <- star_logs[, cols_to_keep, with = FALSE]
