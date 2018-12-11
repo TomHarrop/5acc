@@ -271,71 +271,71 @@ p <- ggtree(phylo) +
 p
 
 # cowplot it together
-cowplot <- plot_grid(p,
-                     gp,
-                     corr_plot,
-                     #enrichment_plot,
-                     nrow = 1,
-                     align = "h",
-                     axis = "tb",
-                     rel_widths = c(1, 4, 3))
-
-ggsave("test/Figure_4.pdf",
-       device = cairo_pdf,
-       cowplot,
-       width = 178,
-       height = 100,
-       units = "mm")
-
-
-cowplot <- plot_grid(p,
-                     gp,
-                     corr_plot,
-                     gene_no,
-                     #enrichment_plot,
-                     nrow = 1,
-                     align = "h",
-                     axis = "tb",
-                     rel_widths = c(1, 4, 1.5, 1.5))
-
-ggsave("test/Figure_4_spn.pdf",
-       device = cairo_pdf,
-       cowplot,
-       width = 178,
-       height = 100,
-       units = "mm")
-
-cowplot <- plot_grid(p,
-                     gp,
-                     spn_corr,
-                     sbn_corr,
-                     pbn_corr,
-                     #enrichment_plot,
-                     nrow = 1,
-                     align = "h",
-                     axis = "tb",
-                     rel_widths = c(1, 3, 2, 2, 2))
-ggsave("test/Figure_4_all.pdf",
-       device = cairo_pdf,
-       cowplot,
-       width = 178,
-       height = 100,
-       units = "mm")
-
-cowplot <- plot_grid(p,
-                     gp,
-                     corr_plot,
-                     #enrichment_plot,
-                     nrow = 1,
-                     align = "h",
-                     axis = "tb",
-                     rel_widths = c(1, 4, 3))
-ggsave("test/Figure_4_spn_only.pdf",
-       device = cairo_pdf,
-       cowplot,
-       width = 178,
-       height = 100,
-       units = "mm")
+# cowplot <- plot_grid(p,
+#                      gp,
+#                      corr_plot,
+#                      #enrichment_plot,
+#                      nrow = 1,
+#                      align = "h",
+#                      axis = "tb",
+#                      rel_widths = c(1, 4, 3))
+# 
+# ggsave("test/Figure_4.pdf",
+#        device = cairo_pdf,
+#        cowplot,
+#        width = 178,
+#        height = 100,
+#        units = "mm")
+# 
+# 
+# cowplot <- plot_grid(p,
+#                      gp,
+#                      corr_plot,
+#                      gene_no,
+#                      #enrichment_plot,
+#                      nrow = 1,
+#                      align = "h",
+#                      axis = "tb",
+#                      rel_widths = c(1, 4, 1.5, 1.5))
+# 
+# ggsave("test/Figure_4_spn.pdf",
+#        device = cairo_pdf,
+#        cowplot,
+#        width = 178,
+#        height = 100,
+#        units = "mm")
+# 
+# cowplot <- plot_grid(p,
+#                      gp,
+#                      spn_corr,
+#                      sbn_corr,
+#                      pbn_corr,
+#                      #enrichment_plot,
+#                      nrow = 1,
+#                      align = "h",
+#                      axis = "tb",
+#                      rel_widths = c(1, 3, 2, 2, 2))
+# ggsave("test/Figure_4_all.pdf",
+#        device = cairo_pdf,
+#        cowplot,
+#        width = 178,
+#        height = 100,
+#        units = "mm")
+# 
+# cowplot <- plot_grid(p,
+#                      gp,
+#                      corr_plot,
+#                      #enrichment_plot,
+#                      nrow = 1,
+#                      align = "h",
+#                      axis = "tb",
+#                      rel_widths = c(1, 4, 3))
+# ggsave("test/Figure_4_spn_only.pdf",
+#        device = cairo_pdf,
+#        cowplot,
+#        width = 178,
+#        height = 100,
+#        units = "mm")
 
 cowplot <- plot_grid(p,
                      gp,
@@ -345,12 +345,12 @@ cowplot <- plot_grid(p,
                      nrow = 1,
                      align = "h",
                      axis = "tb",
-                     rel_widths = c(1.1, 4, 2, 2, 2),
+                     rel_widths = c(1.3, 4, 2, 2, 2),
                      labels = c("A", "", "B", "", ""),
                      label_size = 10,
                      label_fontfamily = "Helvetica",
                      label_x = c(0, -0.1, -0.1, 0, 0))
-ggsave("test/Figure_4_pc1_spn.pdf",
+ggsave("test/Figure_5.pdf",
        device = cairo_pdf,
        cowplot,
        width = 178,
@@ -382,13 +382,13 @@ gp <- ggplot(pd2, aes(x = accession,
   theme(axis.text.x =  element_text(face = "italic"),
         strip.text = element_text(face = "italic")) +
   xlab(NULL) +
-  ylab(expression(L[2] * "FC ± SE (BM vs. SM)")) +
+  ylab(expression(L[2] * "FC ± SE (IM vs. DM)")) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
   scale_fill_manual(values = my_fills, guide = FALSE) +  
   facet_wrap(~ label, scales = "free_y", nrow = 4) +
   geom_col(position = "dodge", alpha = 0.5) +
   geom_errorbar(width = 0.1) 
-gp
+
 
 ggsave("test/Figure_S9.pdf",
        gp,

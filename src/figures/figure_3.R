@@ -105,8 +105,8 @@ v_lim <- c(-v_max,
 
 # for now this relies on the objects in the environment
 PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
-  #plot_genes <- plot_mads
-  #plot_title <- "AP2"
+  # plot_genes <- plot_spl
+  # plot_title <- "AP2"
   
   # cut by posn on PC5
   pd <- mean_vst[gene_id %in% plot_genes]
@@ -157,8 +157,13 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
     facet_grid(cut_row ~ stage, scales = "free_y", space = "free_y") +
     geom_raster()
   
-  # family panel, dummy for now
+  # check number of classes
   pd[, family := families[`Protein ID` == gene_id, Class[[1]]], by = gene_id]
+  if(pd[, length(unique(family))] == 1){
+    return(hm)
+  }
+  
+  # for multi-class families, add the class column
   pd[, family := factor(family,
                         levels = sort(unique(as.character(family))))]
   pd[is.na(family), family := '"Other"'] 
@@ -238,15 +243,46 @@ mads_gt <- PlotHeatmapWithFamily(plot_mads,
 cowplot <- plot_grid(ap2_gt,
                      mads_gt,
                      ncol = 2,
-                     labels = "C",
                      label_size = 10,
                      label_fontfamily = "Helvetica",
                      rel_widths = c(0.9, 1))
 
 
-ggsave("test/Figure_3C.pdf",
+ggsave("test/Figure_3.pdf",
        device = cairo_pdf,
        cowplot,
        width = 178,
+       height = 150,
+       units = "mm")
+
+#################################
+# SUPPLEMENTARY HOMEOBOX FIGURE #
+#################################
+
+hb_genes <- tfdb[Family == "HB", unique(`Protein ID`)]
+plot_hb <- intersect(hb_genes,
+                       top_10pct[, unique(locus_id)])
+hb_gt <- PlotHeatmapWithFamily(plot_hb, "Homeobox")
+
+nac_genes <- tfdb[Family == "NAC", unique(`Protein ID`)]
+plot_nac <- intersect(nac_genes,
+                     top_10pct[, unique(locus_id)])
+nac_gt <- PlotHeatmapWithFamily(plot_nac, "NAC")
+
+spl_genes <- tfdb[Family == "SBP", unique(`Protein ID`)]
+plot_spl <- intersect(spl_genes,
+                      top_10pct[, unique(locus_id)])
+spl_gt <- PlotHeatmapWithFamily(plot_spl, "SBP")
+
+# combine it
+s8_panels <- plot_grid(
+  hb_gt, nac_gt, spl_gt,
+  ncol = 3,
+  rel_widths = c(1.1, 1, 1))
+
+ggsave("test/Figure_S8.pdf",
+       device = cairo_pdf,
+       s8_panels,
+       width = 178*3/2,
        height = 150,
        units = "mm")

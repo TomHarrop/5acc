@@ -56,7 +56,7 @@ def FindInputReads(wildcards):
 
 singularity_container = ('shub://TomHarrop/'
                          'singularity-containers:five-accessions'
-                         '@ab79f5e150a441f2436984f9490a12af6862a0f7')
+                         '@fd5ccb51739b4415787285d1ece6aca2eb5d60f6')
 
 
 os_genome = 'data/genome/os/Osativa_323_v7.0.fa'
