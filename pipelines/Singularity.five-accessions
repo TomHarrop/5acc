@@ -46,11 +46,15 @@ From: ubuntu:18.04
     Rscript -e "source('https://bioconductor.org/biocLite.R') ; \
         biocLite(c('RCurl'), type='source', ask=FALSE)"
     Rscript -e "source('https://bioconductor.org/biocLite.R') ; \
-        biocLite(c('data.table', \
+        biocLite(c( \
+            'cowplot', \
+            'data.table', \
             'devtools', \
             'DESeq2', \
             'GenomicRanges', \
+            'ggtree', \
             'Mfuzz', \
+            'png', \
             'rtracklayer', \
             'tidyverse', \
             'valr'), \
