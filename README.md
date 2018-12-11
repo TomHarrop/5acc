@@ -53,7 +53,6 @@ The container includes:
 - *Raw reads:* (**add SRA link**)
     - `data/reads/{sample}_R1.fastq.gz`
     - `data/reads/{sample}_R2.fastq.gz`
-
 - **O. sativa* assembly and annotation from Phytozome:*
     - `data/genome/os/Osativa_323_v7.0.fa`
     - `data/genome/os/Osativa_323_v7.0.gene_exons.gff3`
@@ -73,11 +72,11 @@ The container includes:
         + `data/genome/os/arora.csv` was manually tabulated from Table 1.
         + `data/genome/os/arora_subclades.csv` was manually tabulated from Figure 2.
 - *Genome annotations*
-    - RAP-DB rRNA and tRNA annotations from http://rapdb.dna.affrc.go.jp/download/archive:
+    - RAP-DB rRNA and tRNA annotations from [http://rapdb.dna.affrc.go.jp/](http://rapdb.dna.affrc.go.jp/download/archive):
         + `data/genome/os/irgsp1_rRNA_tRNA.gff`
-    - MSU repeat annotations from [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
+    - MSU repeat annotations from [http://plantbiology.msu.edu/](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
         + `data/genome/os/rice_osa1r7_rm.gff3`
-    - miRBase v21 MicroRNA annotation from [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
+    - miRBase v21 MicroRNA annotation from [http://plantbiology.msu.edu/](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
         + `data/genome/os/osa.gff3`
-    - TIGR repeat annotation from [ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3](ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3):
+    - TIGR repeat annotation from [http://plantbiology.msu.edu/](ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3):
         + `data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa`
