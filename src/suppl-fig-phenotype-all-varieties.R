@@ -48,10 +48,8 @@ p2 <-
              space = "free_x") +
   scale_fill_manual(values = c("white", "red")) +
   # coord_flip() +
-  labs(title = paste0("Loadings of PC1 for all varieties of rice ",
-                        "that we phenotyped"), 
-       x = "Rice Accession",
-       y = "Loading on PC1",
+  labs(x = "Rice Accessions",
+       y = "Score Vectors on Principal Component 1",
        fill = "In RNAseq", 
        caption = str_wrap("The accessions used for RNAseq are consistent
                           with species-wide patterns of panicle architecture.
