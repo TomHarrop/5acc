@@ -50,17 +50,15 @@ The container includes:
 
 #### The following files are not distributed with the workflow, and must be added to the `data` directory:
 
-*Raw reads:* (**add SRA link**)
+- *Raw reads:* (**add SRA link**)
+    - `data/reads/{sample}_R1.fastq.gz`
+    - `data/reads/{sample}_R2.fastq.gz`
 
-- `data/reads/{sample}_R1.fastq.gz`
-- `data/reads/{sample}_R2.fastq.gz`
+- **O. sativa* assembly and annotation from Phytozome:*
+    - `data/genome/os/Osativa_323_v7.0.fa`
+    - `data/genome/os/Osativa_323_v7.0.gene_exons.gff3`
 
-**O. sativa* assembly and annotation from Phytozome:*
-
-- `data/genome/os/Osativa_323_v7.0.fa`
-- `data/genome/os/Osativa_323_v7.0.gene_exons.gff3`
-
-**The following files are included in the github repository in the `data` directory:**
+#### The following files are included in the github repository in the `data` directory:
 
 *Phenotyping data that are used in figures*
 
