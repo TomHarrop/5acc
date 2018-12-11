@@ -68,7 +68,7 @@ The container includes:
         + `data/genome/os/tfdb.tab`
     - PlantTFDB 4.0 annotations from [http://planttfdb.cbi.pku.edu.cn/](http://planttfdb.cbi.pku.edu.cn/download/TF_list) (Jin *et al.* 2017, [10.1093/aob/mcw024](http://dx.doi.org/10.1093/aob/mcw024)):
         + `data/genome/os/Osj_TF_list`
-    - MADS-box annotations from Arora *et al.* 2007 ([10.1186/1471-2164-8-242](https://doi.org/10.1186/1471-2164-8-242)):
+    - MADS-box annotations (Arora *et al.* 2007, [10.1186/1471-2164-8-242](https://doi.org/10.1186/1471-2164-8-242)):
         + `data/genome/os/arora.csv` was manually tabulated from Table 1.
         + `data/genome/os/arora_subclades.csv` was manually tabulated from Figure 2.
 - *Genome annotations*
