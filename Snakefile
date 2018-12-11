@@ -263,8 +263,8 @@ rule correlate_clusters_to_mtp:
 rule tidy_phenotype_data:
     input:
         names = 'data/phenotyping/phenotype_name_key.csv',
-        mtp = 'data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv',
-        cali = 'data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt'
+        mtp = 'data/phenotyping/Phenotype_PanicleSequenced.csv',
+        cali = 'data/phenotyping/OsOgObOrPTRAPdata.txt'
     output:
         mtp = 'output/080_phenotype/mtp.csv',
         cali = 'output/080_phenotype/cali.csv'

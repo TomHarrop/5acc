@@ -60,9 +60,12 @@ The container includes:
 #### The following files are included in the github repository in the `data` directory:
 
 - *Phenotyping data that are used in figures*
-    - `data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt`
-    - `data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv`
-    - `data/phenotyping/phenotype_name_key.csv`
+    + Cali phenotying data
+        - `data/phenotyping/OsOgObOrPTRAPdata.txt`
+    + Montpellier phenotyping data
+        - `data/phenotyping/Phenotype_PanicleSequenced.csv`
+    - Phenotype name key
+        - `data/phenotyping/phenotype_name_key.csv`
 - *Gene information*
     - PlnTFDB 3.0 annotations from [http://plntfdb.bio.uni-potsdam.de/](http://plntfdb.bio.uni-potsdam.de/v3.0/export.php) (Pérez-Rodríguez *et al.* 2009, [10.1093/nar/gkp805](http://dx.doi.org/10.1093/nar/gkp805)):
         + `data/genome/os/tfdb.tab`
