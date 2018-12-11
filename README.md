@@ -48,7 +48,7 @@ The container includes:
 
 ### Input data files
 
-**The following files are not distributed with the workflow, and must be added to the `data` directory:**
+#### The following files are not distributed with the workflow, and must be added to the `data` directory:
 
 *Raw reads:* (**add SRA link**)
 
