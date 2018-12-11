@@ -1,86 +1,82 @@
 #!/usr/bin/env Rscript
 
+library(DESeq2)
 library(data.table)
 library(ggplot2)
+library(viridisLite)
 
+# Figure S5: Heatmap of pairwise distances between libraries.
 
-phenotypes_file <- "data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv"
-pheno_names_file <- "data/phenotyping/phenotype_name_key.csv"
+dds_file <- "output/050_deseq/filtered_dds.Rds"
 
-# data
-pheno_wide <- fread(phenotypes_file)
-pheno_names <- fread(pheno_names_file)
+spec_order <- c("or" = "O. rufipogon",
+                "osi" = "O. sativa indica",
+                "osj" = "O. sativa japonica",
+                "ob" = "O. barthii",
+                "og" = "O. glaberrima")
 
-# tidy
-setnames(pheno_wide,
-         pheno_names[mtp_name != "", mtp_name],
-         pheno_names[mtp_name != "", full_name])
+stage_order <- c(PBM = "IM", SM = "DM")
 
-spec_order <- c("Oryza rufipogon" = "O. rufipogon",
-                "Oryza sativa indica" = "O. sativa indica",
-                "Oryza sativa japonica temp" = "O. sativa japonica",
-                "Ozyza Barthii" = "O. barthii",
-                "Oryza glaberrima" = "O. glaberrima")
+# transform read counts
+dds <- readRDS(dds_file)
+vst <- varianceStabilizingTransformation(dds, blind = TRUE)
+vst_assay <- assay(vst)
 
+# pairwise sample distances
+sample_dist <- dist(t(vst_assay), method = "minkowski")
+dist_matrix <- as.matrix(sample_dist)
+sample_dists_wide <- data.table(dist_matrix,   keep.rownames = TRUE)
 
-pheno <- melt(pheno_wide,
-              id.vars = "Species",
-              measure.vars = c("primary_branch_number",
-                               "secondary_branch_number",
-                               "spikelet_number",
-                               "primary_branch_length",
-                               "secondary_branch_length",
-                               "rachis_length"))
+# long dt
+dist_dt <- melt(sample_dists_wide,
+                id.vars = "rn",
+                variable.name = "l2",
+                value.name = "Distance")
+setnames(dist_dt, "rn", "l1")
+dist_dt <- unique(dist_dt, by = c("l1", "l2"))
 
-pheno[, species_label := factor(plyr::revalue(Species, spec_order),
-                                levels = spec_order)]
+# split labels
+SampleToLabel <- function(x){
+  my_split <- unlist(strsplit(x, "_"))
+  my_label <- paste0('italic("',
+                     spec_order[my_split[1]],
+                     '")~"',
+                     stage_order[my_split[2]],
+                     '"~"',
+                     my_split[3],
+                     '"')
+  return(my_label)
+}
+dist_dt[, l1_label := SampleToLabel(as.character(l1)), by = l1]
+dist_dt[, l2_label := SampleToLabel(as.character(l2)), by = l2]
 
-pheno_pd <- merge(pheno,
-                  pheno_names,
-                  by.x = "variable",
-                  by.y = "full_name",
-                  all.x = TRUE,
-                  all.y = FALSE)
-panel_order <- c("Rachis length",
-                 "Primary branch number",
-                 "Primary branch length", 
-                 "Secondary branch number",
-                 "Secondary branch length",
-                 "Spikelet number")
-panel_names <- c("Rachis length (cm)",
-                 "Primary branch number",
-                 "Primary branch length (cm)", 
-                 "Secondary branch number",
-                 "Secondary branch length (cm)",
-                 "Spikelet number")
-pheno_pd[, text_name := factor(plyr::mapvalues(text_name,
-                                               panel_order,
-                                               panel_names),
-                               levels = panel_names)]
+# sample order
+hc <- hclust(sample_dist, method = "ward.D2")
+sample_order <- hc$labels[hc$order]
+dist_dt[, l1 := factor(l1, levels = sample_order)]
+dist_dt[, l2 := factor(l2, levels = sample_order)]
+setorder(dist_dt, l1, l2)
+dist_dt[, l1_label := factor(l1_label, levels = unique(l1_label))]
+dist_dt[, l2_label := factor(l2_label, levels = unique(l2_label))]
 
-# draw plot
-paired <- RColorBrewer::brewer.pal(4, "Paired")
-gp <- ggplot(pheno_pd, aes(x = species_label, y = value, colour = species_label)) +
+# plot
+gp <- ggplot(dist_dt, aes(x = l1_label, y = l2_label, fill = Distance)) +
   theme_minimal(base_size = 8, base_family = "Helvetica") +
-  theme(panel.background = element_rect(colour = "black"),
-        axis.text.x = element_text(angle = 90,
-                                   hjust = 1,
-                                   vjust = 0.5,
-                                   face = "italic"),
-        strip.placement = "outside") +
-  scale_color_manual(values = paired[c(1, 2, 2, 3, 4)],
-                     guide = FALSE) +
-  xlab(NULL) + ylab(NULL ) +
-  facet_wrap(~text_name, scales = "free_y", strip.position = "left", nrow = 3) +
-  geom_point(position = position_jitter(width = 0.3),
-             size = 1,
-             alpha = 0.8,
-             shape = 16)
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        axis.ticks.length = unit(0, "mm")) +
+  coord_fixed() +
+  scale_x_discrete(expand = c(0,0),
+                   labels = function(l) parse(text = l)) +
+  scale_y_discrete(expand = c(0,0),
+                   labels = function(l) parse(text = l)) +
+  xlab(NULL) + ylab(NULL) +
+  scale_fill_viridis_c() +
+  geom_raster()
 
 ggsave("test/Figure_S5.pdf",
        device = cairo_pdf,
        gp,
-       width = 87,
-       height = 130,
+       width = 178,
+       height = 178,
        units = "mm")
 

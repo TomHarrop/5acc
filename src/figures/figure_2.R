@@ -1,6 +1,8 @@
 library(data.table)
 library(ggplot2)
 
+# Figure 2: transcriptome-pca
+
 pcx_file <- "output/050_deseq/rlog_pca/pcx.Rds"
 pca_file <- "output/050_deseq/rlog_pca/pc.Rds"
 

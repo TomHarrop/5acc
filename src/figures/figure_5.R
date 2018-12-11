@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# Figure 4: Clusters and correlation with phenotypes
+# Figure 5: cluster-phenotype-corr
 
 library(data.table)
 library(ggplot2)

@@ -6,6 +6,8 @@ library(grid)
 library(gridExtra)
 library(gtable)
 
+# Figure 3: MADS-AP2-heatmap
+
 gm_mean <- function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
 }
@@ -280,7 +282,7 @@ s8_panels <- plot_grid(
   ncol = 3,
   rel_widths = c(1.1, 1, 1))
 
-ggsave("test/Figure_S8.pdf",
+ggsave("test/Figure_S6.pdf",
        device = cairo_pdf,
        s8_panels,
        width = 178*3/2,

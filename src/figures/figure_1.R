@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# Figure 1: panicle photos with Cali PCA
+# Figure 1: phenotype-pca
 
 library(cowplot) # add to MS repo!!!
 library(data.table)
@@ -308,7 +308,7 @@ cowplot2 <- plot_grid(pcp_all,
                       nrow = 2,
                       align = "hv",
                       axis = "tlbr")
-ggsave("test/Figure_S3.pdf",
+ggsave("test/Figure_S2.pdf",
        cowplot2,
        width = 178,
        height = 225/2,

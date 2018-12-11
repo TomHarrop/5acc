@@ -4,6 +4,8 @@ library(data.table)
 library(ggplot2)
 library(cowplot)
 
+# Figure 6 dom-genes
+
 #############
 # FUNCTIONS #
 #############
