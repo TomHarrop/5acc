@@ -60,31 +60,24 @@ The container includes:
 
 #### The following files are included in the github repository in the `data` directory:
 
-*Phenotyping data that are used in figures*
-
-- `data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt`
-- `data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv`
-- `data/phenotyping/phenotype_name_key.csv`
-
-*Gene information*
-
-- PlnTFDB 3.0 annotations from [http://plntfdb.bio.uni-potsdam.de/](http://plntfdb.bio.uni-potsdam.de/v3.0/export.php) (Pérez-Rodríguez *et al.* 2009, [10.1093/nar/gkp805](http://dx.doi.org/10.1093/nar/gkp805)):
-    + `data/genome/os/tfdb.tab`
-- PlantTFDB 4.0 annotations from [http://planttfdb.cbi.pku.edu.cn/](http://planttfdb.cbi.pku.edu.cn/download/TF_list) (Jin *et al.* 2017, [10.1093/aob/mcw024](http://dx.doi.org/10.1093/aob/mcw024)):
-    + `data/genome/os/Osj_TF_list`
-- MADS-box annotations from Arora *et al.* 2007 ([10.1186/1471-2164-8-242](https://doi.org/10.1186/1471-2164-8-242)):
-    + `data/genome/os/arora.csv` was manually tabulated from Table 1.
-    + `data/genome/os/arora_subclades.csv` was manually tabulated from Figure 2.
-
-*Genome annotations*
-
-- RAP-DB rRNA and tRNA annotations from http://rapdb.dna.affrc.go.jp/download/archive:
-    + `data/genome/os/irgsp1_rRNA_tRNA.gff`
-- MSU repeat annotations from [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
-    + `data/genome/os/rice_osa1r7_rm.gff3`
-- miRBase v21 MicroRNA annotation from [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
-    + `data/genome/os/osa.gff3`
-- TIGR repeat annotation from [ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3](ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3):
-    + `data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa`
-
-
+- *Phenotyping data that are used in figures*
+    - `data/phenotyping/OsOgObOrPTRAPdata_PaperTom.txt`
+    - `data/phenotyping/Phenotype_PanicleSequenced_corrected2.csv`
+    - `data/phenotyping/phenotype_name_key.csv`
+- *Gene information*
+    - PlnTFDB 3.0 annotations from [http://plntfdb.bio.uni-potsdam.de/](http://plntfdb.bio.uni-potsdam.de/v3.0/export.php) (Pérez-Rodríguez *et al.* 2009, [10.1093/nar/gkp805](http://dx.doi.org/10.1093/nar/gkp805)):
+        + `data/genome/os/tfdb.tab`
+    - PlantTFDB 4.0 annotations from [http://planttfdb.cbi.pku.edu.cn/](http://planttfdb.cbi.pku.edu.cn/download/TF_list) (Jin *et al.* 2017, [10.1093/aob/mcw024](http://dx.doi.org/10.1093/aob/mcw024)):
+        + `data/genome/os/Osj_TF_list`
+    - MADS-box annotations from Arora *et al.* 2007 ([10.1186/1471-2164-8-242](https://doi.org/10.1186/1471-2164-8-242)):
+        + `data/genome/os/arora.csv` was manually tabulated from Table 1.
+        + `data/genome/os/arora_subclades.csv` was manually tabulated from Figure 2.
+- *Genome annotations*
+    - RAP-DB rRNA and tRNA annotations from http://rapdb.dna.affrc.go.jp/download/archive:
+        + `data/genome/os/irgsp1_rRNA_tRNA.gff`
+    - MSU repeat annotations from [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
+        + `data/genome/os/rice_osa1r7_rm.gff3`
+    - miRBase v21 MicroRNA annotation from [ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir](ftp://ftp.plantbiology.msu.edu/pub/data/Eukaryotic_Projects/o_sativa/annotation_dbs/pseudomolecules/version_7.0/all.dir):
+        + `data/genome/os/osa.gff3`
+    - TIGR repeat annotation from [ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3](ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3):
+        + `data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa`
