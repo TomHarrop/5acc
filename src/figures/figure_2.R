@@ -46,6 +46,7 @@ pv_dt[, facet_label := paste0(comp, " (", round(pv, 1), "%)")]
 pd[, facet_label := pv_dt[comp == component, facet_label], by = component]
 
 # plot
+pc_cols <- RColorBrewer::brewer.pal(4, "Paired")
 gp <- ggplot(pd, aes(x = stage,
                y = score,
                group = ID,
@@ -56,7 +57,7 @@ gp <- ggplot(pd, aes(x = stage,
   xlab(NULL) +
   ylab("Score on component") +
   facet_grid(facet_label ~ accession, scales = "free_y") +
-  scale_fill_manual(values = pc5_cols[c(1, 2, 2, 3, 4)],
+  scale_fill_manual(values = pc_cols[c(1, 2, 2, 3, 4)],
                     guide = FALSE) +
   geom_col(position = position_dodge(width = 0.8),
            width = 0.7)
