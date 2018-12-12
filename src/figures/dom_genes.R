@@ -1,5 +1,10 @@
 #!/usr/bin/env Rscript
 
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
 library(data.table)
 library(ggplot2)
 library(cowplot)
@@ -44,6 +49,20 @@ PlotGoiLfcs <- function(genes_to_plot,
 # DATA # 
 ########
 
+wald_file <- snakemake@input[["wald"]]
+domestication_file <- snakemake@input[["domestication"]]
+indica_file <- snakemake@input[["indica"]]
+glab_file <- snakemake@input[["glab"]]
+
+# plots
+fig1_file <- snakemake@output[["fig1"]]
+
+# dev
+# wald_file <- "output/050_deseq/wald_tests/tfs/all/stage_within_species.csv"
+# domestication_file <- "output/050_deseq/wald_tests/tfs/all/domestication.csv"
+# indica_file <- "output/050_deseq/wald_tests/tfs/all/stage_accession_indica.csv"
+# glab_file <- "output/050_deseq/wald_tests/tfs/all/stage_accession_glaberrima.csv"
+
 alpha <- 0.1
 
 spec_order <- c("rufipogon" = "O. rufipogon",
@@ -53,10 +72,6 @@ spec_order <- c("rufipogon" = "O. rufipogon",
                 "glaberrima" = "O. glaberrima")
 
 acc_colours <- RColorBrewer::brewer.pal(4, "Paired")[c(1, 2, 3, 4)]
-wald_file <- "output/050_deseq/wald_tests/tfs/all/stage_within_species.csv"
-domestication_file <- "output/050_deseq/wald_tests/tfs/all/domestication.csv"
-indica_file <- "output/050_deseq/wald_tests/tfs/all/stage_accession_indica.csv"
-glab_file <- "output/050_deseq/wald_tests/tfs/all/stage_accession_glaberrima.csv"
 
 ########
 # MAIN #
@@ -91,7 +106,6 @@ sep_but_both <- PlotGoiLfcs(
   lfc_table = plot_lfc,
   ncol = 6)
 
-
 cowplot <- plot_grid(dom_gp, sep_but_both,
           ncol = 1,
           align = "hv",
@@ -101,9 +115,13 @@ cowplot <- plot_grid(dom_gp, sep_but_both,
           label_fontfamily = "Helvetica",
           rel_heights = c(4, 1.25))
 
-ggsave("test/Figure_6.pdf",
+ggsave(fig1_file,
        cowplot,
        width = 178,
        height = 178,
        units = "mm")
+
+
+# Log
+sessionInfo()
 

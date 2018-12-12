@@ -1,10 +1,15 @@
 #!/usr/bin/env Rscript
 
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
 # Table S5: mapping stats
 
 library(data.table)
 
-star_logs <- fread("output/030_mapping/stats/star_logs.csv")
+star_logs <- fread(snakemake@input[["star_logs"]])
 
 cols_to_keep <- c("library" = "library",
                   "Input reads (M)" = "Number of input reads",
@@ -45,4 +50,6 @@ setcolorder(mapping_stats,
 setorder(mapping_stats, Species, Stage, Replicate)
 
 # write output
-fwrite(mapping_stats, "test/Table_S5.csv")
+fwrite(mapping_stats, snakemake@output[["table1"]])
+
+sessionInfo()

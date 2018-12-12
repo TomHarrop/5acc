@@ -1,5 +1,10 @@
 #!/usr/bin/env Rscript
 
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
 library(DESeq2)
 library(data.table)
 library(ggplot2)
@@ -7,7 +12,12 @@ library(viridisLite)
 
 # Figure S5: Heatmap of pairwise distances between libraries.
 
-dds_file <- "output/050_deseq/filtered_dds.Rds"
+dds_file <- snakemake@input[["dds"]]
+# plots
+sf1_file <- snakemake@output[["sf1"]]
+
+# dev
+# dds_file <- "output/050_deseq/filtered_dds.Rds"
 
 spec_order <- c("or" = "O. rufipogon",
                 "osi" = "O. sativa indica",
@@ -73,10 +83,13 @@ gp <- ggplot(dist_dt, aes(x = l1_label, y = l2_label, fill = Distance)) +
   scale_fill_viridis_c() +
   geom_raster()
 
-ggsave("test/Figure_S5.pdf",
+ggsave(sf1_file,
        device = cairo_pdf,
        gp,
        width = 178,
        height = 178,
        units = "mm")
+
+# Log
+sessionInfo()
 

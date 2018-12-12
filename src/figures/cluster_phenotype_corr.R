@@ -1,6 +1,9 @@
 #!/usr/bin/env Rscript
 
-# Figure 5: cluster-phenotype-corr
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
 
 library(data.table)
 library(ggplot2)
@@ -9,17 +12,33 @@ library(grid)
 library(gridExtra)
 library(cowplot)
 
-tpm_file <- "output/060_tpm/tpm_with_calls.Rds"
-cluster_file <- "output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv"
-wald_file <- "output/050_deseq/wald_tests/tfs/all/stage_within_species.csv"
-hyperg <- "output/070_clustering/tfs/hypergeom.csv"
-correlation_file <- "output/080_phenotype/mtp_cluster_correlation.csv"
-pheno_key_file <- "data/phenotyping/phenotype_name_key.csv"
-cali_corr_file <- "output/080_phenotype/cali_cluster_correlation.csv"
 
 ###########
 # GLOBALS #
 ###########
+
+tpm_file <- snakemake@input[["tpm"]]
+cluster_file <- snakemake@input[["cluster"]]
+wald_file <- snakemake@input[["wald"]]
+hyperg_file <- snakemake@input[["hyperg"]]
+correlation_file <- snakemake@input[["correlation"]]
+pheno_key_file <- snakemake@input[["pheno_key"]]
+cali_corr_file <- snakemake@input[["cali_corr"]]
+
+# plots
+fig1_file <- snakemake@output[["fig1"]]
+sf1_file <- snakemake@output[["sf1"]]
+
+
+# dev
+# tpm_file <- "output/060_tpm/tpm_with_calls.Rds"
+# cluster_file <- "output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv"
+# wald_file <- "output/050_deseq/wald_tests/tfs/all/stage_within_species.csv"
+# hyperg_file <- "output/070_clustering/tfs/hypergeom.csv"
+# correlation_file <- "output/080_phenotype/mtp_cluster_correlation.csv"
+# pheno_key_file <- "data/phenotyping/phenotype_name_key.csv"
+# cali_corr_file <- "output/080_phenotype/cali_cluster_correlation.csv"
+
 
 spec_order <- c("rufipogon" = "O. rufipogon",
                 "indica" = "O. sativa indica",
@@ -42,7 +61,7 @@ set1 <- RColorBrewer::brewer.pal(9, "Set1")
 clusters <- fread(cluster_file)
 tpm <- readRDS(tpm_file)
 wald_results <- fread(wald_file)
-hyperg_results <- fread(hyperg)
+hyperg_results <- fread(hyperg_file)
 correlations <- fread(correlation_file)
 pheno_key <- fread(pheno_key_file)
 cali_corr <- fread(cali_corr_file)
@@ -270,73 +289,7 @@ p <- ggtree(phylo) +
   geom_tiplab()
 p
 
-# cowplot it together
-# cowplot <- plot_grid(p,
-#                      gp,
-#                      corr_plot,
-#                      #enrichment_plot,
-#                      nrow = 1,
-#                      align = "h",
-#                      axis = "tb",
-#                      rel_widths = c(1, 4, 3))
-# 
-# ggsave("test/Figure_4.pdf",
-#        device = cairo_pdf,
-#        cowplot,
-#        width = 178,
-#        height = 100,
-#        units = "mm")
-# 
-# 
-# cowplot <- plot_grid(p,
-#                      gp,
-#                      corr_plot,
-#                      gene_no,
-#                      #enrichment_plot,
-#                      nrow = 1,
-#                      align = "h",
-#                      axis = "tb",
-#                      rel_widths = c(1, 4, 1.5, 1.5))
-# 
-# ggsave("test/Figure_4_spn.pdf",
-#        device = cairo_pdf,
-#        cowplot,
-#        width = 178,
-#        height = 100,
-#        units = "mm")
-# 
-# cowplot <- plot_grid(p,
-#                      gp,
-#                      spn_corr,
-#                      sbn_corr,
-#                      pbn_corr,
-#                      #enrichment_plot,
-#                      nrow = 1,
-#                      align = "h",
-#                      axis = "tb",
-#                      rel_widths = c(1, 3, 2, 2, 2))
-# ggsave("test/Figure_4_all.pdf",
-#        device = cairo_pdf,
-#        cowplot,
-#        width = 178,
-#        height = 100,
-#        units = "mm")
-# 
-# cowplot <- plot_grid(p,
-#                      gp,
-#                      corr_plot,
-#                      #enrichment_plot,
-#                      nrow = 1,
-#                      align = "h",
-#                      axis = "tb",
-#                      rel_widths = c(1, 4, 3))
-# ggsave("test/Figure_4_spn_only.pdf",
-#        device = cairo_pdf,
-#        cowplot,
-#        width = 178,
-#        height = 100,
-#        units = "mm")
-
+# join plots
 cowplot <- plot_grid(p,
                      gp,
                      pc1_corr,
@@ -350,7 +303,7 @@ cowplot <- plot_grid(p,
                      label_size = 10,
                      label_fontfamily = "Helvetica",
                      label_x = c(0, -0.1, -0.1, 0, 0))
-ggsave("test/Figure_5.pdf",
+ggsave(fig1_file,
        device = cairo_pdf,
        cowplot,
        width = 178,
@@ -390,45 +343,14 @@ gp <- ggplot(pd2, aes(x = accession,
   geom_errorbar(width = 0.1) 
 
 
-ggsave("test/Figure_S9.pdf",
+ggsave(sf1_file,
        gp,
        device = cairo_pdf,
        width = 178,
        height = 225*2/3,
        units = "mm")
 
-quit("no")
 
-# generate plot data
-QuickClusterPlot <- function(cluster_number) {
-  my_acc_order <- c("rufipogon",
-                    "indica",
-                    "japonica",
-                    "barthii",
-                    "glaberrima")
-  file_path <- paste0("test/cluster_", cluster_number, ".pdf")
-  plot_genes <- clusters[cluster == cluster_number, unique(MsuID)]
-  my_fills <- RColorBrewer::brewer.pal(4, "Paired")[c(1, 2, 2, 3, 4)]
-  pd2 <- acc_results[gene_id %in% plot_genes]
-  pd2[, accession := factor(accession, levels = my_acc_order)]
-  gp <- ggplot(pd2, aes(x = accession,
-                        y = log2FoldChange,
-                        ymin = log2FoldChange - lfcSE,
-                        ymax = log2FoldChange + lfcSE,
-                        fill = accession)) +
-    theme_grey(base_size = 6) +
-    xlab(NULL) + ylab("L2FC ± SE") +
-    theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
-    scale_fill_manual(values = my_fills, guide = FALSE) +  
-    facet_wrap(~ label, scales = "free_y") +
-    geom_errorbar(width = 0.1) +
-    geom_col(position = "dodge", alpha = 0.5)
-  
-  ggsave(file_path,
-         gp,
-         width = 10,
-         height = 7.5,
-         units = "in")
-}
+# Log
+sessionInfo()
 
-sapply(clusters[, unique(cluster)], QuickClusterPlot)

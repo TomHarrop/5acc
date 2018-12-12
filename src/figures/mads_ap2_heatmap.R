@@ -1,3 +1,10 @@
+#!/usr/bin/env Rscript
+
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
 library(cowplot)
 library(data.table)
 library(DESeq2)
@@ -6,19 +13,32 @@ library(grid)
 library(gridExtra)
 library(gtable)
 
-# Figure 3: MADS-AP2-heatmap
+###########
+# GLOBALS #
+###########
+
+tfdb_file <- snakemake@input[["tfdb"]]
+families_file <- snakemake@input[["families"]]
+vst_file <- snakemake@input[["vst"]]
+pcro_file <- snakemake@input[["pcro"]]
+arora_file <- snakemake@input[["arora"]]
+arora_subclades_file <- snakemake@input[["arora_subclades"]]
+
+# plots
+fig1_file <- snakemake@output[["fig1"]]
+sf1_file <- snakemake@output[["sf1"]]
+
+# dev
+# tfdb_file <- "output/010_data/tfdb.Rds"
+# families_file <- "output/010_data/tfdb_families.Rds"
+# vst_file <- "output/050_deseq/vst.Rds"
+# pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
+# arora_file <- "data/genome/os/arora.csv"
+# arora_subclades_file <- "data/genome/os/arora_subclades.csv"
 
 gm_mean <- function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
 }
-
-tfdb_file <- "output/010_data/tfdb.Rds"
-families_file <- "output/010_data/tfdb_families.Rds"
-vst_file <- "output/050_deseq/vst.Rds"
-pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
-arora_file <- "data/genome/os/arora.csv"
-arora_subclades_file <- "data/genome/os/arora_subclades.csv"
-
 
 spec_order <- c("or" = "O. rufipogon",
                 "osi" = "O. sativa indica",
@@ -250,7 +270,7 @@ cowplot <- plot_grid(ap2_gt,
                      rel_widths = c(0.9, 1))
 
 
-ggsave("test/Figure_3.pdf",
+ggsave(fig1_file,
        device = cairo_pdf,
        cowplot,
        width = 178,
@@ -282,9 +302,13 @@ s8_panels <- plot_grid(
   ncol = 3,
   rel_widths = c(1.1, 1, 1))
 
-ggsave("test/Figure_S6.pdf",
+ggsave(sf1_file,
        device = cairo_pdf,
        s8_panels,
        width = 178*3/2,
        height = 150,
        units = "mm")
+
+# Log
+sessionInfo()
+

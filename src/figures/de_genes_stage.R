@@ -1,10 +1,15 @@
 #!/usr/bin/env Rscript
 
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
 # Table S6: DE-genes-stages
 
 library(data.table)
 
-de_genes_file <- "output/050_deseq/wald_tests/expr_genes/all/stage.csv"
+de_genes_file <- snakemake@input[["de_genes"]]
 
 de_genes <- fread(de_genes_file)
 de_genes[, c("design",
@@ -17,4 +22,6 @@ de_genes[, c("design",
              "OgroRef") := NULL]
 setorder(de_genes, padj, na.last = TRUE)
 
-fwrite(de_genes, "test/Table_S6.csv")
+fwrite(de_genes, snakemake@output[["table1"]])
+
+sessionInfo()

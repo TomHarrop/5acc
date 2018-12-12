@@ -102,10 +102,184 @@ rule target:
         # 'output/050_deseq/rlog_pca/pc.Rds',
         # 'output/090_goi-variants/variants_filtered.vcf'
         'output/100_figures/Figure_1.pdf',
-        'output/100_figures/Figure_S2.pdf'
+        'output/100_figures/Figure_2.pdf',
+        'output/100_figures/Figure_3.pdf',
+        'output/100_figures/Figure_5.pdf',
+        'output/100_figures/Figure_6.pdf',
+        'output/100_figures/Figure_S2.pdf',
+        'output/100_figures/Figure_S5.pdf',
+        'output/100_figures/Figure_S6.pdf',
+        'output/100_figures/Figure_S9.pdf',
+        'output/100_figures/Figure_S10.pdf',
+        'output/110_tables/Table_S5.csv',
+        'output/110_tables/Table_S6.csv',
+        'output/110_tables/Table_S8.csv',
+        'output/110_tables/Table_S9.csv'
 
+# 110 tables for paper
+rule de_genes_interaction:
+    input:
+        as_de = 'output/050_deseq/wald_tests/tfs/all/stage_accession_glaberrima.csv',
+        af_de = 'output/050_deseq/wald_tests/tfs/all/stage_accession_indica.csv'
+    output:
+        table1 = 'output/110_tables/Table_S9.csv'
+    log:
+        'output/000_logs/110_tables/de_genes_interaction.log'
+    benchmark:
+        'output/001_bench/110_tables/de_genes_interaction.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/de_genes_interaction.R'
+
+
+rule clustered_genes:
+    input:
+        clusters = 'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv'
+    output:
+        table1 = 'output/110_tables/Table_S8.csv'
+    log:
+        'output/000_logs/110_tables/clustered_genes.log'
+    benchmark:
+        'output/001_bench/110_tables/clustered_genes.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/clustered_genes.R'
+
+rule de_genes_stage:
+    input:
+        de_genes = 'output/050_deseq/wald_tests/expr_genes/all/stage.csv'
+    output:
+        table1 = 'output/110_tables/Table_S6.csv'
+    log:
+        'output/000_logs/110_tables/de_genes_stage.log'
+    benchmark:
+        'output/001_bench/110_tables/de_genes_stage.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/de_genes_stage.R'
+
+rule star_logs:
+    input:
+        star_logs = 'output/030_mapping/stats/star_logs.csv'
+    output:
+        table1 = 'output/110_tables/Table_S5.csv'
+    log:
+        'output/000_logs/110_tables/star_logs.log'
+    benchmark:
+        'output/001_bench/110_tables/star_logs.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/star_logs.R'
 
 # 100 figures for paper
+rule phenotyping_mpl:
+    input:
+        phenotypes = 'data/phenotyping/Phenotype_PanicleSequenced.csv',
+        pheno_names = 'data/phenotyping/phenotype_name_key.csv'
+    output:
+        sf1 = 'output/100_figures/Figure_S10.pdf'
+    log:
+        'output/000_logs/100_figures/phenotyping_mpl.log'
+    benchmark:
+        'output/001_bench/100_figures/phenotyping_mpl.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/phenotyping_mpl.R'
+
+
+rule distance_heatmap:
+    input:
+        dds = 'output/050_deseq/filtered_dds.Rds'
+    output:
+        sf1 = 'output/100_figures/Figure_S5.pdf'
+    log:
+        'output/000_logs/100_figures/distance_heatmap.log'
+    benchmark:
+        'output/001_bench/100_figures/distance_heatmap.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/distance_heatmap.R'
+
+rule dom_genes:
+    input:
+        wald = 'output/050_deseq/wald_tests/tfs/all/stage_within_species.csv',
+        domestication = 'output/050_deseq/wald_tests/tfs/all/domestication.csv',
+        indica = 'output/050_deseq/wald_tests/tfs/all/stage_accession_indica.csv',
+        glab = 'output/050_deseq/wald_tests/tfs/all/stage_accession_glaberrima.csv'
+    output:
+        fig1 = 'output/100_figures/Figure_6.pdf',
+    log:
+        'output/000_logs/100_figures/dom_genes.log'
+    benchmark:
+        'output/001_bench/100_figures/dom_genes.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/dom_genes.R'
+
+rule cluster_phenotype_corr:
+    input:
+        tpm = 'output/060_tpm/tpm_with_calls.Rds',
+        cluster = 'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
+        wald = 'output/050_deseq/wald_tests/tfs/all/stage_within_species.csv',
+        hyperg = 'output/070_clustering/tfs/hypergeom.csv',
+        correlation = 'output/080_phenotype/mtp_cluster_correlation.csv',
+        pheno_key = 'data/phenotyping/phenotype_name_key.csv',
+        cali_corr = 'output/080_phenotype/cali_cluster_correlation.csv'
+    output:
+        fig1 = 'output/100_figures/Figure_5.pdf',
+        sf1 = 'output/100_figures/Figure_S9.pdf'
+    log:
+        'output/000_logs/100_figures/cluster_phenotype_corr.log'
+    benchmark:
+        'output/001_bench/100_figures/cluster_phenotype_corr.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/cluster_phenotype_corr.R'
+
+
+rule mads_ap2_heatmap:
+    input:
+        tfdb = 'output/010_data/tfdb.Rds',
+        families = 'output/010_data/tfdb_families.Rds',
+        vst = 'output/050_deseq/vst.Rds',
+        pcro = 'output/050_deseq/rlog_pca/pcro.Rds',
+        arora = 'data/genome/os/arora.csv',
+        arora_subclades = 'data/genome/os/arora_subclades.csv'
+    output:
+        fig1 = 'output/100_figures/Figure_3.pdf',
+        sf1 = 'output/100_figures/Figure_S6.pdf'
+    log:
+        'output/000_logs/100_figures/mads_ap2_heatmap.log'
+    benchmark:
+        'output/001_bench/100_figures/mads_ap2_heatmap.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/mads_ap2_heatmap.R'
+
+rule transcriptome_pca:
+    input:
+        pcx = 'output/050_deseq/rlog_pca/pcx.Rds',
+        pca = 'output/050_deseq/rlog_pca/pc.Rds'
+    output:
+        fig1 = 'output/100_figures/Figure_2.pdf'
+    log:
+        'output/000_logs/100_figures/transcriptome_pca.log'
+    benchmark:
+        'output/001_bench/100_figures/transcriptome_pca.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/transcriptome_pca.R'
+
 rule phenotype_pca:
     input:
         names = 'data/phenotyping/phenotype_name_key.csv',
@@ -125,7 +299,7 @@ rule phenotype_pca:
     singularity:
         singularity_container
     script:
-        'src/figures/phenotype-pca.R'
+        'src/figures/phenotype_pca.R'
 
 # 090 call variants on aligned reads
 rule call_variants:

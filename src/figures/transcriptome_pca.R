@@ -1,10 +1,28 @@
+#!/usr/bin/env Rscript
+
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
 library(data.table)
 library(ggplot2)
 
 # Figure 2: transcriptome-pca
 
-pcx_file <- "output/050_deseq/rlog_pca/pcx.Rds"
-pca_file <- "output/050_deseq/rlog_pca/pc.Rds"
+###########
+# GLOBALS #
+###########
+
+pcx_file <- snakemake@input[["pcx"]]
+pca_file <- snakemake@input[["pca"]]
+
+# plots
+fig1_file <- snakemake@output[["fig1"]]
+
+# dev
+# pcx_file <- "output/050_deseq/rlog_pca/pcx.Rds"
+# pca_file <- "output/050_deseq/rlog_pca/pc.Rds"
 
 long_spec_order <- c("rufipogon" = "O. rufipogon",
                      "indica" = "O. sativa indica",
@@ -62,9 +80,12 @@ gp <- ggplot(pd, aes(x = stage,
   geom_col(position = position_dodge(width = 0.8),
            width = 0.7)
 
-ggsave("test/Figure_2.pdf",
+ggsave(fig1_file,
        gp,
        width = 178,
        height = 145,
        units = "mm")
+
+# Log
+sessionInfo()
 
