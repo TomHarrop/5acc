@@ -4,3 +4,11 @@ data/images/Os_IR64.png filter=lfs diff=lfs merge=lfs -text
 data/images/Os_Nip.png filter=lfs diff=lfs merge=lfs -text
 data/images/Ob_B88.png filter=lfs diff=lfs merge=lfs -text
 data/images/Og_Tog5681.png filter=lfs diff=lfs merge=lfs -text
+data/genome/os/Osj_TF_list filter=lfs diff=lfs merge=lfs -text
+data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa filter=lfs diff=lfs merge=lfs -text
+data/genome/os/arora.csv filter=lfs diff=lfs merge=lfs -text
+data/genome/os/arora_subclades.csv filter=lfs diff=lfs merge=lfs -text
+data/genome/os/irgsp1_rRNA_tRNA.gff filter=lfs diff=lfs merge=lfs -text
+data/genome/os/osa.gff3 filter=lfs diff=lfs merge=lfs -text
+data/genome/os/rice_osa1r7_rm.gff3 filter=lfs diff=lfs merge=lfs -text
+data/genome/os/tfdb.tab filter=lfs diff=lfs merge=lfs -text
