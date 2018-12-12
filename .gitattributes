@@ -12,3 +12,6 @@ data/genome/os/irgsp1_rRNA_tRNA.gff filter=lfs diff=lfs merge=lfs -text
 data/genome/os/osa.gff3 filter=lfs diff=lfs merge=lfs -text
 data/genome/os/rice_osa1r7_rm.gff3 filter=lfs diff=lfs merge=lfs -text
 data/genome/os/tfdb.tab filter=lfs diff=lfs merge=lfs -text
+data/phenotyping/OsOgObOrPTRAPdata.txt filter=lfs diff=lfs merge=lfs -text
+data/phenotyping/Phenotype_PanicleSequenced.csv filter=lfs diff=lfs merge=lfs -text
+data/phenotyping/phenotype_name_key.csv filter=lfs diff=lfs merge=lfs -text
