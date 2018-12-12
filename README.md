@@ -13,39 +13,6 @@ All software is containerised, so the only requirements are:
 
 `snakemake --use-singularity --cores={threads} --resources mem_gb={ram_limit}`
 
-### Software environment
-
-[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/996)
-
-The `singularity` container for the analysis is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://singularity-hub.org/containers/2779). The `--use-singularity` flag tells `snakemake` to pull the container and run the analysis with the software installed in the container.
-
-The container includes: 
-
-- `bbmap` 38.00
-- `bcftools` 1.7
-- `bedtools` 2.26.0
-- `cuffcompare` 2.2.1
-- `samtools` 1.7
-- `STAR` 2.5.4b
-- `wgsim` 0.3.1-r13
-- `python` 3.6.5, with packages
-    + `cutadapt` 1.18
-    + `HTSeq` 0.9.1
-- `R` 3.4.4, with packages
-    + `Bioconductor` 3.6
-    + `data.table` 1.11.2
-    + `DESeq2` 1.18.1
-    + `GenomicRanges` 1.30.3
-    + `Mfuzz` 2.38.0
-    + `oryzr` 0.1.23
-    + `rtracklayer`  1.30.3
-    + `tidyverse` metapackage 1.2.1
-    + `valr` 0.4.0  
-
-### Workflow
-
-![](dag/dag.svg)
-
 ### Input data files
 
 #### The following files are not distributed with the workflow, and must be added to the `data` directory:
@@ -83,3 +50,36 @@ The container includes:
         + `data/genome/os/osa.gff3`
     - TIGR repeat annotation from [http://plantbiology.msu.edu/](ftp://ftp.plantbiology.msu.edu/pub/data/TIGR_Plant_Repeats/TIGR_Oryza_Repeats.v3.3):
         + `data/genome/os/TIGR_Oryza_Repeats.v3.3_0_0.fsa`
+
+### Software environment
+
+[![https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg](https://www.singularity-hub.org/static/img/hosted-singularity--hub-%23e32929.svg)](https://singularity-hub.org/collections/996)
+
+The `singularity` container for the analysis is hosted at [shub://TomHarrop/singularity-containers:five-accessions](https://singularity-hub.org/containers/2779). The `--use-singularity` flag tells `snakemake` to pull the container and run the analysis with the software installed in the container.
+
+The container includes: 
+
+- `bbmap` 38.00
+- `bcftools` 1.7
+- `bedtools` 2.26.0
+- `cuffcompare` 2.2.1
+- `samtools` 1.7
+- `STAR` 2.5.4b
+- `wgsim` 0.3.1-r13
+- `python` 3.6.5, with packages
+    + `cutadapt` 1.18
+    + `HTSeq` 0.9.1
+- `R` 3.4.4, with packages
+    + `Bioconductor` 3.6
+    + `data.table` 1.11.2
+    + `DESeq2` 1.18.1
+    + `GenomicRanges` 1.30.3
+    + `Mfuzz` 2.38.0
+    + `oryzr` 0.1.23
+    + `rtracklayer`  1.30.3
+    + `tidyverse` metapackage 1.2.1
+    + `valr` 0.4.0  
+
+### Workflow
+
+![](dag/dag.svg)
