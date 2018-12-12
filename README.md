@@ -33,6 +33,11 @@ All software is containerised, so the only requirements are:
         - `data/phenotyping/Phenotype_PanicleSequenced.csv`
     - Phenotype name key
         - `data/phenotyping/phenotype_name_key.csv`
++ *Panicle photos*
+    * `data/images/Ob_B88.png`
+    * `data/images/Os_IR64.png`
+    * `data/images/Og_Tog5681.png`
+    * `data/images/Or_W1654.png`
 - *Gene information*
     - PlnTFDB 3.0 annotations from [http://plntfdb.bio.uni-potsdam.de/](http://plntfdb.bio.uni-potsdam.de/v3.0/export.php) (Pérez-Rodríguez *et al.* 2009, [10.1093/nar/gkp805](http://dx.doi.org/10.1093/nar/gkp805)):
         + `data/genome/os/tfdb.tab`

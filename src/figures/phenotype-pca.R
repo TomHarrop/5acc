@@ -1,13 +1,16 @@
 #!/usr/bin/env Rscript
 
-# Figure 1: phenotype-pca
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
 
-library(cowplot) # add to MS repo!!!
+library(cowplot)
 library(data.table)
 library(ggplot2)
 library(grid)
 library(gridExtra)
-library(png) # add to MS repo!!!
+library(png)
 
 #############
 # FUNCTIONS #
@@ -37,15 +40,30 @@ PlotPng <- function(my_png, my_label){
 # GLOBALS #
 ###########
 
-names_file <- "data/phenotyping/phenotype_name_key.csv"
-pca_file <- "output/080_phenotype/cali_pca.Rds"
-pheno_file <- "output/080_phenotype/cali.csv"
+names_file <- snakemake@input[["names"]]
+pca_file <- snakemake@input[["pca"]]
+pheno_file <- snakemake@input[["pheno"]]
 
 # png files
-ob_pan_file <- "test/panicles/Ob_B88.png"
-os_pan_file <- "test/panicles/Os_IR64.png"
-og_pan_file <- "test/panicles/Og_Tog5681.png"
-or_pan_file <- "test/panicles/Or_W1654.png"
+ob_pan_file <- snakemake@input[["ob_pan"]]
+os_pan_file <- snakemake@input[["os_pan"]]
+og_pan_file <- snakemake@input[["og_pan"]]
+or_pan_file <- snakemake@input[["or_pan"]]
+
+# plots
+fig1_file <- snakemake@output[["fig1"]]
+sf1_file <- snakemake@output[["sf1"]]
+
+# dev
+# names_file <- "data/phenotyping/phenotype_name_key.csv"
+# pca_file <- "output/080_phenotype/cali_pca.Rds"
+# pheno_file <- "output/080_phenotype/cali.csv"
+# 
+# # png files
+# ob_pan_file <- "data/images/Ob_B88.png"
+# os_pan_file <- "data/images/Os_IR64.png"
+# og_pan_file <- "data/images/Og_Tog5681.png"
+# or_pan_file <- "data/images/Or_W1654.png"
 
 ########
 # MAIN #
@@ -296,7 +314,7 @@ cowplot <- plot_grid(top,
                      ncol = 1, 
                      rel_heights = c(2, 2, 4))
 
-ggsave("test/Figure_1.pdf",
+ggsave(fig1_file,
        cowplot,
        width = 178,
        height = 225,
@@ -308,10 +326,12 @@ cowplot2 <- plot_grid(pcp_all,
                       nrow = 2,
                       align = "hv",
                       axis = "tlbr")
-ggsave("test/Figure_S2.pdf",
+ggsave(sf1_file,
        cowplot2,
        width = 178,
        height = 225/2,
        units = "mm")
 
+# Log
+sessionInfo()
 

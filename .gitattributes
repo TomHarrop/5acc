@@ -1,1 +1,6 @@
 test/panicles/Ob_B88.png filter=lfs diff=lfs merge=lfs -text
+data/images/Or_W1654.png filter=lfs diff=lfs merge=lfs -text
+data/images/Os_IR64.png filter=lfs diff=lfs merge=lfs -text
+data/images/Os_Nip.png filter=lfs diff=lfs merge=lfs -text
+data/images/Ob_B88.png filter=lfs diff=lfs merge=lfs -text
+data/images/Og_Tog5681.png filter=lfs diff=lfs merge=lfs -text

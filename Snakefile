@@ -102,6 +102,29 @@ rule target:
         'output/050_deseq/rlog_pca/pc.Rds',
         'output/090_goi-variants/variants_filtered.vcf'
 
+
+# 100 figures for paper
+rule phenotype_pca:
+    input:
+        names = 'data/phenotyping/phenotype_name_key.csv',
+        pca = 'output/080_phenotype/cali_pca.Rds',
+        pheno = 'output/080_phenotype/cali.csv',
+        ob_pan = 'data/images/Ob_B88.png',
+        os_pan = 'data/images/Os_IR64.png',
+        og_pan = 'data/images/Og_Tog5681.png',
+        or_pan = 'data/images/Or_W1654.png'
+    output:
+        fig1 = 'output/100_figures/Figure_1.pdf',
+        sf1 = 'output/100_figures/Figure_S2.pdf'
+    log:
+        'output/000_logs/100_figures/phenotype-pca.log'
+    benchmark:
+        'output/001_bench/100_figures/phenotype-pca.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/phenotype-pca.R'
+
 # 090 call variants on aligned reads
 rule call_variants:
     input:
