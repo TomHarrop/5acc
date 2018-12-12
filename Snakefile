@@ -94,13 +94,15 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
-        'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
-        'output/050_deseq/wald_tests/tfs/sig/domestication.csv',
-        'output/080_phenotype/cali_pca.Rds',
-        'output/080_phenotype/mtp_cluster_correlation.csv',
-        'output/050_deseq/rlog_pca/pc.Rds',
-        'output/090_goi-variants/variants_filtered.vcf'
+        # 'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
+        # 'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
+        # 'output/050_deseq/wald_tests/tfs/sig/domestication.csv',
+        # 'output/080_phenotype/cali_pca.Rds',
+        # 'output/080_phenotype/mtp_cluster_correlation.csv',
+        # 'output/050_deseq/rlog_pca/pc.Rds',
+        # 'output/090_goi-variants/variants_filtered.vcf'
+        'output/100_figures/Figure_1.pdf',
+        'output/100_figures/Figure_S2.pdf'
 
 
 # 100 figures for paper
