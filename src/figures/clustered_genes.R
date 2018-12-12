@@ -17,8 +17,12 @@ clusters <- fread(cluster_file)
 clusters[, c("RapID",
              "names",
              "OgroObjective",
-             "OgroRef") := NULL]
-setnames(clusters, "MsuID", "gene_id")
+             "OgroRef",
+             "rufipogon",
+             "indica",
+             "barthii",
+             "glaberrima") := NULL]
+setnames(clusters, c("MsuID", "symbols"), c("gene_id", "symbol"))
 setcolorder(clusters, c("cluster", "gene_id"))
 
 fwrite(clusters, snakemake@output[["table1"]])
