@@ -104,6 +104,7 @@ rule target:
         'output/100_figures/Figure_1.pdf',
         'output/100_figures/Figure_2.pdf',
         'output/100_figures/Figure_3.pdf',
+        'output/100_figures/Figure_4.pdf',
         'output/100_figures/Figure_5.pdf',
         'output/100_figures/Figure_6.pdf',
         'output/100_figures/Figure_S2.pdf',
@@ -176,6 +177,22 @@ rule star_logs:
         'src/figures/star_logs.R'
 
 # 100 figures for paper
+rule panicle_mutants:
+    input:
+        phenotypes = 'data/phenotyping/panicle_mutants.csv',
+        pheno_names = 'data/phenotyping/phenotype_name_key.csv'
+    output:
+        fig1 = 'output/100_figures/Figure_4.pdf'
+    log:
+        'output/000_logs/100_figures/panicle_mutants.log'
+    benchmark:
+        'output/001_bench/100_figures/panicle_mutants.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/panicle_mutants.R'
+
+
 rule phenotyping_mpl:
     input:
         phenotypes = 'data/phenotyping/Phenotype_PanicleSequenced.csv',

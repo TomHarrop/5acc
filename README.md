@@ -31,7 +31,9 @@ All software is containerised, so the only requirements are:
         - `data/phenotyping/OsOgObOrPTRAPdata.txt`
     + Montpellier phenotyping data
         - `data/phenotyping/Phenotype_PanicleSequenced.csv`
-    - Phenotype name key
+    + *crl5* and *smos1-3* mutant phenotyping data
+        * `data/phenotyping/panicle_mutants.csv`
+    + Phenotype name key
         - `data/phenotyping/phenotype_name_key.csv`
 + *Panicle photos*
     * `data/images/Ob_B88.png`

@@ -5,6 +5,7 @@ dag/dag.svg: Snakefile
 	output/100_figures/Figure_1.pdf \
 	output/100_figures/Figure_2.pdf \
 	output/100_figures/Figure_3.pdf \
+	output/100_figures/Figure_4.pdf \
 	output/100_figures/Figure_5.pdf \
 	output/100_figures/Figure_6.pdf \
 	output/100_figures/Figure_S2.pdf \
