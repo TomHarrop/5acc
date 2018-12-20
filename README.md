@@ -46,6 +46,8 @@ All software is containerised, so the only requirements are:
     - MADS-box annotations (Arora *et al.* 2007, [10.1186/1471-2164-8-242](https://doi.org/10.1186/1471-2164-8-242)):
         + `data/genome/os/arora.csv` was manually tabulated from Table 1.
         + `data/genome/os/arora_subclades.csv` was manually tabulated from Figure 2.
+    - *AP2/EREBP*-like annotations (Sharoni *et al.* 2011, [10.1093/pcp/pcq196](https://academic.oup.com/pcp/article/52/2/344/1905524))
+        + `data/genome/os/sharoni_table_s1.csv`
 - *Genome annotations*
     - RAP-DB rRNA and tRNA annotations from [http://rapdb.dna.affrc.go.jp/](http://rapdb.dna.affrc.go.jp/download/archive):
         + `data/genome/os/irgsp1_rRNA_tRNA.gff`

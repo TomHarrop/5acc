@@ -23,6 +23,7 @@ vst_file <- snakemake@input[["vst"]]
 pcro_file <- snakemake@input[["pcro"]]
 arora_file <- snakemake@input[["arora"]]
 arora_subclades_file <- snakemake@input[["arora_subclades"]]
+sharoni_file <- snakemake@input[["sharoni"]]
 
 # plots
 fig1_file <- snakemake@output[["fig1"]]
@@ -35,6 +36,7 @@ sf1_file <- snakemake@output[["sf1"]]
 # pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
 # arora_file <- "data/genome/os/arora.csv"
 # arora_subclades_file <- "data/genome/os/arora_subclades.csv"
+# sharoni_file <- "data/genome/os/sharoni_table_s1.csv"
 
 gm_mean <- function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
@@ -59,6 +61,7 @@ tfdb <- readRDS(tfdb_file)
 families <- readRDS(families_file)
 arora <- fread(arora_file)
 arora_subclades <- fread(arora_subclades_file)
+sharoni <- fread(sharoni_file)
 
 #################
 # Heatmap panel #  
@@ -86,6 +89,19 @@ arora_subclade_genes <- arora_subclades[!is.na(arora_subclade),
 families[`Protein ID` %in% arora_subclade_genes,
          Class := arora_subclades[gene_id == `Protein ID`,
                                   unique(arora_subclade)],
+         by = `Protein ID`]
+
+# use sharoni clades for AP2. it's a nasty mess
+sharoni_classes <- sharoni[!is.na(`MSU locus ID`) &
+          `MSU locus ID` != "" &
+          grepl("^Os", `MSU locus ID`),
+        .(gene_id = paste("LOC", `MSU locus ID`, sep = "_"),
+          Class = `Phy. Subfamily`)]
+sharoni_genes <- sharoni_classes[, unique(gene_id)]
+families[`Protein ID` %in% sharoni_genes,
+         Class := paste0('"',
+                         sharoni_classes[gene_id == `Protein ID`, unique(Class)],
+                         '"'),
          by = `Protein ID`]
 
 # list of genes

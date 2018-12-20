@@ -252,7 +252,8 @@ rule mads_ap2_heatmap:
         vst = 'output/050_deseq/vst.Rds',
         pcro = 'output/050_deseq/rlog_pca/pcro.Rds',
         arora = 'data/genome/os/arora.csv',
-        arora_subclades = 'data/genome/os/arora_subclades.csv'
+        arora_subclades = 'data/genome/os/arora_subclades.csv',
+        sharoni = 'data/genome/os/sharoni_table_s1.csv'
     output:
         fig1 = 'output/100_figures/Figure_3.pdf',
         sf1 = 'output/100_figures/Figure_S6.pdf'

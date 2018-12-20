@@ -299,7 +299,7 @@ cowplot <- plot_grid(p,
                      align = "h",
                      axis = "tb",
                      rel_widths = c(1.3, 4, 2, 2, 2),
-                     labels = c("A", "", "B", "", ""),
+                     labels = c("(a)", "", "(b)", "", ""),
                      label_size = 10,
                      label_fontfamily = "Helvetica",
                      label_x = c(0, -0.1, -0.1, 0, 0))
