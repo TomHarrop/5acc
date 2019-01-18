@@ -52,6 +52,7 @@ gp <- ggplot(goi_pd, aes(x = stage, y = `Expression (TPM)`, group = symbol)) +
           panel.background = element_rect(colour = "black")) +
     facet_wrap(~symbol) +
     xlab(NULL) +
+    ylab("Expression (TPM)") +
     stat_smooth(se = FALSE, colour = "grey", size = 0.5) + 
     geom_point(shape = 16, position = position_jitter(width = 0.2))
 
