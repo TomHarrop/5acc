@@ -17,5 +17,6 @@ dag/dag.svg: Snakefile
 	output/110_tables/Table_S6.csv \
 	output/110_tables/Table_S8.csv \
 	output/110_tables/Table_S9.csv \
+	output/010_data/md5/og_SM_1.r1.md5 \
 	| dot -Tsvg \
 	> dag/dag.svg

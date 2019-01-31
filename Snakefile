@@ -94,13 +94,6 @@ all_fastq_files = FindAllFastqFiles(read_dir)
 
 rule target:
     input:
-        # 'output/070_clustering/tfs/annotated_clusters_scaled_l2fc.csv',
-        # 'output/050_deseq/wald_tests/expr_genes/sig/domestication.csv',
-        # 'output/050_deseq/wald_tests/tfs/sig/domestication.csv',
-        # 'output/080_phenotype/cali_pca.Rds',
-        # 'output/080_phenotype/mtp_cluster_correlation.csv',
-        # 'output/050_deseq/rlog_pca/pc.Rds',
-        # 'output/090_goi-variants/variants_filtered.vcf'
         'output/100_figures/Figure_1.pdf',
         'output/100_figures/Figure_2.pdf',
         'output/100_figures/Figure_3.pdf',
@@ -115,7 +108,12 @@ rule target:
         'output/110_tables/Table_S4.csv',
         'output/110_tables/Table_S6.csv',
         'output/110_tables/Table_S8.csv',
-        'output/110_tables/Table_S9.csv'
+        'output/110_tables/Table_S9.csv',
+        expand('output/010_data/md5/{species}_{stage}_{rep}.r{r}.md5',
+               species=all_species,
+               stage=all_stages,
+               rep=all_reps,
+               r=[1,2])
 
 # 110 tables for paper
 rule de_genes_interaction:
@@ -966,14 +964,6 @@ rule repair:
 
 
 # 010 prepare data
-rule md5_all:
-    input:
-        expand('output/010_data/md5/{species}_{stage}_{rep}.r{r}.md5',
-               species=all_species,
-               stage=all_stages,
-               rep=all_reps,
-               r=[1,2])
-
 rule md5:
     input:
         unpack(FindInputReads)
