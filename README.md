@@ -40,6 +40,9 @@ All software is containerised, so the only requirements are:
     * `data/images/Os_IR64.png`
     * `data/images/Og_Tog5681.png`
     * `data/images/Or_W1654.png`
+- *Gene expression data*
+    + RNAseq data from *O. sativa japonica* cv. Nipponbare meristems (Harrop *et al*, 2016), [10.1111/tpj.13147](http://dx.doi.org/10.1111/tpj.13147)
+        * `data/gene_expression/tpj13147-sup-0007-datas1.tsv`
 - *Gene information*
     - PlnTFDB 3.0 annotations from [http://plntfdb.bio.uni-potsdam.de/](http://plntfdb.bio.uni-potsdam.de/v3.0/export.php) (Pérez-Rodríguez *et al.* 2009, [10.1093/nar/gkp805](http://dx.doi.org/10.1093/nar/gkp805)):
         + `data/genome/os/tfdb.tab`

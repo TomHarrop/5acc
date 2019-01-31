@@ -3,10 +3,26 @@
 # Figure S7: Expression of *AP2/EREBP*-like genes in *O. sativa japonica* cv.
 # Nipponbare meristems [data from @harropGeneExpressionProfiling2016].
 
+# set log
+log <- file(snakemake@log[[1]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
 library(data.table)
 library(ggplot2)
 
-tpm_data_file <- "data/tpj13147-sup-0007-datas1.tsv"
+###########
+# GLOBALS #
+###########
+
+set.seed(1)
+
+# data
+tpm_data_file <- snakemake@input[["tpm_data"]]
+
+# plots
+sf1_file <- snakemake@output[["sf1"]]
+
 goi <- c("LOC_Os07g03250", "LOC_Os05g32270")
 libs <- c("n1r1",
           "n1r3",
@@ -20,6 +36,14 @@ libs <- c("n1r1",
           "n4r1",
           "n4r2",
           "n4r3")
+
+
+# dev
+# tpm_data_file <- "data/gene_expression/tpj13147-sup-0007-datas1.tsv"
+
+########
+# MAIN #
+########
 
 # extract plot data
 tpm_data <- as.data.table(readr::read_tsv(tpm_data_file))
@@ -56,10 +80,14 @@ gp <- ggplot(goi_pd, aes(x = stage, y = `Expression (TPM)`, group = symbol)) +
     stat_smooth(se = FALSE, colour = "grey", size = 0.5) + 
     geom_point(shape = 16, position = position_jitter(width = 0.2))
 
-ggsave("figures/Figure_S7.pdf",
+ggsave(sf1_file,
        gp,
        device = cairo_pdf,
        width = 114,
        height = 50,
        units = "mm")
+
+# Log
+sessionInfo()
+
 

@@ -103,6 +103,7 @@ rule target:
         'output/100_figures/Figure_S2.pdf',
         'output/100_figures/Figure_S5.pdf',
         'output/100_figures/Figure_S6.pdf',
+        'output/100_figures/Figure_S7.pdf',
         'output/100_figures/Figure_S8.pdf',
         'output/100_figures/Figure_S9.pdf',
         'output/110_tables/Table_S4.csv',
@@ -175,6 +176,21 @@ rule star_logs:
         'src/figures/star_logs.R'
 
 # 100 figures for paper
+rule lmd_paper_ap2:
+    input:
+        tpm_data = 'data/gene_expression/tpj13147-sup-0007-datas1.tsv'
+    output:
+        sf1 = 'output/100_figures/Figure_S7.pdf'
+    log:
+        'output/000_logs/100_figures/lmd_paper_ap2.log'
+    benchmark:
+        'output/001_bench/100_figures/lmd_paper_ap2.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/lmd_paper_ap2.R'
+
+
 rule panicle_mutants:
     input:
         phenotypes = 'data/phenotyping/panicle_mutants.csv',
