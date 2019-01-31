@@ -17,3 +17,4 @@ data/phenotyping/Phenotype_PanicleSequenced.csv filter=lfs diff=lfs merge=lfs -t
 data/phenotyping/phenotype_name_key.csv filter=lfs diff=lfs merge=lfs -text
 data/genome/os/sharoni_table_s1.csv filter=lfs diff=lfs merge=lfs -text
 data/phenotyping/panicle_mutants.csv filter=lfs diff=lfs merge=lfs -text
+*.tsv filter=lfs diff=lfs merge=lfs -text
