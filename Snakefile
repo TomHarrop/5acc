@@ -966,6 +966,30 @@ rule repair:
 
 
 # 010 prepare data
+rule md5_all:
+    input:
+        expand('output/010_data/md5/{species}_{stage}_{rep}.r{r}.md5',
+               species=all_species,
+               stage=all_stages,
+               rep=all_reps,
+               r=[1,2])
+
+rule md5:
+    input:
+        unpack(FindInputReads)
+    output:
+        r1 = 'output/010_data/md5/{species}_{stage}_{rep}.r1.md5',
+        r2 = 'output/010_data/md5/{species}_{stage}_{rep}.r2.md5'
+    threads:
+        1
+    singularity:
+        singularity_container
+    shell:
+        'md5sum {input.r1} > {output.r1} & '
+        'md5sum {input.r2} > {output.r2} & '
+        'wait'
+
+
 rule tfdb_families:
     input:
         tfdb = 'data/genome/os/tfdb.tab',
