@@ -331,15 +331,16 @@ gp <- ggplot(pd2, aes(x = accession,
                       ymin = log2FoldChange - lfcSE,
                       ymax = log2FoldChange + lfcSE,
                       fill = accession)) +
-  theme_grey(base_size = 6) +
+  theme_minimal(base_size = 6, base_family = "Helvetica") +
   theme(axis.text.x =  element_text(face = "italic"),
-        strip.text = element_text(face = "italic")) +
+        strip.text = element_text(face = "italic"),
+        panel.background = element_rect(colour = "black")) +
   xlab(NULL) +
   ylab(expression(L[2] * "FC ± SE (IM vs. DM)")) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
   scale_fill_manual(values = my_fills, guide = FALSE) +  
   facet_wrap(~ label, scales = "free_y", nrow = 4) +
-  geom_col(position = "dodge", alpha = 0.5) +
+  geom_col(position = "dodge") +
   geom_errorbar(width = 0.1) 
 
 
