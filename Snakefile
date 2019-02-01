@@ -101,6 +101,7 @@ rule target:
         'output/100_figures/Figure_5.pdf',
         'output/100_figures/Figure_6.pdf',
         'output/100_figures/Figure_S2.pdf',
+        'output/100_figures/Figure_S3.pdf',
         'output/100_figures/Figure_S5.pdf',
         'output/100_figures/Figure_S6.pdf',
         'output/100_figures/Figure_S7.pdf',
@@ -176,6 +177,21 @@ rule star_logs:
         'src/figures/star_logs.R'
 
 # 100 figures for paper
+rule phenotype_all_varieties:
+    input:
+        cali_pca = 'output/080_phenotype/cali_pca.Rds',
+        pheno_cali = 'output/080_phenotype/cali.csv'
+    output:
+        sf1 = 'output/100_figures/Figure_S3.pdf'
+    log:
+        'output/000_logs/100_figures/phenotype_all_varieties.log'
+    benchmark:
+        'output/001_bench/100_figures/phenotype_all_varieties.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/phenotype_all_varieties.R'
+
 rule lmd_paper_ap2:
     input:
         tpm_data = 'data/gene_expression/tpj13147-sup-0007-datas1.tsv'
