@@ -17,7 +17,7 @@ All software is containerised, so the only requirements are:
 
 #### The following files are not distributed with the workflow, and must be added to the `data` directory:
 
-- *Raw reads:* (**add SRA link**)
+- *Raw reads are hosted at the NCBI SRA under accession [PRJNA518559](http://www.ncbi.nlm.nih.gov/bioproject/518559)*
     - `data/reads/{sample}_R1.fastq.gz`
     - `data/reads/{sample}_R2.fastq.gz`
 - **O. sativa* assembly and annotation from Phytozome:*
