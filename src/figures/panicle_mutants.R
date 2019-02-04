@@ -53,6 +53,8 @@ setnames(phenotypes,
            "species",
            "accession"))
 
+phenotypes[accession == "Niponbarre", accession := "Nipponbare"]
+
 pheno <- melt(phenotypes,
               id.vars = c("id",
                           "plant_number",
