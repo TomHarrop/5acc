@@ -62,6 +62,11 @@ cpus <- snakemake@threads[[1]]
 
 log_file <- snakemake@log[["log"]]
 
+# dev
+# dds_file <- "output/050_deseq/filtered_dds.Rds"
+# alpha <- 0.1
+# lfcThreshold <- log(1.5, 2)
+
 ########
 # MAIN #
 ########

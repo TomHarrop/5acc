@@ -303,7 +303,9 @@ rule mads_ap2_heatmap:
         sharoni = 'data/genome/os/sharoni_table_s1.csv'
     output:
         fig1 = 'output/100_figures/Figure_3.pdf',
-        sf1 = 'output/100_figures/Figure_S6.pdf'
+        sf1 = 'output/100_figures/Figure_S6.pdf',
+        table1 = 'output/110_tables/Table_S5.csv',
+        table2 = 'output/110_tables/Table_S5b.csv'
     log:
         'output/000_logs/100_figures/mads_ap2_heatmap.log'
     benchmark:

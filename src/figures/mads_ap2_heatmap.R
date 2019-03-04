@@ -8,6 +8,7 @@ sink(log, append = TRUE, type = "output")
 library(cowplot)
 library(data.table)
 library(DESeq2)
+library(fgsea)
 library(ggplot2)
 library(grid)
 library(gridExtra)
@@ -29,14 +30,21 @@ sharoni_file <- snakemake@input[["sharoni"]]
 fig1_file <- snakemake@output[["fig1"]]
 sf1_file <- snakemake@output[["sf1"]]
 
+# tables
+tab1_file <- snakemake@output[["table1"]]
+tab2_file <- snakemake@output[["table2"]]
+
 # dev
 # tfdb_file <- "output/010_data/tfdb.Rds"
 # families_file <- "output/010_data/tfdb_families.Rds"
 # vst_file <- "output/050_deseq/vst.Rds"
 # pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
+# pcro_file <- "tmp/no_nipponbare/rlog_pca/pcro.Rds"
 # arora_file <- "data/genome/os/arora.csv"
 # arora_subclades_file <- "data/genome/os/arora_subclades.csv"
 # sharoni_file <- "data/genome/os/sharoni_table_s1.csv"
+# tab1_file <- "tmp/no_nipponbare/rlog_pca/pca_enrichment.csv"
+# tab2_file <- "tmp/no_nipponbare/rlog_pca/genes_driving_enrichment.csv"
 
 gm_mean <- function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
@@ -66,7 +74,7 @@ sharoni <- fread(sharoni_file)
 #################
 # Heatmap panel #  
 #################
-  
+
 # protect the class column, if it's not a MADS gene
 families[!is.na(Class) & Family != "MADS",
          Class := paste0('"', Class, '"')]
@@ -93,10 +101,10 @@ families[`Protein ID` %in% arora_subclade_genes,
 
 # use sharoni clades for AP2. it's a nasty mess
 sharoni_classes <- sharoni[!is.na(`MSU locus ID`) &
-          `MSU locus ID` != "" &
-          grepl("^Os", `MSU locus ID`),
-        .(gene_id = paste("LOC", `MSU locus ID`, sep = "_"),
-          Class = `Phy. Subfamily`)]
+                             `MSU locus ID` != "" &
+                             grepl("^Os", `MSU locus ID`),
+                           .(gene_id = paste("LOC", `MSU locus ID`, sep = "_"),
+                             Class = `Phy. Subfamily`)]
 sharoni_genes <- sharoni_classes[, unique(gene_id)]
 families[`Protein ID` %in% sharoni_genes,
          Class := paste0('"',
@@ -299,12 +307,12 @@ ggsave(fig1_file,
 
 hb_genes <- tfdb[Family == "HB", unique(`Protein ID`)]
 plot_hb <- intersect(hb_genes,
-                       top_10pct[, unique(locus_id)])
+                     top_10pct[, unique(locus_id)])
 hb_gt <- PlotHeatmapWithFamily(plot_hb, "Homeobox")
 
 nac_genes <- tfdb[Family == "NAC", unique(`Protein ID`)]
 plot_nac <- intersect(nac_genes,
-                     top_10pct[, unique(locus_id)])
+                      top_10pct[, unique(locus_id)])
 nac_gt <- PlotHeatmapWithFamily(plot_nac, "NAC")
 
 spl_genes <- tfdb[Family == "SBP", unique(`Protein ID`)]
@@ -324,6 +332,50 @@ ggsave(sf1_file,
        width = 178*3/2,
        height = 150,
        units = "mm")
+
+###################
+# ENRICHMENT TEST #
+###################
+
+# vector of scores on PC5
+pc5_named <- pcro[, structure(PC5, names = locus_id)]
+
+# named list of family members
+all_fams <- families[, unique(Family)]
+names(all_fams) <- all_fams
+fam_list <- lapply(all_fams, function(x) 
+  families[Family == x, unique(`Protein ID`)])
+
+# run fgsea
+gsea_res <- fgsea(pathways = fam_list,
+                  stats = pc5_named,
+                  minSize = 15,
+                  maxSize = 500,
+                  nperm = 1000)
+
+# table of per-family scores
+gsea_dt <- data.table(gsea_res)
+setorder(gsea_dt, padj)
+setnames(gsea_dt, "pathway", "family")
+
+# table of genes driving enrichment
+leading_edge <- gsea_dt[, .(locus_id = unlist(leadingEdge)), by = family]
+leading_edge_pc5 <- merge(pcro[, .(locus_id, PC5, abs_pc5_rank)],
+                          leading_edge,
+                          all.x = FALSE,
+                          all.y = TRUE)
+annot <- leading_edge_pc5[, oryzr::LocToGeneName(unique(locus_id))]
+leading_edge_annot <- merge(leading_edge_pc5,
+                            annot[, .(locus_id = MsuID, symbols, names, MsuAnnotation)],
+                            all.x = TRUE,
+                            all.y = FALSE)
+setorder(leading_edge_annot, abs_pc5_rank)
+
+# write output
+fwrite(gsea_dt[, names(gsea_dt) != "leadingEdge", with = FALSE],
+       tab1_file)
+fwrite(leading_edge_annot,
+       tab2_file)
 
 # Log
 sessionInfo()

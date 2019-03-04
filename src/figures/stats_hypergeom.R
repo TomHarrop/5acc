@@ -10,7 +10,9 @@ CountSig <- function(x, my_res, alpha) {
 
 tfdb_file <- "output/010_data/tfdb.Rds"
 de_genes_file <- "output/050_deseq/wald_tests/expr_genes/all/stage.csv"
+# de_genes_file <- "tmp/no_nipponbare/wald/all/stage.csv"
 dom_genes_file <- "output/050_deseq/wald_tests/tfs/all/domestication.csv"
+# dom_genes_file <- "tmp/no_nipponbare/wald/all/domestication.csv"
 
 alpha <- 0.1
 
