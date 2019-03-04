@@ -51,6 +51,7 @@ From: ubuntu:18.04
             'data.table', \
             'devtools', \
             'DESeq2', \
+            'fgsea', \
             'GenomicRanges', \
             'ggtree', \
             'Mfuzz', \
