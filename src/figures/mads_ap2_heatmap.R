@@ -35,12 +35,9 @@ sf1_file <- snakemake@output[["sf1"]]
 # families_file <- "output/010_data/tfdb_families.Rds"
 # vst_file <- "output/050_deseq/vst.Rds"
 # pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
-# pcro_file <- "tmp/no_nipponbare/rlog_pca/pcro.Rds"
 # arora_file <- "data/genome/os/arora.csv"
 # arora_subclades_file <- "data/genome/os/arora_subclades.csv"
 # sharoni_file <- "data/genome/os/sharoni_table_s1.csv"
-# tab1_file <- "tmp/no_nipponbare/rlog_pca/pca_enrichment.csv"
-# tab2_file <- "tmp/no_nipponbare/rlog_pca/genes_driving_enrichment.csv"
 
 gm_mean <- function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
@@ -146,8 +143,8 @@ v_lim <- c(-v_max,
 
 # for now this relies on the objects in the environment
 PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
-   # plot_genes <- plot_ap2
-   # plot_title <- "AP2"
+  #  plot_genes <- plot_ap2
+  #  plot_title <- "AP2"
   
   # cut by posn on PC5
   pd <- mean_vst[gene_id %in% plot_genes & species %in% names(spec_order)]
@@ -189,7 +186,9 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
           plot.title = element_text(hjust = 0.5),
           legend.key.size = unit(0.8, "lines"),
           legend.justification = "left") +
-    xlab(NULL) + ylab(NULL) + ggtitle(plot_title) +
+    xlab(" ") + # dummy xlab prevents axis text being cut off in some versions
+    ylab(NULL) + 
+    ggtitle(plot_title) +
     scale_x_discrete(expand = c(0, 0)) +
     scale_y_discrete(expand = c(0, 0)) +
     scale_fill_viridis_c(
@@ -287,7 +286,6 @@ cowplot <- plot_grid(ap2_gt,
                      label_size = 10,
                      label_fontfamily = "Helvetica",
                      rel_widths = c(0.9, 1))
-
 
 ggsave(fig1_file,
        device = cairo_pdf,

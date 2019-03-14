@@ -72,7 +72,8 @@ pheno_pd[, text_name := factor(plyr::mapvalues(text_name,
 
 # draw plot
 paired <- RColorBrewer::brewer.pal(4, "Paired")
-gp <- ggplot(pheno_pd, aes(x = species_label, y = value, colour = species_label)) +
+gp <- ggplot(pheno_pd[species_label != "O. sativa japonica"],
+             aes(x = species_label, y = value, colour = species_label)) +
   theme_minimal(base_size = 8, base_family = "Helvetica") +
   theme(panel.background = element_rect(colour = "black"),
         axis.text.x = element_text(angle = 90,
@@ -80,7 +81,7 @@ gp <- ggplot(pheno_pd, aes(x = species_label, y = value, colour = species_label)
                                    vjust = 0.5,
                                    face = "italic"),
         strip.placement = "outside") +
-  scale_color_manual(values = paired[c(1, 2, 2, 3, 4)],
+  scale_color_manual(values = paired[c(1:4)],
                      guide = FALSE) +
   xlab(NULL) + ylab(NULL ) +
   facet_wrap(~text_name, scales = "free_y", strip.position = "left", nrow = 3) +

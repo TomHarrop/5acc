@@ -72,7 +72,6 @@ all_reps = ['1', '2', '3']
 all_stages = ['PBM', 'SM']
 
 all_de_files = ['domestication',
-                'stage_accession_japonica',
                 'stage_accession_indica',
                 'stage_accession_glaberrima',
                 'stage_between_species',

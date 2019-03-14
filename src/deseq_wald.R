@@ -1,3 +1,9 @@
+# set log
+log <- file(snakemake@log[["log"]], open = "wt")
+sink(log, type = "message")
+sink(log, append = TRUE, type = "output")
+
+
 #!/usr/bin/env Rscript
 
 library(data.table)
@@ -60,8 +66,6 @@ sig_outdir <- snakemake@params[["sig_outdir"]]
 
 cpus <- snakemake@threads[[1]]
 
-log_file <- snakemake@log[["log"]]
-
 # dev
 # dds_file <- "output/050_deseq/filtered_dds.Rds"
 # alpha <- 0.1
@@ -73,11 +77,6 @@ log_file <- snakemake@log[["log"]]
 
 BiocParallel::register(BiocParallel::MulticoreParam(cpus))
 
-# set log
-log <- file(log_file, open = "wt")
-sink(log, type = "message")
-sink(log, append = TRUE, type = "output")
-
 # read the dds
 dds <- readRDS(dds_file)
 
@@ -86,8 +85,7 @@ dds$continent <- factor(dds$continent)
 dds$domestication <- factor(dds$domestication)
 
 # remove japonica
-dds_no_jp <- dds[, dds$accession != "japonica"]
-dds_no_jp$accession <- droplevels(dds_no_jp$accession)
+dds_no_jp <- copy(dds)
 
 # DE TESTS #
 
@@ -115,11 +113,6 @@ dds_stage_accession$accession <- relevel(dds_stage_accession$accession,
 design(dds_stage_accession) <- ~ stage + accession + stage:accession
 dds_stage_accession <- DESeq(dds_stage_accession,
                              parallel = TRUE)
-res_dds_stage_accession_japonica <- DESeqResultsToDataTable(
-  results(dds_stage_accession,
-          name = "stageSM.accessionjaponica",
-          alpha = alpha),
-  dds_stage_accession)
 res_dds_stage_accession_indica <- DESeqResultsToDataTable(
   results(dds_stage_accession,
           name = "stageSM.accessionindica",
@@ -210,7 +203,6 @@ res_dds_stage_continent_asia <- DESeqResultsToDataTable(
 # make a list of all the results
 all_wald_results <- list(
   "domestication" = res_dds_domestication,
-  "stage_accession_japonica" = res_dds_stage_accession_japonica,
   "stage_accession_indica" = res_dds_stage_accession_indica,
   "stage_accession_glaberrima" = res_dds_stage_accession_glaberrima,
   "stage_between_species" = res_dds_stage_between_species,

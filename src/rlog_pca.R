@@ -20,6 +20,11 @@ BiocParallel::register(BiocParallel::MulticoreParam(snakemake@threads[[1]]))
 # Load deseqdataset and calculate rlog ------------------------------------
 
 dds <- readRDS(snakemake@input[["dds"]])
+
+# remove japonica
+dds <- dds[, colData(dds)$accession != "japonica"]
+dds$accession <- droplevels(dds$accession)
+
 design(dds) <- ~ accession + stage + accession:stage
 dds <- DESeq(dds,
              test = "LRT",
