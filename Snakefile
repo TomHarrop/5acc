@@ -56,7 +56,7 @@ def FindInputReads(wildcards):
 
 singularity_container = ('shub://TomHarrop/'
                          'singularity-containers:five-accessions'
-                         '@fd5ccb51739b4415787285d1ece6aca2eb5d60f6')
+                         '@5113b2bd01d16c8d600845e8f290920d9eee8aeb')
 
 
 os_genome = 'data/genome/os/Osativa_323_v7.0.fa'
@@ -72,7 +72,6 @@ all_reps = ['1', '2', '3']
 all_stages = ['PBM', 'SM']
 
 all_de_files = ['domestication',
-                'stage_accession_japonica',
                 'stage_accession_indica',
                 'stage_accession_glaberrima',
                 'stage_between_species',
@@ -108,6 +107,7 @@ rule target:
         'output/100_figures/Figure_S8.pdf',
         'output/100_figures/Figure_S9.pdf',
         'output/110_tables/Table_S4.csv',
+        'output/110_tables/Table_S5.csv',
         'output/110_tables/Table_S6.csv',
         'output/110_tables/Table_S8.csv',
         'output/110_tables/Table_S9.csv',
@@ -118,6 +118,24 @@ rule target:
                r=[1,2])
 
 # 110 tables for paper
+rule fgsea_enrichment_test:
+    input:
+        families = 'output/010_data/tfdb_families.Rds',
+        pcro = 'output/050_deseq/rlog_pca/pcro.Rds',
+    output:
+        table1 = 'output/110_tables/Table_S5.csv',
+        table2 = 'output/110_tables/Table_S5b.csv',
+        table3 = 'output/110_tables/Table_S5c.csv'
+    log:
+        'output/000_logs/110_tables/fgsea_enrichment_test.log'
+    benchmark:
+        'output/001_bench/110_tables/fgsea_enrichment_test.tsv'
+    singularity:
+        singularity_container
+    script:
+        'src/figures/fgsea_enrichment_test.R'
+
+
 rule de_genes_interaction:
     input:
         as_de = 'output/050_deseq/wald_tests/tfs/all/stage_accession_glaberrima.csv',
@@ -291,7 +309,6 @@ rule cluster_phenotype_corr:
     script:
         'src/figures/cluster_phenotype_corr.R'
 
-
 rule mads_ap2_heatmap:
     input:
         tfdb = 'output/010_data/tfdb.Rds',
@@ -304,8 +321,6 @@ rule mads_ap2_heatmap:
     output:
         fig1 = 'output/100_figures/Figure_3.pdf',
         sf1 = 'output/100_figures/Figure_S6.pdf',
-        table1 = 'output/110_tables/Table_S5.csv',
-        table2 = 'output/110_tables/Table_S5b.csv'
     log:
         'output/000_logs/100_figures/mads_ap2_heatmap.log'
     benchmark:

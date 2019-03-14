@@ -50,7 +50,7 @@ pca_pheno[, Species := factor(plyr::revalue(Species, spec_order),
                            levels = unique(spec_order))]
 
 # paint some red
-in_rnaseq <- c("Nipponbare", "IR64", "W1654", "Tog5681", "B88")
+in_rnaseq <- c("IR64", "W1654", "Tog5681", "B88")
 pca_pheno[, in_rnaseq := Name %in% in_rnaseq]
 
 # plot

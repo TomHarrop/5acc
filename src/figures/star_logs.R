@@ -50,6 +50,7 @@ setcolorder(mapping_stats,
 setorder(mapping_stats, Species, Stage, Replicate)
 
 # write output
-fwrite(mapping_stats, snakemake@output[["table1"]])
+fwrite(mapping_stats[Species != "Oryza sativa japonica"],
+       snakemake@output[["table1"]])
 
 sessionInfo()

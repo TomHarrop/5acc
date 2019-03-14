@@ -32,6 +32,10 @@ BiocParallel::register(BiocParallel::MulticoreParam(cpus))
 detected_genes <- readRDS(detected_genes_file)
 dds <- readRDS(dds_file)
 
+# REMOVE JAPONICA FROM ALL SUBSEQUENT EXPTS
+dds <- dds[, colData(dds)$accession != "japonica"]
+dds$accession <- droplevels(dds$accession)
+
 # filter
 dds_filtered <- dds[detected_genes,]
 design(dds_filtered) <- ~ accession + stage + accession:stage

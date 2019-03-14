@@ -26,7 +26,6 @@ fig1_file <- snakemake@output[["fig1"]]
 
 long_spec_order <- c("rufipogon" = "O. rufipogon",
                      "indica" = "O. sativa indica",
-                     "japonica" = "O. sativa japonica",
                      "barthii" = "O. barthii",
                      "glaberrima" = "O. glaberrima")
 
@@ -44,7 +43,7 @@ pca <- readRDS(pca_file)
 # melt 1 -> 5
 pd <- melt(pcx,
      id.vars = c("accession", "stage", "continent", "domestication", "ID"),
-     measure.vars = paste0("PC", 1:5),
+     measure.vars = paste0("PC", 1:4),
      variable.name = "component",
      value.name = "score")
 
@@ -57,8 +56,8 @@ pd[, rep := factor(as.numeric(gsub("[^[:digit:]]+", "", ID)))]
 
 # calculate percent variance for facet labels
 pct_var <- 100 * (pca$sdev^2 / sum(pca$sdev^2))
-pv_dt <- data.table(comp = paste0("PC", 1:5),
-                    pv = pct_var[1:5])
+pv_dt <- data.table(comp = paste0("PC", 1:4),
+                    pv = pct_var[1:4])
 pv_dt[, facet_label := paste0(comp, " (", round(pv, 1), "%)")]
 
 pd[, facet_label := pv_dt[comp == component, facet_label], by = component]
@@ -75,7 +74,7 @@ gp <- ggplot(pd, aes(x = stage,
   xlab(NULL) +
   ylab("Score on component") +
   facet_grid(facet_label ~ accession, scales = "free_y") +
-  scale_fill_manual(values = pc_cols[c(1, 2, 2, 3, 4)],
+  scale_fill_manual(values = pc_cols[c(1:4)],
                     guide = FALSE) +
   geom_col(position = position_dodge(width = 0.8),
            width = 0.7)

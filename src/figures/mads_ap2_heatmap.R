@@ -8,7 +8,6 @@ sink(log, append = TRUE, type = "output")
 library(cowplot)
 library(data.table)
 library(DESeq2)
-library(fgsea)
 library(ggplot2)
 library(grid)
 library(gridExtra)
@@ -30,21 +29,15 @@ sharoni_file <- snakemake@input[["sharoni"]]
 fig1_file <- snakemake@output[["fig1"]]
 sf1_file <- snakemake@output[["sf1"]]
 
-# tables
-tab1_file <- snakemake@output[["table1"]]
-tab2_file <- snakemake@output[["table2"]]
 
 # dev
 # tfdb_file <- "output/010_data/tfdb.Rds"
 # families_file <- "output/010_data/tfdb_families.Rds"
 # vst_file <- "output/050_deseq/vst.Rds"
 # pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
-# pcro_file <- "tmp/no_nipponbare/rlog_pca/pcro.Rds"
 # arora_file <- "data/genome/os/arora.csv"
 # arora_subclades_file <- "data/genome/os/arora_subclades.csv"
 # sharoni_file <- "data/genome/os/sharoni_table_s1.csv"
-# tab1_file <- "tmp/no_nipponbare/rlog_pca/pca_enrichment.csv"
-# tab2_file <- "tmp/no_nipponbare/rlog_pca/genes_driving_enrichment.csv"
 
 gm_mean <- function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
@@ -52,7 +45,6 @@ gm_mean <- function(x, na.rm=TRUE){
 
 spec_order <- c("or" = "O. rufipogon",
                 "osi" = "O. sativa indica",
-                "osj" = "O. sativa japonica",
                 "ob" = "O. barthii",
                 "og" = "O. glaberrima")
 
@@ -135,10 +127,10 @@ mean_vst[, stage := factor(plyr::revalue(stage, stage_order),
 mean_vst[, scaled_vst := scale(mean_vst), by = gene_id]
 
 # select genes to plot
-pcro[, abs_pc5 := abs(PC5)]
-setorder(pcro, abs_pc5, na.last = TRUE)
-pcro[!is.na(abs_pc5), abs_pc5_rank := order(abs_pc5, decreasing = TRUE)]
-top_10pct <- pcro[abs_pc5_rank / max(abs_pc5_rank) < 0.1]
+pcro[, abs_pc4 := abs(PC4)]
+setorder(pcro, abs_pc4, na.last = TRUE)
+pcro[!is.na(abs_pc4), abs_pc4_rank := order(abs_pc4, decreasing = TRUE)]
+top_10pct <- pcro[abs_pc4_rank / max(abs_pc4_rank) < 0.1]
 plot_ap2 <- intersect(ap2_genes,
                       top_10pct[, unique(locus_id)])
 plot_mads <- intersect(mads_genes,
@@ -151,15 +143,15 @@ v_lim <- c(-v_max,
 
 # for now this relies on the objects in the environment
 PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
-  # plot_genes <- plot_spl
-  # plot_title <- "AP2"
+  #  plot_genes <- plot_ap2
+  #  plot_title <- "AP2"
   
   # cut by posn on PC5
-  pd <- mean_vst[gene_id %in% plot_genes]
+  pd <- mean_vst[gene_id %in% plot_genes & species %in% names(spec_order)]
   pd <- merge(pd,
-              pcro[, .(locus_id, PC5)],
+              pcro[, .(locus_id, PC4)],
               by.x = "gene_id", by.y = "locus_id")
-  pd[, cut_row := PC5 < 0]
+  pd[, cut_row := PC4 < 0]
   
   # label genes
   pd[, symbol := oryzr::LocToGeneName(gene_id)$symbols[[1]], by = gene_id]
@@ -194,7 +186,9 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
           plot.title = element_text(hjust = 0.5),
           legend.key.size = unit(0.8, "lines"),
           legend.justification = "left") +
-    xlab(NULL) + ylab(NULL) + ggtitle(plot_title) +
+    xlab(" ") + # dummy xlab prevents axis text being cut off in some versions
+    ylab(NULL) + 
+    ggtitle(plot_title) +
     scale_x_discrete(expand = c(0, 0)) +
     scale_y_discrete(expand = c(0, 0)) +
     scale_fill_viridis_c(
@@ -293,7 +287,6 @@ cowplot <- plot_grid(ap2_gt,
                      label_fontfamily = "Helvetica",
                      rel_widths = c(0.9, 1))
 
-
 ggsave(fig1_file,
        device = cairo_pdf,
        cowplot,
@@ -332,50 +325,6 @@ ggsave(sf1_file,
        width = 178*3/2,
        height = 150,
        units = "mm")
-
-###################
-# ENRICHMENT TEST #
-###################
-
-# vector of scores on PC5
-pc5_named <- pcro[, structure(PC5, names = locus_id)]
-
-# named list of family members
-all_fams <- families[, unique(Family)]
-names(all_fams) <- all_fams
-fam_list <- lapply(all_fams, function(x) 
-  families[Family == x, unique(`Protein ID`)])
-
-# run fgsea
-gsea_res <- fgsea(pathways = fam_list,
-                  stats = pc5_named,
-                  minSize = 15,
-                  maxSize = 500,
-                  nperm = 1000)
-
-# table of per-family scores
-gsea_dt <- data.table(gsea_res)
-setorder(gsea_dt, padj)
-setnames(gsea_dt, "pathway", "family")
-
-# table of genes driving enrichment
-leading_edge <- gsea_dt[, .(locus_id = unlist(leadingEdge)), by = family]
-leading_edge_pc5 <- merge(pcro[, .(locus_id, PC5, abs_pc5_rank)],
-                          leading_edge,
-                          all.x = FALSE,
-                          all.y = TRUE)
-annot <- leading_edge_pc5[, oryzr::LocToGeneName(unique(locus_id))]
-leading_edge_annot <- merge(leading_edge_pc5,
-                            annot[, .(locus_id = MsuID, symbols, names, MsuAnnotation)],
-                            all.x = TRUE,
-                            all.y = FALSE)
-setorder(leading_edge_annot, abs_pc5_rank)
-
-# write output
-fwrite(gsea_dt[, names(gsea_dt) != "leadingEdge", with = FALSE],
-       tab1_file)
-fwrite(leading_edge_annot,
-       tab2_file)
 
 # Log
 sessionInfo()
