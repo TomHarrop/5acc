@@ -143,8 +143,8 @@ v_lim <- c(-v_max,
 
 # for now this relies on the objects in the environment
 PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
-  #  plot_genes <- plot_ap2
-  #  plot_title <- "AP2"
+   # plot_genes <- plot_ap2
+   # plot_title <- "AP2"
   
   # cut by posn on PC5
   pd <- mean_vst[gene_id %in% plot_genes & species %in% names(spec_order)]
@@ -234,7 +234,9 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
   famplot_strip <- gtable_filter(famplotg, "strip-t-1")
   
   # make room
-  hmg2 <- gtable_add_cols(hmg, unit(c(1.5/5, 4), c("null", "pt")),4)
+  hmg2 <- gtable_add_cols(hmg,
+                          unit(c(1.25/4, 4), c("null", "pt")),
+                          4)
   
   # insert it into the table
   hmg3 <- gtable_add_grob(hmg2, famplot_panel, 8, 5, 10, 5 )

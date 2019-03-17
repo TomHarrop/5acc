@@ -62,6 +62,7 @@ tf_hyper[n_sig > 2,
          ),
          by = family]
 tf_hyper[!is.na(p_hyper), p_adj := p.adjust(p_hyper, "fdr")]
+setorder(tf_hyper, p_adj)
 
 # ap2 enrichment in domestication
 dom_bg_list <- lapply(all_list, function(x)
