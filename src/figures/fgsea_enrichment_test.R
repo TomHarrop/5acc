@@ -16,10 +16,11 @@ RunFgsea <- function(pc, pcro, family_list){
   # vector of scores on pc
   pc_named <- structure(pcro[[pc]], names = pcro$locus_id)
   # run fgsea
+  set.seed(14)
   gsea_res <- fgsea(pathways = fam_list,
                     stats = pc_named,
                     minSize = 15,
-                    maxSize = 500,
+                    maxSize = 2000,
                     nperm = 1000)
   gsea_dt <- data.table(gsea_res)
   setorder(gsea_dt, padj)
@@ -47,10 +48,6 @@ tab3_file <- snakemake@output[["table3"]]
 # dev
 # families_file <- "output/010_data/tfdb_families.Rds"
 # pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
-# pcro_file <- "tmp/no_nipponbare/rlog_pca/pcro.Rds"
-# tab1_file <- "tmp/no_nipponbare/rlog_pca/pca_enrichment.csv"
-# tab2_file <- "tmp/no_nipponbare/rlog_pca/genes_driving_enrichment.csv"
-# tab3_file <- "tmp/no_nipponbare/rlog_pca/pca_rotation.csv"
 
 spec_order <- c("or" = "O. rufipogon",
                 "osi" = "O. sativa indica",
@@ -79,6 +76,7 @@ all_fams <- families[, unique(Family)]
 names(all_fams) <- all_fams
 fam_list <- lapply(all_fams, function(x) 
   families[Family == x, unique(`Protein ID`)])
+fam_list$"All TFs" <- unique(unlist(fam_list))
 
 # tidy pcro table
 pcro_long <- melt(pcro, id.vars = "locus_id",
