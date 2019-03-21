@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import multiprocessing
 
 
 #############
@@ -118,18 +119,29 @@ rule target:
                r=[1,2])
 
 # 110 tables for paper
+rule fgsea_enrichment_table:
+    input:
+        'output/055_gsea/gsea_enrichement.csv'
+    output:
+        'output/110_tables/Table_S5.csv'
+    singularity:
+        singularity_container
+    shell:
+        'cp {input} {output}'
+
 rule fgsea_enrichment_test:
     input:
         families = 'output/010_data/tfdb_families.Rds',
-        pcro = 'output/050_deseq/rlog_pca/pcro.Rds',
+        wald_stage = 'output/050_deseq/wald_tests/expr_genes/all/stage.csv'
     output:
-        table1 = 'output/110_tables/Table_S5.csv',
-        table2 = 'output/110_tables/Table_S5b.csv',
-        table3 = 'output/110_tables/Table_S5c.csv'
+        table1 = 'output/055_gsea/gsea_enrichement.csv',
+        table2 = 'output/055_gsea/leading_edge.csv'
     log:
-        'output/000_logs/110_tables/fgsea_enrichment_test.log'
+        'output/000_logs/055_gsea/fgsea_enrichment_test.log'
     benchmark:
-        'output/001_bench/110_tables/fgsea_enrichment_test.tsv'
+        'output/001_bench/055_gsea/fgsea_enrichment_test.tsv'
+    threads:
+        multiprocessing.cpu_count()
     singularity:
         singularity_container
     script:
@@ -314,7 +326,7 @@ rule mads_ap2_heatmap:
         tfdb = 'output/010_data/tfdb.Rds',
         families = 'output/010_data/tfdb_families.Rds',
         vst = 'output/050_deseq/vst.Rds',
-        pcro = 'output/050_deseq/rlog_pca/pcro.Rds',
+        leading_edge = 'output/055_gsea/leading_edge.csv',
         arora = 'data/genome/os/arora.csv',
         arora_subclades = 'data/genome/os/arora_subclades.csv',
         sharoni = 'data/genome/os/sharoni_table_s1.csv'

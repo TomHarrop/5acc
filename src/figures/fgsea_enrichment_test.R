@@ -12,28 +12,28 @@ library(fgsea)
 # FUNCTIONS #
 #############
 
-RunFgsea <- function(pc, pcro, family_list){
-  # vector of scores on pc
-  pc_named <- structure(pcro[[pc]], names = pcro$locus_id)
-  # run fgsea
-  set.seed(14)
-  gsea_res <- fgsea(pathways = fam_list,
-                    stats = pc_named,
-                    minSize = 15,
-                    maxSize = 2000,
-                    nperm = 1000)
-  gsea_dt <- data.table(gsea_res)
-  setorder(gsea_dt, padj)
-  setnames(gsea_dt, "pathway", "family")
-  return(gsea_dt)
-}
+# RunFgsea <- function(pc, pcro, family_list){
+#   # vector of scores on pc
+#   pc_named <- structure(pcro[[pc]], names = pcro$locus_id)
+#   # run fgsea
+#   set.seed(14)
+#   gsea_res <- fgsea(pathways = fam_list,
+#                     stats = pc_named,
+#                     minSize = 15,
+#                     maxSize = 2000,
+#                     nperm = 1000)
+#   gsea_dt <- data.table(gsea_res)
+#   setorder(gsea_dt, padj)
+#   setnames(gsea_dt, "pathway", "family")
+#   return(gsea_dt)
+# }
 
 ###########
 # GLOBALS #
 ###########
 
 families_file <- snakemake@input[["families"]]
-pcro_file <- snakemake@input[["pcro"]]
+wald_stage_file <- snakemake@input[["wald_stage"]]
 
 # plots
 fig1_file <- snakemake@output[["fig1"]]
@@ -42,12 +42,15 @@ sf1_file <- snakemake@output[["sf1"]]
 # tables
 tab1_file <- snakemake@output[["table1"]]
 tab2_file <- snakemake@output[["table2"]]
-tab3_file <- snakemake@output[["table3"]]
 
+cpus <- snakemake@threads[[1]]
 
 # dev
 # families_file <- "output/010_data/tfdb_families.Rds"
-# pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
+# wald_stage_file <- "output/050_deseq/wald_tests/expr_genes/all/stage.csv"
+# cpus <- 8
+# tab1_file <- "tmp/no_pca/fgsea_enrichement.csv"
+# tab2_file <- "tmp/no_pca/leading_edge.csv"
 
 spec_order <- c("or" = "O. rufipogon",
                 "osi" = "O. sativa indica",
@@ -61,71 +64,56 @@ stage_order <- c(PBM = "IM", SM = "DM")
 ########
 
 # data
-pcro <- data.table(readRDS(pcro_file))
 families <- readRDS(families_file)
+wald_stage <- fread(wald_stage_file)
+
 
 ###################
 # ENRICHMENT TEST #
 ###################
-
-pcs_of_interest <- paste0("PC", 1:4)
-names(pcs_of_interest) <- pcs_of_interest
 
 # named list of family members
 all_fams <- families[, unique(Family)]
 names(all_fams) <- all_fams
 fam_list <- lapply(all_fams, function(x) 
   families[Family == x, unique(`Protein ID`)])
-fam_list$"All TFs" <- unique(unlist(fam_list))
 
-# tidy pcro table
-pcro_long <- melt(pcro, id.vars = "locus_id",
-                  measure.vars = pcs_of_interest,
-                  variable.name = "component")
-pcro_long[, abs_val := abs(value)]
-setorder(pcro_long, component, -abs_val)
-pcro_long[, abs_rank := 1:length(unique(locus_id)), by = component]
-setorder(pcro_long, component, abs_rank)
+# get deseq stat to test
+deseq_stat <- wald_stage[, structure(abs(log2FoldChange), names = gene_id)]
 
-# run fgsea on all PCS of interest
-gsea_list <- lapply(pcs_of_interest,
-                    RunFgsea,
-                    pcro = pcro,
-                    family_list = fam_list)
-gsea_all <- rbindlist(gsea_list, idcol = "component")
-setorder(gsea_all, component, padj)
+# subset fam_list, no point running genes that don't exist
+fam_list_subset <- lapply(fam_list, function(x) 
+  x[x %in% names(deseq_stat)])
+
+# run fgsea
+set.seed(1)
+fres <- (fgsea(fam_list_subset,
+               deseq_stat,
+               minSize = 15,
+               maxSize = Inf,
+               nperm = 1e6,
+               nproc = cpus))
+fres_dt <- data.table(fres)
+setnames(fres_dt, "pathway", "family")
+setorder(fres_dt, padj)
 
 # table of genes driving enrichment
-leading_edge <- gsea_all[, .(locus_id = unlist(leadingEdge)),
-                         by = .(family, component)]
+leading_edge <- fres_dt[, .(gene_id = unlist(leadingEdge)),
+                        by = .(family)]
 
 leading_edge_values <- merge(leading_edge,
-                             pcro_long,
+                             wald_stage,
                              all.x = TRUE,
                              all.y = FALSE)
-
-# add annotations
-annot <- pcro[, oryzr::LocToGeneName(unique(locus_id))]
-leading_edge_annot <- merge(leading_edge_values,
-                            annot[, .(locus_id = MsuID, symbols, names, MsuAnnotation)],
-                            by = "locus_id",
-                            all.x = TRUE,
-                            all.y = FALSE)
-setorder(leading_edge_annot, component, abs_rank)
-
-pcro_annot <- merge(pcro,
-      annot[, .(locus_id = MsuID, symbols, names, MsuAnnotation)],
-      by = "locus_id",
-      all.x = TRUE,
-      all.y = FALSE)
+setorder(leading_edge_values, padj)
 
 # write output
-fwrite(gsea_all[, names(gsea_all) != "leadingEdge", with = FALSE],
+fwrite(fres_dt[, names(fres_dt) != "leadingEdge", with = FALSE],
        tab1_file)
-fwrite(leading_edge_annot[, names(leading_edge_annot) != "abs_val",
-                          with = FALSE],
-       tab2_file)
-fwrite(pcro_annot, tab3_file)
+fwrite(leading_edge_values[, !names(leading_edge_values) %in% c(
+  "design", "wald_test", "RapID"),
+  with = FALSE],
+  tab2_file)
 
 # Log
 sessionInfo()

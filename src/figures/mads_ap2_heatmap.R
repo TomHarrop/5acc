@@ -20,7 +20,7 @@ library(gtable)
 tfdb_file <- snakemake@input[["tfdb"]]
 families_file <- snakemake@input[["families"]]
 vst_file <- snakemake@input[["vst"]]
-pcro_file <- snakemake@input[["pcro"]]
+leading_edge_file <- snakemake@input[["leading_edge"]]
 arora_file <- snakemake@input[["arora"]]
 arora_subclades_file <- snakemake@input[["arora_subclades"]]
 sharoni_file <- snakemake@input[["sharoni"]]
@@ -34,10 +34,12 @@ sf1_file <- snakemake@output[["sf1"]]
 # tfdb_file <- "output/010_data/tfdb.Rds"
 # families_file <- "output/010_data/tfdb_families.Rds"
 # vst_file <- "output/050_deseq/vst.Rds"
-# pcro_file <- "output/050_deseq/rlog_pca/pcro.Rds"
 # arora_file <- "data/genome/os/arora.csv"
 # arora_subclades_file <- "data/genome/os/arora_subclades.csv"
 # sharoni_file <- "data/genome/os/sharoni_table_s1.csv"
+# leading_edge_file <- "tmp/no_pca/leading_edge.csv"
+# wald_stage_file <- "output/050_deseq/wald_tests/expr_genes/all/stage.csv"
+# fig1_file <- "tmp/no_pca/mads_ap2_heatmap.pdf"
 
 gm_mean <- function(x, na.rm=TRUE){
   exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
@@ -56,12 +58,13 @@ stage_order <- c(PBM = "IM", SM = "DM")
 
 # data
 vst <- readRDS(vst_file)
-pcro <- data.table(readRDS(pcro_file))
 tfdb <- readRDS(tfdb_file)
 families <- readRDS(families_file)
 arora <- fread(arora_file)
 arora_subclades <- fread(arora_subclades_file)
 sharoni <- fread(sharoni_file)
+leading_edge <- fread(leading_edge_file)
+
 
 #################
 # Heatmap panel #  
@@ -127,14 +130,12 @@ mean_vst[, stage := factor(plyr::revalue(stage, stage_order),
 mean_vst[, scaled_vst := scale(mean_vst), by = gene_id]
 
 # select genes to plot
-pcro[, abs_pc4 := abs(PC4)]
-setorder(pcro, abs_pc4, na.last = TRUE)
-pcro[!is.na(abs_pc4), abs_pc4_rank := order(abs_pc4, decreasing = TRUE)]
-top_10pct <- pcro[abs_pc4_rank / max(abs_pc4_rank) < 0.1]
-plot_ap2 <- intersect(ap2_genes,
-                      top_10pct[, unique(locus_id)])
-plot_mads <- intersect(mads_genes,
-                       top_10pct[, unique(locus_id)])
+lfc_cutoff <- 1
+leading_edge <- unique(leading_edge, by = "gene_id")
+plot_ap2 <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
+                           family == "AP2-EREBP", unique(gene_id)]
+plot_mads <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
+                            family == "MADS", unique(gene_id)]
 
 # set up scale
 v_max <- mean_vst[gene_id %in% c(plot_ap2, plot_mads), max(abs(scaled_vst))]
@@ -143,15 +144,15 @@ v_lim <- c(-v_max,
 
 # for now this relies on the objects in the environment
 PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
-   # plot_genes <- plot_ap2
-   # plot_title <- "AP2"
+  # plot_genes <- plot_ap2
+  # plot_title <- "AP2"
   
-  # cut by posn on PC5
+  # cut by lfc sign
   pd <- mean_vst[gene_id %in% plot_genes & species %in% names(spec_order)]
   pd <- merge(pd,
-              pcro[, .(locus_id, PC4)],
-              by.x = "gene_id", by.y = "locus_id")
-  pd[, cut_row := PC4 < 0]
+              leading_edge[, .(gene_id, log2FoldChange)],
+              by = "gene_id")
+  pd[, cut_row := log2FoldChange < 0]
   
   # label genes
   pd[, symbol := oryzr::LocToGeneName(gene_id)$symbols[[1]], by = gene_id]
@@ -276,7 +277,7 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
 ap2_gt <- PlotHeatmapWithFamily(plot_ap2,
                                 expression(italic("AP2/EREBP-")*"like"))
 mads_gt <- PlotHeatmapWithFamily(plot_mads,
-                                 "MADS-box")
+                                 expression(italic("MADS-")*"box"))
 
 ###########
 # COMBINE #
@@ -296,23 +297,21 @@ ggsave(fig1_file,
        height = 150,
        units = "mm")
 
+
 #################################
 # SUPPLEMENTARY HOMEOBOX FIGURE #
 #################################
 
-hb_genes <- tfdb[Family == "HB", unique(`Protein ID`)]
-plot_hb <- intersect(hb_genes,
-                     top_10pct[, unique(locus_id)])
+plot_hb <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
+                          family == "HB", unique(gene_id)]
 hb_gt <- PlotHeatmapWithFamily(plot_hb, "Homeobox")
 
-nac_genes <- tfdb[Family == "NAC", unique(`Protein ID`)]
-plot_nac <- intersect(nac_genes,
-                      top_10pct[, unique(locus_id)])
+plot_nac <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
+                           family == "NAC", unique(gene_id)]
 nac_gt <- PlotHeatmapWithFamily(plot_nac, "NAC")
 
-spl_genes <- tfdb[Family == "SBP", unique(`Protein ID`)]
-plot_spl <- intersect(spl_genes,
-                      top_10pct[, unique(locus_id)])
+plot_spl <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
+                           family == "SBP", unique(gene_id)]
 spl_gt <- PlotHeatmapWithFamily(plot_spl, "SBP")
 
 # combine it
