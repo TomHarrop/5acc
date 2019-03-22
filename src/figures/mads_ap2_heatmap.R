@@ -64,7 +64,7 @@ arora <- fread(arora_file)
 arora_subclades <- fread(arora_subclades_file)
 sharoni <- fread(sharoni_file)
 leading_edge <- fread(leading_edge_file)
-
+wald_stage <- fread(wald_stage_file)
 
 #################
 # Heatmap panel #  
@@ -130,6 +130,15 @@ mean_vst[, stage := factor(plyr::revalue(stage, stage_order),
 mean_vst[, scaled_vst := scale(mean_vst), by = gene_id]
 
 # select genes to plot
+wald_stage[, alfc := abs(log2FoldChange)]
+setkey(wald_stage)
+setorder(wald_stage, -alfc, na.last = TRUE)
+wald_stage[, lfc_rank := order(alfc, decreasing = TRUE, na.last = TRUE)]
+top10pct <- wald_stage[lfc_rank / max(lfc_rank) < 0.1,
+           unique(gene_id)]
+plot_mads <- unique(intersect(mads_genes, top10pct))
+plot_ap2 <- unique(intersect(ap2_genes, top10pct))
+
 lfc_cutoff <- 1
 leading_edge <- unique(leading_edge, by = "gene_id")
 plot_ap2 <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
