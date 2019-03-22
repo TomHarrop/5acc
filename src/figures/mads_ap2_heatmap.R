@@ -139,12 +139,12 @@ top10pct <- wald_stage[lfc_rank / max(lfc_rank) < 0.1,
 plot_mads <- unique(intersect(mads_genes, top10pct))
 plot_ap2 <- unique(intersect(ap2_genes, top10pct))
 
-lfc_cutoff <- 1
-leading_edge <- unique(leading_edge, by = "gene_id")
-plot_ap2 <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
-                           family == "AP2-EREBP", unique(gene_id)]
-plot_mads <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
-                            family == "MADS", unique(gene_id)]
+# lfc_cutoff <- 1
+# leading_edge <- unique(leading_edge, by = "gene_id")
+# plot_ap2 <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
+#                            family == "AP2-EREBP", unique(gene_id)]
+# plot_mads <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
+#                             family == "MADS", unique(gene_id)]
 
 # set up scale
 v_max <- mean_vst[gene_id %in% c(plot_ap2, plot_mads), max(abs(scaled_vst))]
@@ -159,7 +159,7 @@ PlotHeatmapWithFamily <- function(plot_genes, plot_title) {
   # cut by lfc sign
   pd <- mean_vst[gene_id %in% plot_genes & species %in% names(spec_order)]
   pd <- merge(pd,
-              leading_edge[, .(gene_id, log2FoldChange)],
+              wald_stage[, .(gene_id, log2FoldChange)],
               by = "gene_id")
   pd[, cut_row := log2FoldChange < 0]
   
