@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import multiprocessing
 
 
 #############
@@ -56,7 +57,7 @@ def FindInputReads(wildcards):
 
 singularity_container = ('shub://TomHarrop/'
                          'singularity-containers:five-accessions'
-                         '@5113b2bd01d16c8d600845e8f290920d9eee8aeb')
+                         '@2de5f7df11d99408f4b6c1ad4c40e7beb0cc5ece')
 
 
 os_genome = 'data/genome/os/Osativa_323_v7.0.fa'
@@ -102,7 +103,6 @@ rule target:
         'output/100_figures/Figure_S2.pdf',
         'output/100_figures/Figure_S3.pdf',
         'output/100_figures/Figure_S5.pdf',
-        'output/100_figures/Figure_S6.pdf',
         'output/100_figures/Figure_S7.pdf',
         'output/100_figures/Figure_S8.pdf',
         'output/100_figures/Figure_S9.pdf',
@@ -118,18 +118,29 @@ rule target:
                r=[1,2])
 
 # 110 tables for paper
+rule fgsea_enrichment_table:
+    input:
+        'output/055_gsea/gsea_enrichement.csv'
+    output:
+        'output/110_tables/Table_S5.csv'
+    singularity:
+        singularity_container
+    shell:
+        'cp {input} {output}'
+
 rule fgsea_enrichment_test:
     input:
         families = 'output/010_data/tfdb_families.Rds',
-        pcro = 'output/050_deseq/rlog_pca/pcro.Rds',
+        wald_stage = 'output/050_deseq/wald_tests/expr_genes/all/stage.csv'
     output:
-        table1 = 'output/110_tables/Table_S5.csv',
-        table2 = 'output/110_tables/Table_S5b.csv',
-        table3 = 'output/110_tables/Table_S5c.csv'
+        table1 = 'output/055_gsea/gsea_enrichement.csv',
+        table2 = 'output/055_gsea/leading_edge.csv'
     log:
-        'output/000_logs/110_tables/fgsea_enrichment_test.log'
+        'output/000_logs/055_gsea/fgsea_enrichment_test.log'
     benchmark:
-        'output/001_bench/110_tables/fgsea_enrichment_test.tsv'
+        'output/001_bench/055_gsea/fgsea_enrichment_test.tsv'
+    threads:
+        multiprocessing.cpu_count()
     singularity:
         singularity_container
     script:
@@ -314,13 +325,12 @@ rule mads_ap2_heatmap:
         tfdb = 'output/010_data/tfdb.Rds',
         families = 'output/010_data/tfdb_families.Rds',
         vst = 'output/050_deseq/vst.Rds',
-        pcro = 'output/050_deseq/rlog_pca/pcro.Rds',
         arora = 'data/genome/os/arora.csv',
         arora_subclades = 'data/genome/os/arora_subclades.csv',
-        sharoni = 'data/genome/os/sharoni_table_s1.csv'
+        sharoni = 'data/genome/os/sharoni_table_s1.csv',
+        wald_stage = 'output/050_deseq/wald_tests/expr_genes/all/stage.csv'
     output:
-        fig1 = 'output/100_figures/Figure_3.pdf',
-        sf1 = 'output/100_figures/Figure_S6.pdf',
+        fig1 = 'output/100_figures/Figure_3.pdf'
     log:
         'output/000_logs/100_figures/mads_ap2_heatmap.log'
     benchmark:

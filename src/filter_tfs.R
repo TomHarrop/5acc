@@ -42,6 +42,10 @@ all_tfs <- tfdb[, unique(`Protein ID`)]
 kept_genes <- intersect(names(dds), intersect(all_tfs, det_genes))
 dds_exp_tfs <- dds[kept_genes]
 
+# REMOVE JAPONICA FROM ALL SUBSEQUENT EXPTS
+dds_exp_tfs <- dds_exp_tfs[, colData(dds_exp_tfs)$accession != "japonica"]
+dds_exp_tfs$accession <- droplevels(dds_exp_tfs$accession)
+
 # write output
 saveRDS(dds_exp_tfs, dds_tfs_only)
 
