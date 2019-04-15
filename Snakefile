@@ -103,9 +103,9 @@ rule target:
         'output/100_figures/Figure_S2.pdf',
         'output/100_figures/Figure_S3.pdf',
         'output/100_figures/Figure_S5.pdf',
+        'output/100_figures/Figure_S6.pdf',
         'output/100_figures/Figure_S7.pdf',
         'output/100_figures/Figure_S8.pdf',
-        'output/100_figures/Figure_S9.pdf',
         'output/110_tables/Table_S4.csv',
         'output/110_tables/Table_S5.csv',
         'output/110_tables/Table_S6.csv',
@@ -122,7 +122,7 @@ rule fgsea_enrichment_table:
     input:
         'output/055_gsea/gsea_enrichement.csv'
     output:
-        'output/110_tables/Table_S5.csv'
+        'output/110_tables/Table_S6.csv'
     singularity:
         singularity_container
     shell:
@@ -181,7 +181,7 @@ rule de_genes_stage:
     input:
         de_genes = 'output/050_deseq/wald_tests/expr_genes/all/stage.csv'
     output:
-        table1 = 'output/110_tables/Table_S6.csv'
+        table1 = 'output/110_tables/Table_S5.csv'
     log:
         'output/000_logs/110_tables/de_genes_stage.log'
     benchmark:
@@ -225,7 +225,7 @@ rule lmd_paper_ap2:
     input:
         tpm_data = 'data/gene_expression/tpj13147-sup-0007-datas1.tsv'
     output:
-        sf1 = 'output/100_figures/Figure_S7.pdf'
+        sf1 = 'output/100_figures/Figure_S6.pdf'
     log:
         'output/000_logs/100_figures/lmd_paper_ap2.log'
     benchmark:
@@ -257,7 +257,7 @@ rule phenotyping_mpl:
         phenotypes = 'data/phenotyping/Phenotype_PanicleSequenced.csv',
         pheno_names = 'data/phenotyping/phenotype_name_key.csv'
     output:
-        sf1 = 'output/100_figures/Figure_S8.pdf'
+        sf1 = 'output/100_figures/Figure_S7.pdf'
     log:
         'output/000_logs/100_figures/phenotyping_mpl.log'
     benchmark:
@@ -310,7 +310,7 @@ rule cluster_phenotype_corr:
         cali_corr = 'output/080_phenotype/cali_cluster_correlation.csv'
     output:
         fig1 = 'output/100_figures/Figure_5.pdf',
-        sf1 = 'output/100_figures/Figure_S9.pdf'
+        sf1 = 'output/100_figures/Figure_S8.pdf'
     log:
         'output/000_logs/100_figures/cluster_phenotype_corr.log'
     benchmark:

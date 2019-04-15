@@ -104,16 +104,16 @@ dom_gp <- PlotGoiLfcs(dom_genes,
 sep_but_both <- PlotGoiLfcs(
   both_sep[!both_sep %in% dom_genes],
   lfc_table = plot_lfc,
-  ncol = 6)
+  ncol = 5)
 
 cowplot <- plot_grid(dom_gp, sep_but_both,
           ncol = 1,
-          align = "hv",
-          axis = "tblr",
+          align = "v",
+          axis = "tb",
           labels = c("(a)", "(b)"),
           label_size = 10,
           label_fontfamily = "Helvetica",
-          rel_heights = c(4, 1.25))
+          rel_heights = c(4, 2))
 
 ggsave(fig1_file,
        cowplot,
