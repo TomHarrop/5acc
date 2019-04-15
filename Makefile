@@ -11,7 +11,6 @@ dag/dag.svg: Snakefile
 	output/100_figures/Figure_S2.pdf \
 	output/100_figures/Figure_S3.pdf \
 	output/100_figures/Figure_S5.pdf \
-	output/100_figures/Figure_S6.pdf \
 	output/100_figures/Figure_S7.pdf \
 	output/100_figures/Figure_S8.pdf \
 	output/100_figures/Figure_S9.pdf \
