@@ -113,7 +113,7 @@ cowplot <- plot_grid(dom_gp, sep_but_both,
           labels = c("(a)", "(b)"),
           label_size = 10,
           label_fontfamily = "Helvetica",
-          rel_heights = c(4, 2))
+          rel_heights = c(4.4, 2.4))
 
 ggsave(fig1_file,
        cowplot,
