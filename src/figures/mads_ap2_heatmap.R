@@ -20,15 +20,13 @@ library(gtable)
 tfdb_file <- snakemake@input[["tfdb"]]
 families_file <- snakemake@input[["families"]]
 vst_file <- snakemake@input[["vst"]]
-leading_edge_file <- snakemake@input[["leading_edge"]]
 arora_file <- snakemake@input[["arora"]]
 arora_subclades_file <- snakemake@input[["arora_subclades"]]
 sharoni_file <- snakemake@input[["sharoni"]]
+wald_stage_file <- snakemake@input[["wald_stage"]]
 
 # plots
 fig1_file <- snakemake@output[["fig1"]]
-sf1_file <- snakemake@output[["sf1"]]
-
 
 # dev
 # tfdb_file <- "output/010_data/tfdb.Rds"
@@ -37,7 +35,6 @@ sf1_file <- snakemake@output[["sf1"]]
 # arora_file <- "data/genome/os/arora.csv"
 # arora_subclades_file <- "data/genome/os/arora_subclades.csv"
 # sharoni_file <- "data/genome/os/sharoni_table_s1.csv"
-# leading_edge_file <- "tmp/no_pca/leading_edge.csv"
 # wald_stage_file <- "output/050_deseq/wald_tests/expr_genes/all/stage.csv"
 # fig1_file <- "tmp/no_pca/mads_ap2_heatmap.pdf"
 
@@ -63,7 +60,6 @@ families <- readRDS(families_file)
 arora <- fread(arora_file)
 arora_subclades <- fread(arora_subclades_file)
 sharoni <- fread(sharoni_file)
-leading_edge <- fread(leading_edge_file)
 wald_stage <- fread(wald_stage_file)
 
 #################
@@ -81,17 +77,24 @@ families[Family == "MADS",
 families[Family == "MADS" & grepl("_", Class), Class := NA]
 
 # add subclades where possible
-arora_subclades[!is.na(arora_subclade) & !grepl("-like", arora_subclade),
-                arora_subclade := paste0('italic("', arora_subclade, '")')]
-arora_subclades[!is.na(arora_subclade),
-                arora_subclade := gsub("([[:alnum:]]+)-like",
+arora_subclades[grepl("-like", subclade),
+                subclade_label := gsub("([[:alnum:]]+)-like",
                                        'italic("\\1-")*"like"',
-                                       arora_subclade)]
-arora_subclade_genes <- arora_subclades[!is.na(arora_subclade),
+                                       subclade)]
+arora_subclades[subclade == "MIKC*",
+                subclade_label := '"MIKC*"']
+arora_subclades[subclade == "Malpha",
+                subclade_label := paste0('"M"', '*alpha')]
+arora_subclades[subclade == "Mbeta",
+                subclade_label := paste0('"M"', '*beta')]
+arora_subclades[subclade == "Mgamma",
+                subclade_label := paste0('"M"', '*gamma')]
+
+arora_subclade_genes <- arora_subclades[!is.na(subclade),
                                         unique(gene_id)]
 families[`Protein ID` %in% arora_subclade_genes,
          Class := arora_subclades[gene_id == `Protein ID`,
-                                  unique(arora_subclade)],
+                                  unique(subclade_label)],
          by = `Protein ID`]
 
 # use sharoni clades for AP2. it's a nasty mess
@@ -138,13 +141,6 @@ top10pct <- wald_stage[lfc_rank / max(lfc_rank) < 0.1,
            unique(gene_id)]
 plot_mads <- unique(intersect(mads_genes, top10pct))
 plot_ap2 <- unique(intersect(ap2_genes, top10pct))
-
-# lfc_cutoff <- 1
-# leading_edge <- unique(leading_edge, by = "gene_id")
-# plot_ap2 <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
-#                            family == "AP2-EREBP", unique(gene_id)]
-# plot_mads <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
-#                             family == "MADS", unique(gene_id)]
 
 # set up scale
 v_max <- mean_vst[gene_id %in% c(plot_ap2, plot_mads), max(abs(scaled_vst))]
@@ -303,36 +299,6 @@ ggsave(fig1_file,
        device = cairo_pdf,
        cowplot,
        width = 178,
-       height = 150,
-       units = "mm")
-
-
-#################################
-# SUPPLEMENTARY HOMEOBOX FIGURE #
-#################################
-
-plot_hb <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
-                          family == "HB", unique(gene_id)]
-hb_gt <- PlotHeatmapWithFamily(plot_hb, "Homeobox")
-
-plot_nac <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
-                           family == "NAC", unique(gene_id)]
-nac_gt <- PlotHeatmapWithFamily(plot_nac, "NAC")
-
-plot_spl <- leading_edge[abs(log2FoldChange) > lfc_cutoff &
-                           family == "SBP", unique(gene_id)]
-spl_gt <- PlotHeatmapWithFamily(plot_spl, "SBP")
-
-# combine it
-s8_panels <- plot_grid(
-  hb_gt, nac_gt, spl_gt,
-  ncol = 3,
-  rel_widths = c(1.1, 1, 1))
-
-ggsave(sf1_file,
-       device = cairo_pdf,
-       s8_panels,
-       width = 178*3/2,
        height = 150,
        units = "mm")
 

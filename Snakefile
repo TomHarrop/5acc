@@ -103,7 +103,6 @@ rule target:
         'output/100_figures/Figure_S2.pdf',
         'output/100_figures/Figure_S3.pdf',
         'output/100_figures/Figure_S5.pdf',
-        'output/100_figures/Figure_S6.pdf',
         'output/100_figures/Figure_S7.pdf',
         'output/100_figures/Figure_S8.pdf',
         'output/100_figures/Figure_S9.pdf',
@@ -326,13 +325,12 @@ rule mads_ap2_heatmap:
         tfdb = 'output/010_data/tfdb.Rds',
         families = 'output/010_data/tfdb_families.Rds',
         vst = 'output/050_deseq/vst.Rds',
-        leading_edge = 'output/055_gsea/leading_edge.csv',
         arora = 'data/genome/os/arora.csv',
         arora_subclades = 'data/genome/os/arora_subclades.csv',
-        sharoni = 'data/genome/os/sharoni_table_s1.csv'
+        sharoni = 'data/genome/os/sharoni_table_s1.csv',
+        wald_stage = 'output/050_deseq/wald_tests/expr_genes/all/stage.csv'
     output:
-        fig1 = 'output/100_figures/Figure_3.pdf',
-        sf1 = 'output/100_figures/Figure_S6.pdf',
+        fig1 = 'output/100_figures/Figure_3.pdf'
     log:
         'output/000_logs/100_figures/mads_ap2_heatmap.log'
     benchmark:

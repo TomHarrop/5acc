@@ -90,3 +90,9 @@ dom_hyper[n_sig > 2,
          by = family]
 dom_hyper[!is.na(p_hyper), p_adj := p.adjust(p_hyper, "fdr")]
 setorder(dom_hyper, p_adj)
+
+# domestication ap2s in de genes
+ap2 <- tfdb[Family == "AP2-EREBP", unique(`Protein ID`)]
+ap2_dom <- dom_genes[padj < 0.1 & gene_id %in% ap2, unique(gene_id)]
+intersect(ap2_dom, plot_ap2)
+deseq_res[gene_id %in% ap2_dom, log2FoldChange]
