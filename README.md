@@ -24,7 +24,7 @@ All software is containerised, so the only requirements are:
     - `data/genome/os/Osativa_323_v7.0.fa`
     - `data/genome/os/Osativa_323_v7.0.gene_exons.gff3`
 
-#### The following files are included in the github repository in the `data` directory:
+#### The following files are included in the github repository in the `data` directory. If [Git Large File Storage](https://git-lfs.github.com/) is installed, the files will be downloaded with the repository.
 
 - *Phenotyping data that are used in figures*
     + Cali phenotying data
@@ -78,19 +78,21 @@ The container includes:
 - `samtools` 1.7
 - `STAR` 2.5.4b
 - `wgsim` 0.3.1-r13
-- `python` 3.6.5, with packages
-    + `cutadapt` 1.18
-    + `HTSeq` 0.9.1
+- `python` 3.6.7, with packages
+    + `cutadapt` 2.4
+    + `HTSeq` 0.11.2
 - `R` 3.4.4, with packages
     + `Bioconductor` 3.6
-    + `data.table` 1.11.2
+    + `data.table` 1.12.0
     + `DESeq2` 1.18.1
     + `GenomicRanges` 1.30.3
     + `Mfuzz` 2.38.0
-    + `oryzr` 0.1.23
-    + `rtracklayer`  1.30.3
+    + `oryzr` 0.1.24
+    + `rtracklayer`  1.38.3
     + `tidyverse` metapackage 1.2.1
-    + `valr` 0.4.0  
+    + `valr` 0.5.0  
+
+The container can also be built from the recipe file `Singularity.five-accessions` in this repo.
 
 ### Workflow
 
