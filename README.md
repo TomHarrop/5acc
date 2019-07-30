@@ -92,8 +92,6 @@ The container includes:
     + `tidyverse` metapackage 1.2.1
     + `valr` 0.5.0  
 
-The container can also be built from the recipe file `Singularity.five-accessions` in this repo.
-
 ### Workflow
 
 ![](dag/dag.svg)
